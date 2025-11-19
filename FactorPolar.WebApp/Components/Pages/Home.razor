@@ -1,0 +1,11 @@
+﻿@page "/"
+
+<AuthorizeView>
+    <Authorized>
+        <h3>Hola, usted esta autorizado!</h3>
+        <p>ID: @context.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)!.Value</p>
+    </Authorized>
+    <NotAuthorized>
+        <h3>Hola, usted no esta autorizado!</h3>
+    </NotAuthorized>
+</AuthorizeView>

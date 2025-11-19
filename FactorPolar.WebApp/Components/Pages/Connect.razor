@@ -1,0 +1,36 @@
+﻿@page "/connect/{id}"
+
+@code {
+    public Task<AuthenticationState> authState { get; set; }
+    [Parameter] public string Id { get; set; } = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // var client = httpClientFactory.CreateClient(Constant.Client);
+
+        try
+        {
+            var user = (await authState).User;
+            if(user.Identity!.IsAuthenticated)
+            {
+                NavManager.NavigateTo("/");
+            }
+        }
+        catch { }
+
+        if(string.IsNullOrEmpty(Id))
+        {
+            NavManager.NavigateTo("/");
+        }
+
+        // var response = await client.GetAsync($"authorize/token/{Id}");
+        // if(response.IsSuccessStatusCode)
+        // {
+        //     string accessToken = await response.Content.ReadAsStringAsync();
+        //     await localStorageService.SaveAsStringAsync(Constant.Key, accessToken);
+        //     var authState = (CustomAuthState)authStateProvider;
+        //     authState.NotifyAuthStateChanged();
+        //     NavManager.NavigateTo("/", true);
+        // }
+    }
+}

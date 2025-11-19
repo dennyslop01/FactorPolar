@@ -1,0 +1,16 @@
+﻿@page "/login"
+@rendermode InteractiveServer
+
+<button class="btn btn-primary" @onclick="LoginAsync">Login con Google</button>
+
+@code {
+    private async Task LoginAsync()
+    {
+        // var client = httpClientFactory.CreateClient(Constant.Client);
+        // var result = await client.GetAsync("/autorize");
+        // if(result.IsSuccessStatusCode)
+        // {
+        //     NavManager.NavigateTo(await result.Content.ReadAsStringAsync());
+        // }
+    }
+}
