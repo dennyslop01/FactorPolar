@@ -1,36 +1,68 @@
-﻿@page "/connect/{id}"
+﻿@page "/connect/{userId}"
+@rendermode InteractiveServer
 
 @code {
-    public Task<AuthenticationState> authState { get; set; }
-    [Parameter] public string Id { get; set; } = string.Empty;
+    [Parameter] public string userId { get; set; } = string.Empty;
+
+    [Inject] private ICredentialRepository repository { get; set; } = null!;
+    public Task<AuthenticationState> AuthState { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InvokeJsFunctionAsync();
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
-        // var client = httpClientFactory.CreateClient(Constant.Client);
+        //await InvokeJsFunctionAsync();
+    }
 
-        try
-        {
-            var user = (await authState).User;
-            if(user.Identity!.IsAuthenticated)
-            {
-                NavManager.NavigateTo("/");
-            }
-        }
-        catch { }
+    private async Task InvokeJsFunctionAsync()
+    {
+        // try
+        // {
+        //     var user = (await AuthState).User;
+        //     if (user.Identity!.IsAuthenticated)
+        //     {
+        //         NavManager.NavigateTo("/");
+        //     }
+        // }
+        // catch { }
 
-        if(string.IsNullOrEmpty(Id))
+        if (string.IsNullOrEmpty(userId))
         {
             NavManager.NavigateTo("/");
         }
 
-        // var response = await client.GetAsync($"authorize/token/{Id}");
-        // if(response.IsSuccessStatusCode)
-        // {
-        //     string accessToken = await response.Content.ReadAsStringAsync();
-        //     await localStorageService.SaveAsStringAsync(Constant.Key, accessToken);
-        //     var authState = (CustomAuthState)authStateProvider;
-        //     authState.NotifyAuthStateChanged();
-        //     NavManager.NavigateTo("/", true);
-        // }
+        try
+        {
+            Guid _userId = Guid.Empty;
+            try
+            {
+                _userId = Guid.Parse(userId);
+            }
+            catch { NavManager.NavigateTo("/", true); }
+
+
+            var response = await repository.GetCredentialUserId(_userId);
+            if (response != null)
+            {
+
+                string accessToken = JsonSerializer.Serialize(
+                                        new Token(response!.AccessToken, response.UserId.ToString()));
+
+                await localStorageService.SaveAsStringAsync(Constant.Key, accessToken);
+                var authState = (CustomAuthState)authStateProvider;
+                authState.NotifyAuthStateChanged();
+                NavManager.NavigateTo("/", true);
+            }
+        }
+        catch
+        {
+            NavManager.NavigateTo("/");
+        }
     }
 }

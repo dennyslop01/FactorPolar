@@ -4,6 +4,8 @@
 <button class="btn btn-primary" @onclick="LoginAsync">Login con Google</button>
 
 @code {
+    [Inject] private IGoogleAuthorization googleAuthorization { get; set; } = null!;
+
     private async Task LoginAsync()
     {
         // var client = httpClientFactory.CreateClient(Constant.Client);
@@ -12,5 +14,11 @@
         // {
         //     NavManager.NavigateTo(await result.Content.ReadAsStringAsync());
         // }
+
+        string result = googleAuthorization.GetGoogleAuthorizationUrl();
+        if (!string.IsNullOrEmpty(result))
+        {
+            NavManager.NavigateTo(result);
+        }
     }
 }

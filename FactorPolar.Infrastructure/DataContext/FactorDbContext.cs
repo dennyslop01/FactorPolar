@@ -1,5 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Client.Platforms.Features.DesktopOs.Kerberos;
+﻿using FactorPolar.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace FactorPolar.Infrastructure.DataContext
 {

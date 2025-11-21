@@ -1,23 +1,46 @@
 ﻿@inherits LayoutComponentBase
+@* Required *@
+<MudThemeProvider />
+<MudPopoverProvider />
 
-<div class="page">
-    <div class="sidebar">
+@* Needed for dialogs *@
+<MudDialogProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="2" Style="background: linear-gradient(135deg, #144e77  0%, #144e77  100%);">
+        @*  <MudIconButton Icon="@Icons.Material.Filled.Menu"
+                       Color="Color.Inherit"
+                       Edge="Edge.Start"
+                       OnClick="@((e) => DrawerToggle())" /> *@
+        <MudImage Src="LogoPolar.png" Alt="Empresas Polar" Elevation="25" Class="rounded-lg" />
+        @* <MudIcon Icon="@Icons.Material.Filled.Business" Style="margin-right: 8px;" /> *@
+        <MudText Typo="Typo.h4" Style="color: white;"></MudText>
+        <MudSpacer />
+        <MudText Typo="Typo.body1" Style="color: white; margin-right: 16px;">
+            <AuthLinks />
+        </MudText>
+    </MudAppBar>
+    @* <MudDrawer @bind-Open="_drawerOpen"
+               ClipMode="DrawerClipMode.Always"
+               Elevation="2">
         <NavMenu />
-    </div>
+    </MudDrawer> *@
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
+    @* Needed for snackbars *@
+    <MudSnackbarProvider />
 
-        <article class="content px-4">
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.Large" Style="margin-top: 3rem">
             @Body
-        </article>
-    </main>
-</div>
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
 
-<div id="blazor-error-ui" data-nosnippet>
-    An unhandled error has occurred.
-    <a href="." class="reload">Reload</a>
-    <span class="dismiss">🗙</span>
-</div>
+@code {
+    bool _drawerOpen = false;
+
+    void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+}

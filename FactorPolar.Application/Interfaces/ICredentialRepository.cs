@@ -7,5 +7,6 @@ namespace FactorPolar.Application.Interfaces
         Task<Credential> GetCredentialToken(string accessToken);
         Task<Credential> GetCredentialUserId(Guid userId);
         Task<bool> CreateCredential(Credential credential);
+        Task<bool> DeleteCredential(string accessToken);
     }
 }
