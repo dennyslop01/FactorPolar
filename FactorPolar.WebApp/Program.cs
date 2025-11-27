@@ -42,6 +42,8 @@ builder.Services.AddMudServices();
 builder.Services.AddScoped<IGoogleAuthHelper, GoogleAuthHelperSevice>();
 builder.Services.AddScoped<IGoogleAuthorization, GoogleAuthorizationService>();
 builder.Services.AddScoped<ICredentialRepository, CredentialRepository>();
+builder.Services.AddScoped<IEmployee, EmployeeRepository>();
+builder.Services.AddScoped<IBeneficiario, BeneficiarioRepository>();
 
 builder.Services.AddCascadingAuthenticationState();
 //builder.Services.AddHttpClient(Constant.Client, client =>
