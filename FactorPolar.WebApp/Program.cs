@@ -10,8 +10,9 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
-using NetcodeHub.Packages.Extensions.LocalStorage;
 using MudBlazor.Services;
+using NetcodeHub.Packages.Extensions.LocalStorage;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,6 +37,11 @@ builder.Services.AddAuthentication(options =>
     options.ClientId = builder.Configuration["Google:ClientId"]!;
     options.ClientSecret = builder.Configuration["Google:ClientSecret"]!;
     options.CallbackPath = $"/{builder.Configuration["Google:RedirectUri"]}"!;
+
+    options.Scope.Add("https://www.googleapis.com/auth/userinfo.email");
+    options.Scope.Add("https://www.googleapis.com/auth/userinfo.profile");
+
+    options.ClaimActions.MapJsonKey(ClaimTypes.GivenName, "given_name");
 });
 
 builder.Services.AddMudServices();

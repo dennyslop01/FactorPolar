@@ -18,7 +18,7 @@ namespace FactorPolar.WebApp.State
                 if (!string.IsNullOrEmpty(token))
                 {
                     var tokenModel = JsonSerializer.Deserialize<Token>(token);
-                    claimsPrincipal = SetClaimPrincipal(tokenModel!.UserId);
+                    claimsPrincipal = SetClaimPrincipal(tokenModel!.UserId, tokenModel!.email, tokenModel!.name);
                     return await Task.FromResult(new AuthenticationState(claimsPrincipal));
                 }
                 return await Task.FromResult(new AuthenticationState(claimsPrincipal));
@@ -26,11 +26,11 @@ namespace FactorPolar.WebApp.State
             catch { return await Task.FromResult(new AuthenticationState(claimsPrincipal)); }
         }
 
-        private ClaimsPrincipal SetClaimPrincipal(string userId)
+        private ClaimsPrincipal SetClaimPrincipal(string userId, string email, string name)
         {
             try
             {
-                Claim[] claims = [new(ClaimTypes.NameIdentifier, userId)];
+                Claim[] claims = [new(ClaimTypes.NameIdentifier, userId), new(ClaimTypes.Email, email), new(ClaimTypes.Name, name)];
                 return new ClaimsPrincipal(new ClaimsIdentity(claims, Constant.Schema));
             }
             catch { return new ClaimsPrincipal(new ClaimsIdentity()); }
