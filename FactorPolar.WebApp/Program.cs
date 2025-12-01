@@ -61,6 +61,10 @@ builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthState>();
 builder.Services.AddAuthorizationCore();
 builder.Services.AddNetcodeHubLocalStorageService();
 
+builder.Services.AddServerSideBlazor().AddCircuitOptions(options => {
+    options.DetailedErrors = true;
+});
+
 
 var app = builder.Build();
 
