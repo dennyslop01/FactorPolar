@@ -1,0 +1,43 @@
+﻿@page "/documento3/{Id}"
+@using System.ComponentModel.DataAnnotations
+@rendermode InteractiveServer
+
+<h5>Editar Beneficiario</h5>
+
+<p>@datosbenefi</p>
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    public class DocumentoModel
+    {
+        [Required(ErrorMessage = "Debe completar el campo.")]
+        public string Acepto { get; set; } = string.Empty;
+    }
+
+    string datosbenefi = string.Empty;
+    private Beneficiario? beneficiario = new();
+    private string? mensajeAlerta;
+    private bool mostrarAlerta = false;
+    private DocumentoModel entidadActual = new();
+
+    [Inject] private IBeneficiario repobenefi { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            beneficiario = await repobenefi.GetByIdlAsync(int.Parse(Id));
+            if (beneficiario != null)
+            {
+                datosbenefi = $"{beneficiario.CedulaIdentidad} - {beneficiario.FullName} - {beneficiario.Edad} años";
+            }
+            entidadActual = new DocumentoModel();
+        }
+        catch (Exception ex)
+        {
+            datosbenefi = $"Error al cargar datos del beneficiario: {ex.Message}";
+        }
+    }
+}

@@ -124,13 +124,13 @@
     private void EditarEntidad(Beneficiario ben)
     {
         if (ben.Documento1 == null)
-            NavManager.NavigateTo($"/Documento1/{ben.Id}");
+            NavManager.NavigateTo($"/documento1/{ben.Id}");
         else if (ben.Documento2 == null)
-            NavManager.NavigateTo($"/Documento2/{ben.Id}");
+            NavManager.NavigateTo($"/documento2/{ben.Id}");
         else if (ben.Documento3 == null)
-            NavManager.NavigateTo($"/Documento3/{ben.Id}");
+            NavManager.NavigateTo($"/documento3/{ben.Id}");
         else
-            NavManager.NavigateTo($"/Editar/{ben.Id}");
+            NavManager.NavigateTo($"/editar/{ben.Id}");
 
     }
 }

@@ -1,0 +1,111 @@
+﻿@page "/documento3/{Id}"
+@using System.ComponentModel.DataAnnotations
+@rendermode InteractiveServer
+
+<h5>Documento 3</h5>
+
+<p>@datosbenefi</p>
+
+<p>Lea detenidamente el documento hata el final y escriba la palabra "Acepto" para acepyar terminos y condiciones</p>
+
+<iframe src="@rutadocumento" style="width:100%; height:500px;" frameborder="0"></iframe>
+<br />
+<br />
+
+<EditForm Model="@entidadActual" OnValidSubmit="GuardarDatos">
+    <DataAnnotationsValidator />
+
+    <div class="d-flex justify-content-center">
+        <div class="mb-3">
+            <label class="form-label">Escriba la palabra "Acepto"</label>
+            <InputText class="form-control" @bind-Value="entidadActual.Acepto" maxlength="10" style="width: 90%;" />
+            <ValidationMessage For="@(() => entidadActual.Acepto)" />
+        </div>
+    </div>
+    <div class="d-flex justify-content-center">
+        <button type="submit" class="btn btn-success me-2">
+            <i class="bi bi-save"></i> Guardar
+        </button>
+    </div>
+
+</EditForm>
+@if (mostrarAlerta)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @mensajeAlerta
+        <button type="button" class="btn-close" @onclick="() => mostrarAlerta = false"></button>
+    </div>
+}
+<br />
+<br />
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    public class DocumentoModel
+    {
+        [Required(ErrorMessage = "Debe completar el campo.")]
+        public string Acepto { get; set; } = string.Empty;
+    }
+
+    string rutadocumento = string.Empty;
+    string datosbenefi = string.Empty;
+    private Beneficiario? beneficiario = new();
+    private string? mensajeAlerta;
+    private bool mostrarAlerta = false;
+    private DocumentoModel entidadActual = new();
+
+    [Inject] private IBeneficiario repobenefi { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            beneficiario = await repobenefi.GetByIdlAsync(int.Parse(Id));
+            if (beneficiario != null)
+            {
+                datosbenefi = $"{beneficiario.CedulaIdentidad} - {beneficiario.FullName} - {beneficiario.Edad} años";
+                rutadocumento = Assets[$"Documentos/Documento3.pdf"];
+            }
+            entidadActual = new DocumentoModel();
+        }
+        catch (Exception ex)
+        {
+            datosbenefi = $"Error al cargar datos del beneficiario: {ex.Message}";
+        }
+    }
+
+    private async Task GuardarDatos()
+    {
+        if (string.IsNullOrEmpty(entidadActual.Acepto) || entidadActual.Acepto.ToLower() != "acepto")
+        {
+            mensajeAlerta = "Debe escribir la palabra Acepto";
+            mostrarAlerta = true;
+        }
+        else
+        {
+            try
+            {
+                await repobenefi.UpdateAsync(int.Parse(Id), 3);
+                mensajeAlerta = "Datos guardados correctamente.";
+                mostrarAlerta = true;
+                NavManager.NavigateTo($"/editar/{Id}");
+            }
+            catch (Exception ex)
+            {
+                mensajeAlerta = $"Error al guardar los datos: {ex.Message}";
+                mostrarAlerta = true;
+            }
+        }
+    }
+}
+
+<script>
+    document.addEventListener("keydown", function (e) {
+        if (e.ctrlKey && (e.key === "p" || e.key === "P")) {
+            e.preventDefault();
+            alert("La impresión está deshabilitada.");
+        }
+    });
+</script>

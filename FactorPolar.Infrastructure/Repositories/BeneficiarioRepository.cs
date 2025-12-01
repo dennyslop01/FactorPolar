@@ -67,5 +67,34 @@ namespace FactorPolar.Infrastructure.Repositories
                 .FirstOrDefaultAsync();
             return benefi;
         }
+
+        public async Task<Beneficiario?> UpdateAsync(int id, int opcion)
+        {
+            var benefi = await _context.Beneficiarios
+                .Include(b => b.Employee)
+                .Where(x => x.Id == id)
+                .AsQueryable().AsNoTracking()
+                .FirstOrDefaultAsync();
+            if (benefi == null)
+            {
+                return null;
+            }
+            switch (opcion)
+            {
+                case 1:
+                    benefi.Documento1 = "ACEPTO";
+                    break;
+                case 2:
+                    benefi.Documento2 = "ACEPTO";
+                    break;
+                case 3:
+                    benefi.Documento3 = "ACEPTO";
+                    break;
+            }
+            _context.Beneficiarios.Update(benefi);
+            await _context.SaveChangesAsync();
+            _context.Entry(benefi).State = EntityState.Detached;
+            return benefi;
+        }
     }
 }
