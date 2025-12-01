@@ -40,7 +40,22 @@ namespace FactorPolar.Infrastructure.Repositories
             {
                 Console.WriteLine($"Error al obtener el empleado por email: {ex.Message}");
                 throw new Exception(ex.Message);
-            }            
+            }
+        }
+
+        public async Task<Employee?> GetByEmailAsync(string email)
+        {
+            try
+            {
+                Employee? employee = await _context.Employees
+                    .Where(x => x.Email == email).AsQueryable().AsNoTracking().FirstOrDefaultAsync();
+                return employee;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al obtener el empleado por email: {ex.Message}");
+                throw new Exception(ex.Message);
+            }
         }
 
         public Employee? GetById(int id)

@@ -1,0 +1,74 @@
+﻿@page "/connect/{userId}"
+@using System.IdentityModel.Tokens.Jwt
+@using FactorPolar.WebAdmin.State
+@rendermode InteractiveServer
+
+@code {
+    [Parameter] public string userId { get; set; } = string.Empty;
+
+    [Inject] private ICredentialRepository repository { get; set; } = null!;
+    public Task<AuthenticationState> AuthState { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InvokeJsFunctionAsync();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        //await InvokeJsFunctionAsync();
+    }
+
+    private async Task InvokeJsFunctionAsync()
+    {
+        // try
+        // {
+        //     var user = (await AuthState).User;
+        //     if (user.Identity!.IsAuthenticated)
+        //     {
+        //         NavManager.NavigateTo("/");
+        //     }
+        // }
+        // catch { }
+
+        if (string.IsNullOrEmpty(userId))
+        {
+            NavManager.NavigateTo("/");
+        }
+
+        try
+        {
+            Guid _userId = Guid.Empty;
+            try
+            {
+                _userId = Guid.Parse(userId);
+            }
+            catch { NavManager.NavigateTo("/", true); }
+
+
+            var response = await repository.GetCredentialUserId(_userId);
+            if (response != null)
+            {
+                var handler = new JwtSecurityTokenHandler();
+                var token = handler.ReadJwtToken(response.IdToken);
+                string? email = token.Claims.FirstOrDefault(c => c.Type == "email")?.Value;
+                string? name = token.Claims.FirstOrDefault(c => c.Type == "name")?.Value;
+
+                string accessToken = JsonSerializer.Serialize(
+                                        new Token(response!.AccessToken, response.UserId.ToString(), email, name));
+
+                await localStorageService.SaveAsStringAsync(Constant.Key, accessToken);
+                var authState = (CustomAuthState)authStateProvider;
+                authState.NotifyAuthStateChanged();
+                NavManager.NavigateTo("/", true);
+            }
+        }
+        catch
+        {
+            NavManager.NavigateTo("/");
+        }
+    }
+}

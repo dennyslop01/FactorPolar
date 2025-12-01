@@ -11,5 +11,7 @@ namespace FactorPolar.Application.Interfaces
     {
         Beneficiario? GetByEmployeeEmail(string email);
         Beneficiario? Create(Beneficiario beneficiario, string email);
+        Task<List<Beneficiario?>> GetByEmployeeEmailAsync(string email);
+        Task<Beneficiario?> GetByIdlAsync(int id);
     }
 }

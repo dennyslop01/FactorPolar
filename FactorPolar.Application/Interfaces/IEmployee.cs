@@ -6,6 +6,7 @@ namespace FactorPolar.Application.Interfaces
     {
         Employee? GetById(int id);
         Employee? GetByEmail(string email);
+        Task<Employee?> GetByEmailAsync(string email);
         Employee? Create(Employee employee);
     }
 }

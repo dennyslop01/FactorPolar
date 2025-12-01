@@ -1,0 +1,50 @@
+﻿@page "/"
+@rendermode InteractiveServer
+
+@using System.Security.Claims
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Home</PageTitle>
+
+<AuthorizeView>
+    <Authorized>
+        <h4>Hola, Bienvenido!</h4>
+        <p>@userName</p>
+
+        @if (!existe)
+        {
+            <p>El correo ingresado no tiene acceso a este beneficio, en caso de tener beneficiarios que aplique por favor comuniquese con Gestion Humana!</p>
+        }
+    </Authorized>
+    <NotAuthorized>
+        <h3>Hola, usted debe realizar login!</h3>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    bool existe = false;
+    private string? userEmail;
+    private string? userName;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            await LoadUserDataAsync();
+        }
+        catch (Exception ex)
+        {
+            // Manejo de errores (opcional)
+            Console.WriteLine($"Error al cargar datos del usuario: {ex.Message}");
+        }
+    }
+
+    private async Task LoadUserDataAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        userEmail = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+        userName = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+        await Task.CompletedTask;
+    }
+}

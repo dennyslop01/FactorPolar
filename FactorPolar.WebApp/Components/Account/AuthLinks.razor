@@ -4,23 +4,21 @@
     <AuthorizeView>
         <Authorized>
                 <MudStack Row="true" Spacing="2" Justify="Justify.Center" AlignItems="AlignItems.Center">
-                    @* <a Href="/"><MudImage Src="LogoPolar.png" Alt="Empresas Polar" Elevation="25" Class="rounded-lg" /></a> *@
-                <MudButton Variant="Variant.Filled" Color="Color.Secondary" Href="EditUser"
+                @* <MudButton Variant="Variant.Filled" Color="Color.Secondary" Href="EditUser"
                            Style="background-color: rgba(255,255,255,0.2); color: white;">
                     <MudIcon Icon="@Icons.Material.Filled.PersonPin" />Perfil
-                </MudButton>
+                </MudButton> *@
                 <MudButton @onclick="LogoutAsync" Variant="Variant.Filled" Color="Color.Error"
                                Style="background-color: rgba(255,255,255,0.2); color: white;">
-                    <MudIcon Icon="@Icons.Material.Filled.ExitToApp" />
+                    <MudIcon Icon="@Icons.Material.Filled.ExitToApp" /> Logout
                     </MudButton>
                 </MudStack>
         </Authorized>
         <NotAuthorized>
             <MudStack Row="true" Spacing="2" Justify="Justify.Center" AlignItems="AlignItems.Center">
-                @* <a Href="/"><MudImage Src="LogoPolar.png" Alt="Empresas Polar" Elevation="25" Class="rounded-lg" /></a> *@
                 <MudButton Href="login" Variant="Variant.Filled" Color="Color.Error"
                            Style="background-color: rgba(255,255,255,0.2); color: white;">
-                    <MudIcon Icon="@Icons.Material.Filled.Login" />
+                    <MudIcon Icon="@Icons.Material.Filled.Login" /> Login
                 </MudButton>
             </MudStack>
         </NotAuthorized>

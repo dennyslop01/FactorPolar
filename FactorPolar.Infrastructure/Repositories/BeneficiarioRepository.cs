@@ -47,5 +47,25 @@ namespace FactorPolar.Infrastructure.Repositories
                 .FirstOrDefault(x => x.Employee.Email == email);
             return benefi!;
         }
+
+        public async Task<List<Beneficiario?>> GetByEmployeeEmailAsync(string email)
+        {
+            var benefi = await _context.Beneficiarios
+                .Include(b => b.Employee)
+                .Where(x => x.Employee.Email == email)
+                .AsQueryable().AsNoTracking()
+                .ToListAsync();
+            return benefi;
+        }
+
+        public async Task<Beneficiario?> GetByIdlAsync(int id)
+        {
+            var benefi = await _context.Beneficiarios
+                .Include(b => b.Employee)
+                .Where(x => x.Id == id)
+                .AsQueryable().AsNoTracking()
+                .FirstOrDefaultAsync();
+            return benefi;
+        }
     }
 }
