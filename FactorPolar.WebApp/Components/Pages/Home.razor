@@ -76,8 +76,27 @@
     </NotAuthorized>
 </AuthorizeView>
 
+@if (cargando)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5); align-content:center">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="modal-cargando text-lg-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     bool existe = false;
+    private bool cargando = false;
+
     private Employee employee = new();
     private List<Beneficiario>? beneficiario = new();
     private string? userEmail;
@@ -89,6 +108,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        cargando = true;
         try
         {
             await LoadUserDataAsync();
@@ -98,6 +118,7 @@
             // Manejo de errores (opcional)
             Console.WriteLine($"Error al cargar datos del usuario: {ex.Message}");
         }
+        cargando = false;
     }
 
     private async Task LoadUserDataAsync()

@@ -82,39 +82,42 @@
 
                                 <div class="mb-3">
                                     <label class="form-label">Tipo Institución:</label>
-                                    <InputText class="form-control" @bind-Value="entidadActual.TipoInstitucion" />
+                                    <InputSelect class="form-select" @bind-Value="entidadActual.TipoInstitucion">
+                                        <option value="">-- Seleccione uno --</option>
+                                        <option value="PÚBLICA">PÚBLICA</option>
+                                        <option value="PRIVADA">PRIVADA</option>
+                                    </InputSelect>
                                     <ValidationMessage For="@(() => entidadActual.TipoInstitucion)" />
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Nombre Institución:</label>
-                                    <InputText class="form-control" @bind-Value="entidadActual.NombreInstitucion" />
+                                    <InputText class="form-control" @bind-Value="entidadActual.NombreInstitucion" maxlength="200" />
                                     <ValidationMessage For="@(() => entidadActual.NombreInstitucion)" />
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Rif Institución:</label>
-                                    @* <InputSelect class="form-select" @bind-Value="entidadActual.RifInstitucion">
-                                        <option value="-1">-- Seleccione uno --</option>
-                                        @foreach (var item in RifInstitucion)
-                                        {
-                                            <option value="@item.Id">@item.Name</option>
-                                        }
-                                    </InputSelect> *@
+                                    <InputText class="form-control" @bind-Value="entidadActual.RifInstitucion" maxlength="15" />
                                     <ValidationMessage For="@(() => entidadActual.RifInstitucion)" />
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Nivel Educativo:</label>
-                                    @* <InputSelect class="form-select" @bind-Value="entidadActual.NivelEducativo">
-                                        <option value="-1">-- Seleccione uno --</option>
-                                        @foreach (var item in categorias)
-                                        {
-                                            <option value="@item.Id">@item.Name</option>
-                                        }
-                                    </InputSelect> *@
+                                    @* <InputSelect class="form-select" @bind-Value="entidadActual.NivelEducativo"> *@
+                                    <InputSelect class="form-select" ValueExpression="@(() => entidadActual.NivelEducativo)" ValueChanged="@((string value) => CargarGrado(value))" Value="entidadActual.NivelEducativo">
+                                        <option value="">-- Seleccione uno --</option>
+                                        <option value="PRIMARIA">PRIMARIA</option>
+                                        <option value="MEDIA">MEDIA</option>
+                                    </InputSelect>
                                     <ValidationMessage For="@(() => entidadActual.NivelEducativo)" />
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Grado Educativo:</label>
-                                    <InputText class="form-control" @bind-Value="entidadActual.GradoEducativo" />
+                                    <InputSelect class="form-select" @bind-Value="entidadActual.GradoEducativo">
+                                        <option value=" ">-- Seleccione uno --</option>
+                                        @foreach(var grado in grados)
+                                        {
+                                            <option value="@grado.Grados">@grado.Grados</option>
+                                        }
+                                    </InputSelect>
                                     <ValidationMessage For="@(() => entidadActual.GradoEducativo)" />
                                 </div>
                                 <div class="d-flex justify-content-end">
@@ -131,8 +134,6 @@
                 </div>
             </div>
         }
-
-
     </div>
 </div>
 
@@ -140,22 +141,14 @@
     [Parameter]
     public string Id { get; set; }
 
-    public class BenefiModel
+    public class GradoAcademicoopt
     {
-        [Required(ErrorMessage = "Debe completar el campo.")]
-        public string TipoInstitucion { get; set; } = string.Empty;
-        [Required(ErrorMessage = "Debe completar el campo.")]
-        public string NombreInstitucion { get; set; } = string.Empty;
-        [Required(ErrorMessage = "Debe completar el campo.")]
-        public string RifInstitucion { get; set; } = string.Empty;
-        [Required(ErrorMessage = "Debe completar el campo.")]
-        public string NivelEducativo { get; set; } = string.Empty;
-        [Required(ErrorMessage = "Debe completar el campo.")]
-        public string GradoEducativo { get; set; } = string.Empty;
+        public string Grados { get; set; }
     }
 
     string datosbenefi = string.Empty;
     private Beneficiario? beneficiario = new();
+    private List<GradoAcademicoopt?> grados = new();
 
     private string? mensajeAlerta;
     private bool mostrarAlerta = false;
@@ -187,6 +180,8 @@
         entidadActual.NombreInstitucion = beneficiario?.NombreInstitucion ?? string.Empty;
         entidadActual.RifInstitucion = beneficiario?.RifInstitucion ?? string.Empty;
         entidadActual.NivelEducativo = beneficiario?.NivelEducativo ?? string.Empty;
+        CargarGrado(entidadActual.NivelEducativo);
+
         entidadActual.GradoEducativo = beneficiario?.GradoEducativo ?? string.Empty;
 
         mostrarFormulario = true;
@@ -201,7 +196,7 @@
     {
         try
         {
-
+            beneficiario = await repobenefi.UpdateAcademicDataAsync(int.Parse(Id), entidadActual);
             mostrarFormulario = false;
             mensajeAlerta = "Datos guardados exitosamente.";
             mostrarAlerta = true;
@@ -211,5 +206,42 @@
             mensajeAlerta = ex.Message;
             mostrarAlerta = true;
         }
+    }
+
+    private void CargarGrado(string value)
+    {
+        if (value == "PRIMARIA")
+        {
+            grados = new List<GradoAcademicoopt?>
+            {
+                new GradoAcademicoopt { Grados = "1ER GRADO" },
+                new GradoAcademicoopt { Grados = "2DO GRADO" },
+                new GradoAcademicoopt { Grados = "3ER GRADO" },
+                new GradoAcademicoopt { Grados = "4TO GRADO" },
+                new GradoAcademicoopt { Grados = "5TO GRADO" },
+                new GradoAcademicoopt { Grados = "6TO GRADO" }
+            };
+        }
+        else if (value == "MEDIA")
+        {
+            grados = new List<GradoAcademicoopt?>
+            {
+                new GradoAcademicoopt { Grados = "7MO GRADO" },
+                new GradoAcademicoopt { Grados = "8VO GRADO" },
+                new GradoAcademicoopt { Grados = "9NO GRADO" },
+                new GradoAcademicoopt { Grados = "4TO AÑO" },
+                new GradoAcademicoopt { Grados = "5TO AÑO" },
+                new GradoAcademicoopt { Grados = "6TO AÑO" }
+            };
+        }
+        else
+        {
+            grados = new List<GradoAcademicoopt?>();
+        }
+
+        if (entidadActual.NivelEducativo != value)
+            entidadActual.GradoEducativo = " ";
+
+        entidadActual.NivelEducativo = value;
     }
 }

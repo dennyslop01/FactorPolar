@@ -30,6 +30,7 @@ namespace FactorPolar.Infrastructure.Repositories
                     _context.Entry(beneficiario.Employee).State = EntityState.Unchanged;
 
                     _context.SaveChanges();
+                    _context.Entry(beneficiario.Employee).State = EntityState.Detached;
                     _context.Entry(beneficiario).State = EntityState.Detached;
                     return beneficiario;
                 }
@@ -92,9 +93,38 @@ namespace FactorPolar.Infrastructure.Repositories
                     break;
             }
             _context.Beneficiarios.Update(benefi);
+            _context.Entry(benefi.Employee).State = EntityState.Unchanged;
+
             await _context.SaveChangesAsync();
+            _context.Entry(benefi.Employee).State = EntityState.Detached;
             _context.Entry(benefi).State = EntityState.Detached;
             return benefi;
+        }
+
+        public async Task<Beneficiario?> UpdateAcademicDataAsync(int id, BenefiModel benefi)
+        {
+            var beneficiario = await _context.Beneficiarios
+                .Include(b => b.Employee)
+                .Where(x => x.Id == id)
+                .AsQueryable().AsNoTracking()
+                .FirstOrDefaultAsync();
+            if (beneficiario == null)
+            {
+                return null;
+            }
+            beneficiario.TipoInstitucion = benefi.TipoInstitucion;
+            beneficiario.NombreInstitucion = benefi.NombreInstitucion;
+            beneficiario.RifInstitucion = benefi.RifInstitucion;
+            beneficiario.NivelEducativo = benefi.NivelEducativo;
+            beneficiario.GradoEducativo = benefi.GradoEducativo;
+
+            _context.Beneficiarios.Update(beneficiario);
+            _context.Entry(beneficiario.Employee).State = EntityState.Unchanged;
+
+            await _context.SaveChangesAsync();
+            _context.Entry(beneficiario).State = EntityState.Detached;
+            _context.Entry(beneficiario.Employee).State = EntityState.Detached;
+            return beneficiario;
         }
     }
 }
