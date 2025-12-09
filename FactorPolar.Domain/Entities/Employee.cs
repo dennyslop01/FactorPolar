@@ -38,5 +38,6 @@ namespace FactorPolar.Domain.Entities
         public DateTime CreateDate { get; set; }
         public DateTime UpdateDate { get; set; }
         public Employee Employee { get; set; }
+        public int? Promedio { get; set; }
     }
 }

@@ -21,7 +21,10 @@ namespace FactorPolar.Infrastructure.Repositories
             else
             {
                 Beneficiario? benefiaux = _context.Beneficiarios
-                    .FirstOrDefault(b => b.Denominacion == beneficiario.Denominacion && b.CedulaIdentidad == beneficiario.CedulaIdentidad && b.FullName == beneficiario.FullName)!;
+                    .FirstOrDefault(b => b.Denominacion == beneficiario.Denominacion && 
+                                    b.CedulaIdentidad == beneficiario.CedulaIdentidad && 
+                                    b.FullName == beneficiario.FullName &&
+                                    b.Promedio > 17)!;
 
                 if (benefiaux == null)
                 {
@@ -117,6 +120,7 @@ namespace FactorPolar.Infrastructure.Repositories
             beneficiario.RifInstitucion = benefi.RifInstitucion;
             beneficiario.NivelEducativo = benefi.NivelEducativo;
             beneficiario.GradoEducativo = benefi.GradoEducativo;
+            beneficiario.Promedio = benefi.Promedio;
 
             _context.Beneficiarios.Update(beneficiario);
             _context.Entry(beneficiario.Employee).State = EntityState.Unchanged;

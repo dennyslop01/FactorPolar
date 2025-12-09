@@ -145,12 +145,20 @@
 
     private async Task LoadUserDataAsync()
     {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        userEmail = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+        userName = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
         if (!string.IsNullOrEmpty(userEmail))
         {
-            usuario = await repousuario.GetByEmailAsync(userEmail);
-            if (usuario != null)
+            employee = await repoemployee.GetByEmailAsync(userEmail);
+            if (employee != null)
             {
                 existe = true;
+                employeeName = employee.FullName;
+                employeeNumber = employee.EmployeeNumber.ToString();
+
+                beneficiario = await repobenefi.GetByEmployeeEmailAsync(employee.Email);
             }
         }
         await Task.CompletedTask;
@@ -160,14 +168,10 @@
     {
         if (!string.IsNullOrEmpty(userEmail))
         {
-            employee = await repoemployee.GetByEmailAsync(userEmail);
-            if (employee != null)
+            usuario = await repousuario.GetByEmailAsync(userEmail);
+            if (usuario != null)
             {
                 existeAdminUser = true;
-                employeeName = employee.FullName;
-                employeeNumber = employee.EmployeeNumber.ToString();
-
-                beneficiario = await repobenefi.GetByEmployeeEmailAsync(employee.Email);
             }
         }
         await Task.CompletedTask;

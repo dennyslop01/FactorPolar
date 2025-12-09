@@ -51,6 +51,14 @@
                     <label class="form-label">@beneficiario?.GradoEducativo</label>
                 </div>
             </div>
+            <div class="row">
+                <div class="col-3">
+                    <strong><label class="form-label">Promedio Nota:</label></strong>
+                </div>
+                <div class="col-8">
+                    <label class="form-label">@beneficiario?.Promedio</label>
+                </div>
+            </div>
             <div class="d-flex justify-content-start">
                 <button class="btn btn-primary btn-sm me-1" title="Editar" @onclick="EditarEntidad">
                     <i class="bi bi-pencil"></i> Editar
@@ -120,6 +128,11 @@
                                     </InputSelect>
                                     <ValidationMessage For="@(() => entidadActual.GradoEducativo)" />
                                 </div>
+                                <div class="mb-3">
+                                    <strong><label class="form-label">Promedio Nota:</label></strong>
+                                    <InputNumber class="form-control" @bind-Value="entidadActual.Promedio" maxlength="2" style="width:25%" />
+                                    <ValidationMessage For="@(() => entidadActual.Promedio)" />
+                                </div>
                                 <div class="d-flex justify-content-end">
                                     <button type="submit" class="btn btn-success me-2">
                                         <i class="bi bi-save"></i> Guardar
@@ -183,6 +196,8 @@
         CargarGrado(entidadActual.NivelEducativo);
 
         entidadActual.GradoEducativo = beneficiario?.GradoEducativo ?? string.Empty;
+        if (beneficiario?.Promedio != null)
+            entidadActual.Promedio = beneficiario.Promedio;
 
         mostrarFormulario = true;
     }
