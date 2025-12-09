@@ -45,7 +45,7 @@ namespace FactorPolar.CargaEmpleados
                         Console.WriteLine($"Error al procesar el archivo: {filePath} - {ex.Message}");
                     }
 
-                    //File.Delete(filePath);
+                    File.Delete(filePath);
 
                     Console.WriteLine($"Termino archivo: {filePath}");
                 }

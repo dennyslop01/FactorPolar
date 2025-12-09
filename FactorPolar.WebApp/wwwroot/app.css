@@ -58,3 +58,17 @@ h1:focus {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
+/* En tu archivo CSS aislado (.razor.css) o global (app.css) */
+.modal-contenido-pequeno {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 11px; /* También puedes ajustar el ancho máximo del modal si usas Bootstrap */
+    max-width: 450px;
+}
+
+/* Opcional: ajustar padding y márgenes de inputs/botones si es necesario */
+    .modal-contenido-pequeno .form-control, .form-select,
+    .modal-contenido-pequeno .btn {
+        padding: 0.25rem 0.5rem; /* Ajuste para controles más pequeños */
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        font-size: 11px;
+    }

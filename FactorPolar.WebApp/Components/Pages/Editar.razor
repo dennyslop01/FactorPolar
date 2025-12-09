@@ -70,9 +70,9 @@
         @if (mostrarFormulario)
         {
             <div class="modal fade show d-block" tabindex="10" style="background: rgba(0,0,0,0.5);">
-                <div class="modal-dialog-centered">
+                <div class="modal-dialog-centered modal-contenido-pequeno">
                     <div class="modal-content">
-                        <div class="modal-header">
+                        <div class="modal-header modal-contenido-pequeno">
                             <h5 class="modal-title">Editar</h5>
                             <button type="button" class="btn-close" @onclick="Cancelar"></button>
                         </div>
@@ -81,8 +81,8 @@
                                 <DataAnnotationsValidator />
 
                                 <div class="mb-3">
-                                    <label class="form-label">Tipo Institución:</label>
-                                    <InputSelect class="form-select" @bind-Value="entidadActual.TipoInstitucion">
+                                    <strong><label class="form-label">Tipo Institución:</label></strong>
+                                    <InputSelect class="form-select small" @bind-Value="entidadActual.TipoInstitucion">
                                         <option value="">-- Seleccione uno --</option>
                                         <option value="PÚBLICA">PÚBLICA</option>
                                         <option value="PRIVADA">PRIVADA</option>
@@ -90,17 +90,17 @@
                                     <ValidationMessage For="@(() => entidadActual.TipoInstitucion)" />
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label">Nombre Institución:</label>
+                                    <strong><label class="form-label">Nombre Institución:</label></strong>
                                     <InputText class="form-control" @bind-Value="entidadActual.NombreInstitucion" maxlength="200" />
                                     <ValidationMessage For="@(() => entidadActual.NombreInstitucion)" />
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label">Rif Institución:</label>
+                                    <strong><label class="form-label">Rif Institución:</label></strong>
                                     <InputText class="form-control" @bind-Value="entidadActual.RifInstitucion" maxlength="15" />
                                     <ValidationMessage For="@(() => entidadActual.RifInstitucion)" />
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label">Nivel Educativo:</label>
+                                    <strong><label class="form-label">Nivel Educativo:</label></strong>
                                     @* <InputSelect class="form-select" @bind-Value="entidadActual.NivelEducativo"> *@
                                     <InputSelect class="form-select" ValueExpression="@(() => entidadActual.NivelEducativo)" ValueChanged="@((string value) => CargarGrado(value))" Value="entidadActual.NivelEducativo">
                                         <option value="">-- Seleccione uno --</option>
@@ -110,7 +110,7 @@
                                     <ValidationMessage For="@(() => entidadActual.NivelEducativo)" />
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label">Grado Educativo:</label>
+                                    <strong><label class="form-label">Grado Educativo:</label></strong>
                                     <InputSelect class="form-select" @bind-Value="entidadActual.GradoEducativo">
                                         <option value=" ">-- Seleccione uno --</option>
                                         @foreach(var grado in grados)
