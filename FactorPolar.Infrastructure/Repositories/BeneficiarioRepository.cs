@@ -126,5 +126,15 @@ namespace FactorPolar.Infrastructure.Repositories
             _context.Entry(beneficiario.Employee).State = EntityState.Detached;
             return beneficiario;
         }
+
+        public async Task<List<Beneficiario?>> GetByParticipantesAsync()
+        {
+            var benefi = await _context.Beneficiarios
+                .Include(b => b.Employee)
+                .Where(x => x.Documento1 != null && x.Documento2 != null && x.Documento3 != null)
+                .AsQueryable().AsNoTracking()
+                .ToListAsync();
+            return benefi;
+        }
     }
 }

@@ -1,0 +1,189 @@
+﻿@rendermode InteractiveServer
+
+<h6>Grupos de Talentos</h6>
+
+<div class="row align-content-center">
+    <div class="col-12">
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="grupo1-tab" data-bs-toggle="tab" data-bs-target="#grupo1" type="button" role="tab" aria-controls="grupo1" aria-selected="true">Grupo 1: Edad ≥ 6 años, ≤ 8 años</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="grupo2-tab" data-bs-toggle="tab" data-bs-target="#grupo2" type="button" role="tab" aria-controls="grupo2" aria-selected="false">Grupo 2: Edad ≥ 9 años, ≤ 11 años</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="grupo3-tab" data-bs-toggle="tab" data-bs-target="#grupo3" type="button" role="tab" aria-controls="grupo3" aria-selected="false">Grupo 3: Edad ≥ 12 años, ≤ 14 años</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="grupo4-tab" data-bs-toggle="tab" data-bs-target="#grupo4" type="button" role="tab" aria-controls="grupo4" aria-selected="false">Grupo 4: Edad ≥ 15 años, ≤ 17 años</button>
+            </li>
+        </ul>
+        <div class="tab-content" id="myTabContent">
+            <div class="tab-pane fade show active" id="grupo1" role="tabpanel" aria-labelledby="grupo1-tab">
+                <div class="row align-content-center">
+                    <div class="col-lg-12">
+                        <PaginationComponent TItem="Beneficiario" Items="List1" DefaultPageSize="10">
+                            <ChildContentHeader>
+                                <tr>
+                                    <th width="10%">#</th>
+                                    <th width="40">Nombre</th>
+                                    <th width="25%">Fecha Nacimiento</th>
+                                    <th width="15%">Edad</th>
+                                    <th width="10%"> </th>
+                                </tr>
+                            </ChildContentHeader>
+                            <ChildContentRow Context="p">
+                                <tr>
+                                    <td width="10%">@p.Id</td>
+                                    <td width="40%">@p.FullName</td>
+                                    <td width="25%">@p.FechaNacimiento.ToShortDateString()</td>
+                                    <td width="15%">@p.Edad</td>
+                                    <td width="10%" class="justify-content-end">
+                                        <button class="btn btn-primary btn-sm me-1" @onclick="() => VerDetalle(p)" title="Ver Detalle">
+                                            <i class="bi bi-pencil"></i> Detalle
+                                        </button>
+                                    </td>
+                                </tr>
+                            </ChildContentRow>
+                        </PaginationComponent>
+                    </div>
+                </div>
+                <br />
+            </div>
+            <div class="tab-pane fade" id="grupo2" role="tabpanel" aria-labelledby="grupo2-tab">
+                <div class="row align-content-center">
+                    <div class="col-lg-12">
+                        <PaginationComponent TItem="Beneficiario" Items="List2" DefaultPageSize="10">
+                            <ChildContentHeader>
+                                <tr>
+                                    <th width="10%">#</th>
+                                    <th width="40">Nombre</th>
+                                    <th width="25%">Fecha Nacimiento</th>
+                                    <th width="15%">Edad</th>
+                                    <th width="10%"> </th>
+                                </tr>
+                            </ChildContentHeader>
+                            <ChildContentRow Context="p">
+                                <tr>
+                                    <td width="10%">@p.Id</td>
+                                    <td width="40%">@p.FullName</td>
+                                    <td width="25%">@p.FechaNacimiento.ToShortDateString()</td>
+                                    <td width="15%">@p.Edad</td>
+                                    <td width="10%" class="justify-content-end">
+                                        <button class="btn btn-primary btn-sm me-1" @onclick="() => VerDetalle(p)" title="Ver Detalle">
+                                            <i class="bi bi-pencil"></i> Detalle
+                                        </button>
+                                    </td>
+                                </tr>
+                            </ChildContentRow>
+                        </PaginationComponent>
+                    </div>
+                </div>
+                <br />
+            </div>
+            <div class="tab-pane fade" id="grupo3" role="tabpanel" aria-labelledby="grupo3-tab">
+                <div class="row align-content-center">
+                    <div class="col-lg-12">
+                        <PaginationComponent TItem="Beneficiario" Items="List3" DefaultPageSize="10">
+                            <ChildContentHeader>
+                                <tr>
+                                    <th width="10%">#</th>
+                                    <th width="40">Nombre</th>
+                                    <th width="25%">Fecha Nacimiento</th>
+                                    <th width="15%">Edad</th>
+                                    <th width="10%"> </th>
+                                </tr>
+                            </ChildContentHeader>
+                            <ChildContentRow Context="p">
+                                <tr>
+                                    <td width="10%">@p.Id</td>
+                                    <td width="40%">@p.FullName</td>
+                                    <td width="25%">@p.FechaNacimiento.ToShortDateString()</td>
+                                    <td width="15%">@p.Edad</td>
+                                    <td width="10%" class="justify-content-end">
+                                        <button class="btn btn-primary btn-sm me-1" @onclick="() => VerDetalle(p)" title="Ver Detalle">
+                                            <i class="bi bi-pencil"></i> Detalle
+                                        </button>
+                                    </td>
+                                </tr>
+                            </ChildContentRow>
+                        </PaginationComponent>
+                    </div>
+                </div>
+                <br />
+            </div>
+            <div class="tab-pane fade" id="grupo4" role="tabpanel" aria-labelledby="grupo4-tab">
+                <div class="row align-content-center">
+                    <div class="col-lg-12">
+                        <PaginationComponent TItem="Beneficiario" Items="List4" DefaultPageSize="10">
+                            <ChildContentHeader>
+                                <tr>
+                                    <th width="10%">#</th>
+                                    <th width="40">Nombre</th>
+                                    <th width="25%">Fecha Nacimiento</th>
+                                    <th width="15%">Edad</th>
+                                    <th width="10%"> </th>
+                                </tr>
+                            </ChildContentHeader>
+                            <ChildContentRow Context="p">
+                                <tr>
+                                    <td width="10%">@p.Id</td>
+                                    <td width="40%">@p.FullName</td>
+                                    <td width="25%">@p.FechaNacimiento.ToShortDateString()</td>
+                                    <td width="15%">@p.Edad</td>
+                                    <td width="10%" class="justify-content-end">
+                                        <button class="btn btn-primary btn-sm me-1" @onclick="() => VerDetalle(p)" title="Ver Detalle">
+                                            <i class="bi bi-pencil"></i> Detalle
+                                        </button>
+                                    </td>
+                                </tr>
+                            </ChildContentRow>
+                        </PaginationComponent>
+                    </div>
+                </div>
+                <br />
+            </div>
+        </div>
+    </div>
+</div>
+
+@code{
+    private List<Beneficiario> Listgral = new();
+    private List<Beneficiario> List1 = new();
+    private List<Beneficiario> List2 = new();
+    private List<Beneficiario> List3 = new();
+    private List<Beneficiario> List4 = new();
+
+    [Inject] private IBeneficiario repobenefi { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            await LoadBenefiDataAsync();
+        }
+        catch (Exception ex)
+        {
+            // Manejo de errores (opcional)
+            Console.WriteLine($"Error al cargar datos del los beneficiarios: {ex.Message}");
+        }
+    }
+
+    private async Task LoadBenefiDataAsync()
+    {
+        Listgral = await repobenefi.GetByParticipantesAsync();
+        if (Listgral != null)
+        {
+            List1 = Listgral.Where(b => b.Edad >= 6 && b.Edad <= 8).ToList();
+            List2 = Listgral.Where(b => b.Edad >= 9 && b.Edad <= 11).ToList();
+            List3 = Listgral.Where(b => b.Edad >= 12 && b.Edad <= 14).ToList();
+            List4 = Listgral.Where(b => b.Edad >= 15 && b.Edad <= 17).ToList();
+        }
+        await Task.CompletedTask;
+    }
+
+    private void VerDetalle(Beneficiario ben)
+    {
+        NavManager.NavigateTo($"/documento1/{ben.Id}");
+    }
+}

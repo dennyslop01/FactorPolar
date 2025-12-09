@@ -31,6 +31,7 @@ builder.Services.AddMudServices();
 builder.Services.AddScoped<ICredentialRepository, CredentialRepository>();
 builder.Services.AddScoped<IEmployee, EmployeeRepository>();
 builder.Services.AddScoped<IBeneficiario, BeneficiarioRepository>();
+builder.Services.AddScoped<IUsuario, UsuarioRepository>();
 
 builder.Services.AddCascadingAuthenticationState();
 //builder.Services.AddAuthorizationCore();

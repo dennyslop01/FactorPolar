@@ -8,24 +8,13 @@
 
 <MudLayout>
     <MudAppBar Elevation="2" Style="background: linear-gradient(135deg, #144e77  0%, #144e77  100%);">
-        @*  <MudIconButton Icon="@Icons.Material.Filled.Menu"
-                       Color="Color.Inherit"
-                       Edge="Edge.Start"
-                       OnClick="@((e) => DrawerToggle())" /> *@
         <a href="/"><MudImage Src="LogoPolar.png" Alt="Empresas Polar" Elevation="25" Class="rounded-lg" /></a>
-        @* <MudIcon Icon="@Icons.Material.Filled.Business" Style="margin-right: 8px;" /> *@
         <MudText Typo="Typo.h4" Style="color: white;"></MudText>
         <MudSpacer />
         <MudText Typo="Typo.body1" Style="color: white; margin-right: 16px;">
             <AuthLinks />
         </MudText>
     </MudAppBar>
-    @* <MudDrawer @bind-Open="_drawerOpen"
-               ClipMode="DrawerClipMode.Always"
-               Elevation="2">
-        <NavMenu />
-    </MudDrawer> *@
-
     @* Needed for snackbars *@
     <MudSnackbarProvider />
 

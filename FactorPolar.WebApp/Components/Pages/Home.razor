@@ -1,14 +1,13 @@
 ﻿@page "/"
 @rendermode InteractiveServer
 
-@using System.Security.Claims
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>Home</PageTitle>
 
 <AuthorizeView>
     <Authorized>
-        <h4>Hola, Bienvenido!</h4>
+        <h6>Hola, Bienvenido!</h6>
         @if (existe)
         {
             <div class="row">
@@ -36,8 +35,8 @@
 
             @if (beneficiario != null)
             {
-                <table class="table table-striped table-hover">
-                    <thead class="table-secondary bg-opacity-25">
+                <table class="table">
+                    <thead class="table">
                         <tr>
                             <th width="10%">#</th>
                             <th width="40">Nombre</th>
@@ -63,9 +62,20 @@
                         }
                     </tbody>
                 </table>
+                <br />
+                <hr />
             }
         }
-        else
+
+        @if(existeAdminUser)
+        {
+            <strong><label class="form-label">@userName</label></strong>
+            <ListarGruposParticipantes />
+            <br />
+            <hr />
+        }
+        
+        @if(!existe && !existeAdminUser)
         {
             <p>@userName</p>
             <p>El correo ingresado no tiene acceso a este beneficio, en caso de tener beneficiarios que aplique por favor comuniquese con Gestion Humana!</p>
@@ -95,9 +105,11 @@
 
 @code {
     bool existe = false;
+    bool existeAdminUser = false;
     private bool cargando = false;
 
     private Employee employee = new();
+    private Usuario usuario = new();
     private List<Beneficiario>? beneficiario = new();
     private string? userEmail;
     private string? userName;
@@ -105,13 +117,23 @@
     private string? employeeNumber;
     [Inject] private IEmployee repoemployee { get; set; } = null!;
     [Inject] private IBeneficiario repobenefi { get; set; } = null!;
+    [Inject] private IUsuario repousuario { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
     {
         cargando = true;
         try
         {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            userEmail = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+            string nombre = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value;
+            string apellido = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Surname)?.Value;
+
+            userName = $"{nombre}, {apellido}";
+
             await LoadUserDataAsync();
+            await LoadAdminDataAsync();
         }
         catch (Exception ex)
         {
@@ -123,19 +145,25 @@
 
     private async Task LoadUserDataAsync()
     {
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-        userEmail = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
-        string nombre = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value;
-        string apellido = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Surname)?.Value;
+        if (!string.IsNullOrEmpty(userEmail))
+        {
+            usuario = await repousuario.GetByEmailAsync(userEmail);
+            if (usuario != null)
+            {
+                existe = true;
+            }
+        }
+        await Task.CompletedTask;
+    }
 
-        userName = $"{nombre}, {apellido}";
+    private async Task LoadAdminDataAsync()
+    {
         if (!string.IsNullOrEmpty(userEmail))
         {
             employee = await repoemployee.GetByEmailAsync(userEmail);
             if (employee != null)
             {
-                existe = true;
+                existeAdminUser = true;
                 employeeName = employee.FullName;
                 employeeNumber = employee.EmployeeNumber.ToString();
 
