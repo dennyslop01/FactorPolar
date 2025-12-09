@@ -8,7 +8,7 @@
 @code {
     private string? codeResponse;
 
-    [Inject] private IGoogleAuthorization googleAuthorization { get; set; } = null!;
+   // [Inject] private IGoogleAuthorization googleAuthorization { get; set; } = null!;
     [Inject] private ICredentialRepository repository { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
@@ -18,9 +18,9 @@
         var queryParams = System.Web.HttpUtility.ParseQueryString(new Uri(uri).Query);
         codeResponse = queryParams["code"];
 
-        var userCredential = await googleAuthorization.ExchangeCodeForToken(codeResponse);
-        var _credential = await repository.GetCredentialToken(userCredential.Token.AccessToken);
+        // var userCredential = await googleAuthorization.ExchangeCodeForToken(codeResponse);
+        // var _credential = await repository.GetCredentialToken(userCredential.Token.AccessToken);
 
-        NavManager.NavigateTo($"{baseuri}connect/{_credential!.UserId}");
+        //NavManager.NavigateTo($"{baseuri}connect/{_credential!.UserId}");
     }
 }

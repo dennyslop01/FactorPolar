@@ -3,8 +3,6 @@ using DocumentFormat.OpenXml.Wordprocessing;
 using FactorPolar.Application.Interfaces;
 using FactorPolar.Domain.Entities;
 using FactorPolar.Infrastructure.Repositories;
-using Google;
-using Microsoft.Extensions.Hosting;
 using System.Reflection;
 
 namespace FactorPolar.CargaEmpleados

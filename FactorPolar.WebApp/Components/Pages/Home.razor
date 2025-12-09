@@ -67,7 +67,7 @@
         }
         else
         {
-            <p>@employee</p>
+            <p>@userName</p>
             <p>El correo ingresado no tiene acceso a este beneficio, en caso de tener beneficiarios que aplique por favor comuniquese con Gestion Humana!</p>
         }
     </Authorized>
@@ -126,7 +126,10 @@
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
         userEmail = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
-        userName = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+        string nombre = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value;
+        string apellido = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Surname)?.Value;
+
+        userName = $"{nombre}, {apellido}";
         if (!string.IsNullOrEmpty(userEmail))
         {
             employee = await repoemployee.GetByEmailAsync(userEmail);

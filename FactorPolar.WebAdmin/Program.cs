@@ -1,18 +1,12 @@
 using FactorPolar.Application.Interfaces;
-using FactorPolar.Domain.Constants;
 using FactorPolar.Infrastructure.DataContext;
 using FactorPolar.Infrastructure.Repositories;
-using FactorPolar.Infrastructure.Services;
-using FactorPolar.Infrastructure.TokenHandler;
 using FactorPolar.WebAdmin.Components;
 using FactorPolar.WebAdmin.State;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
 using NetcodeHub.Packages.Extensions.LocalStorage;
-using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,28 +20,8 @@ builder.Services.AddDbContext<FactorDbContext>(options =>
     options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
 });
 
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultScheme = Constant.Schema;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddScheme<AuthenticationSchemeOptions,
-             GoogleAccessTokenAuthenticationHandler>(Constant.Schema, null)
-.AddGoogle(options =>
-{
-    options.ClientId = builder.Configuration["Google:ClientId"]!;
-    options.ClientSecret = builder.Configuration["Google:ClientSecret"]!;
-    options.CallbackPath = $"/{builder.Configuration["Google:RedirectUri"]}"!;
-
-    options.Scope.Add("https://www.googleapis.com/auth/userinfo.email");
-    options.Scope.Add("https://www.googleapis.com/auth/userinfo.profile");
-
-    options.ClaimActions.MapJsonKey(ClaimTypes.GivenName, "given_name");
-});
 
 builder.Services.AddMudServices();
-builder.Services.AddScoped<IGoogleAuthHelper, GoogleAuthHelperSevice>();
-builder.Services.AddScoped<IGoogleAuthorization, GoogleAuthorizationService>();
-builder.Services.AddScoped<ICredentialRepository, CredentialRepository>();
 builder.Services.AddScoped<IEmployee, EmployeeRepository>();
 builder.Services.AddScoped<IBeneficiario, BeneficiarioRepository>();
 

@@ -1,0 +1,71 @@
+﻿@page "/ver-pdf-seguro"
+@rendermode InteractiveServer
+@using System.IO
+@inject IJSRuntime JSRuntime
+@inject IWebHostEnvironment Env
+
+<h3>Visualizador de PDF de Ejemplo (Blazor Server/IO)</h3>
+
+@if (!string.IsNullOrEmpty(pdfBase64String))
+{
+    <iframe id="pdfFrame" style="width: 100%; height: 600px;"></iframe>
+}
+else
+{
+    <p>Cargando PDF o error al encontrar el archivo...</p>
+}
+
+@code {
+    private string pdfBase64String;
+
+    // Asumo que tu diccionario Assets te devuelve algo como "Documentos/Documento1.wdhxwnve93.pdf"
+    private string GetAssetPathWithHash() => "Documentos/Documento1.wdhxwnve93.pdf";
+
+    private async Task LoadAndConvertPdfToBase64Async()
+    {
+        var relativePathWithHash = GetAssetPathWithHash();
+
+        // >>> ESTA ES LA MODIFICACIÓN CLAVE <<<
+        // Elimina la parte del hash del nombre del archivo para encontrar el archivo físico real.
+        // Asume que el hash está justo antes de la última extensión (.pdf)
+        var physicalRelativePath = System.Text.RegularExpressions.Regex.Replace(
+            relativePathWithHash,
+            @"\.[a-zA-Z0-9]{8,}\.pdf$", // Busca un punto, 8+ caracteres alfanuméricos, y .pdf al final
+            ".pdf"
+        );
+
+        // Construye la ruta física absoluta
+        var physicalPath = Path.Combine(Env.WebRootPath, physicalRelativePath);
+
+        // --- Depuración ---
+        Console.WriteLine($"Ruta Web con hash: {relativePathWithHash}");
+        Console.WriteLine($"Buscando ruta física: {physicalPath}");
+        // ------------------
+
+        if (System.IO.File.Exists(physicalPath))
+        {
+            // 1. Leer los bytes del archivo físico
+            byte[] pdfBytes = await System.IO.File.ReadAllBytesAsync(physicalPath);
+
+            // 2. Convertir el array de bytes a cadena Base64
+            pdfBase64String = Convert.ToBase64String(pdfBytes);
+        }
+        else
+        {
+            Console.Error.WriteLine($"¡ERROR: Archivo físico no encontrado! Revise la ubicación o la expresión regular.");
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAndConvertPdfToBase64Async();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !string.IsNullOrEmpty(pdfBase64String))
+        {
+            await JSRuntime.InvokeVoidAsync("loadPdfFromBase64", pdfBase64String);
+        }
+    }
+}

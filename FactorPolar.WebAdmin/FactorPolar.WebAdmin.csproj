@@ -7,6 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="Components\Pages\Authorize.razor" />
+    <Content Remove="Components\Pages\Connect.razor" />
+    <Content Remove="Components\Pages\Counter.razor" />
+    <Content Remove="Components\Pages\Login.razor" />
+    <Content Remove="Components\Pages\Weather.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Blazicons.Bootstrap" Version="2.3.40" />
     <PackageReference Include="BootstrapBlazor" Version="9.1.9" />
     <PackageReference Include="Microsoft.AspNetCore.Authorization" Version="9.0.11" />

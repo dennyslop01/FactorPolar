@@ -7,20 +7,53 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="wwwroot\Documentos\Documento1.pdf" />
+    <Compile Remove="State\**" />
+    <Content Remove="State\**" />
+    <EmbeddedResource Remove="State\**" />
+    <None Remove="State\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="Components\Pages\Authorize.razor" />
+    <Content Remove="Components\Pages\Connect.razor" />
+    <Content Remove="Components\Pages\Counter.razor" />
+    <Content Remove="Components\Pages\Login.razor" />
+    <Content Remove="Components\Pages\Ver-pdf-seguro.razor" />
+    <Content Remove="Components\Pages\Weather.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\Documentos\Documento1.pdf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="BootstrapBlazor" Version="9.1.9" />
+    <PackageReference Include="ITfoxtec.Identity.Saml2.MvcCore" Version="4.17.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authorization" Version="9.0.11" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.9" />
     <PackageReference Include="MudBlazor" Version="8.14.0" />
-    <PackageReference Include="NetcodeHub.Packages.Extensions.LocalStorage" Version="1.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\FactorPolar.Domain\FactorPolar.Domain.csproj" />
     <ProjectReference Include="..\FactorPolar.Infrastructure\FactorPolar.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="wwwroot\Documentos\Documento2.pdf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\Documentos\Documento3.pdf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Polar_Azure.cer">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

@@ -8,7 +8,7 @@
                            Style="background-color: rgba(255,255,255,0.2); color: white;">
                     <MudIcon Icon="@Icons.Material.Filled.PersonPin" />Perfil
                 </MudButton> *@
-                <MudButton @onclick="LogoutAsync" Variant="Variant.Filled" Color="Color.Error"
+                <MudButton Href="/Saml2/Logout" Variant="Variant.Filled" Color="Color.Error"
                                Style="background-color: rgba(255,255,255,0.2); color: white;">
                     <MudIcon Icon="@Icons.Material.Filled.ExitToApp" /> Logout
                     </MudButton>
@@ -16,7 +16,7 @@
         </Authorized>
         <NotAuthorized>
             <MudStack Row="true" Spacing="2" Justify="Justify.Center" AlignItems="AlignItems.Center">
-                <MudButton Href="login" Variant="Variant.Filled" Color="Color.Error"
+                <MudButton Href="/Saml2/Login" Variant="Variant.Filled" Color="Color.Error"
                            Style="background-color: rgba(255,255,255,0.2); color: white;">
                     <MudIcon Icon="@Icons.Material.Filled.Login" /> Login
                 </MudButton>
@@ -24,23 +24,3 @@
         </NotAuthorized>
     </AuthorizeView>
 </MudContainer>
-
-@code {
-    [Inject] private ICredentialRepository repository { get; set; } = null!;
-
-    async Task LogoutAsync()
-    {
-        try
-        {
-            var token = await localStorageService.GetItemAsStringAsync(Constant.Key);
-            if (!string.IsNullOrEmpty(token))
-            {
-                var tokenModel = JsonSerializer.Deserialize<Token>(token);
-                await repository.DeleteCredential(tokenModel.AccessToken);
-            }
-            await localStorageService.DeleteItemAsync(Constant.Key);
-        }
-        catch { }
-        NavManager.NavigateTo("/", true);
-    }
-}

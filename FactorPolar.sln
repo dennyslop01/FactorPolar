@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FactorPolar.Application", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FactorPolar.Domain", "FactorPolar.Domain\FactorPolar.Domain.csproj", "{CD28B6A4-6556-4CF4-97BD-562C631354A9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FactorPolar.WebApp", "FactorPolar.WebApp\FactorPolar.WebApp.csproj", "{F698BBAF-7452-4A29-A06C-0B82F5BA1140}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FactorPolar.Webapp", "FactorPolar.WebApp\FactorPolar.Webapp.csproj", "{F698BBAF-7452-4A29-A06C-0B82F5BA1140}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FactorPolar.Infrastructure", "FactorPolar.Infrastructure\FactorPolar.Infrastructure.csproj", "{95E8030D-3221-4439-B54B-12B2306908AD}"
 EndProject
