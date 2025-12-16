@@ -19,10 +19,10 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col-5">
-                    <strong><label class="form-label">Número de Personal:</label></strong>
+                <div class="col-2">
+                    <strong><label class="form-label">CI:</label></strong>
                 </div>
-                <div class="col-4">
+                <div class="col-8">
                     <label class="form-label">@employeeNumber</label>
                 </div>
             </div>
@@ -35,7 +35,7 @@
 
             @if (beneficiario != null)
             {
-                <table class="table">
+                <table class="table" id="mitabla">
                     <thead class="table">
                         <tr>
                             <th width="10%">#</th>
@@ -54,9 +54,18 @@
                                 <td width="25%">@p.FechaNacimiento.ToShortDateString()</td>
                                 <td width="15%">@p.Edad</td>
                                 <td width="10%" class="justify-content-end">
-                                    <button class="btn btn-success btn-sm me-1" @onclick="() => EditarEntidad(p)" title="Editar">
-                                        <i class="bi bi-pencil"></i> Postular
-                                    </button>
+                                    @if (string.IsNullOrEmpty(p.Promedio.ToString()))
+                                    {
+                                        <button class="boton-postular btn-success" @onclick="() => EditarEntidad(p)" title="Editar">
+                                            <i class="bi bi-pencil"></i>&nbsp;Postular
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="boton-postular btn-primary" @onclick="() => EditarEntidad(p)" title="Editar">
+                                            <i class="bi bi-pencil"></i>&nbsp;Editar
+                                        </button>
+                                    }
                                 </td>
                             </tr>
                         }
@@ -179,14 +188,13 @@
 
     private void EditarEntidad(Beneficiario ben)
     {
-        if (ben.Documento1 == null)
-            NavManager.NavigateTo($"/documento1/{ben.Id}");
-        else if (ben.Documento2 == null)
-            NavManager.NavigateTo($"/documento2/{ben.Id}");
-        else if (ben.Documento3 == null)
-            NavManager.NavigateTo($"/documento3/{ben.Id}");
-        else
-            NavManager.NavigateTo($"/editar/{ben.Id}");
-
+        // if (ben.Documento1 == null)
+        //     NavManager.NavigateTo($"/documento1/{ben.Id}");
+        // else if (ben.Documento2 == null)
+        //     NavManager.NavigateTo($"/documento2/{ben.Id}");
+        // else if (ben.Documento3 == null)
+        //     NavManager.NavigateTo($"/documento3/{ben.Id}");
+        // else
+        NavManager.NavigateTo($"/editar/{ben.Id}");
     }
 }

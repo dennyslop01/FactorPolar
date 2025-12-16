@@ -56,13 +56,27 @@
                     <strong><label class="form-label">Promedio Nota:</label></strong>
                 </div>
                 <div class="col-8">
-                    <label class="form-label">@beneficiario?.Promedio</label>
+                    <label class="form-label">
+                        @if (beneficiario?.NivelEducativo == "PRIMARIA")
+                        {
+                            @notaprimaria
+                        }
+                        else
+                        {
+                            @beneficiario?.Promedio
+                        }
+                    </label>
                 </div>
             </div>
             <div class="d-flex justify-content-start">
-                <button class="btn btn-primary btn-sm me-1" title="Editar" @onclick="EditarEntidad">
-                    <i class="bi bi-pencil"></i> Editar
+                <button class="boton-postular btn-primary me-1" title="Editar" @onclick="EditarEntidad">
+                    <i class="bi bi-pencil"></i>&nbsp;Editar
                 </button>
+
+                <button class="boton-postular btn-secondary me-1" title="Regresar" @onclick="Regresar">
+                    <i class="bi bi-chevron-double-left"></i>&nbsp;Regresar
+                </button>
+
             </div>
         }
         <br />
@@ -77,6 +91,9 @@
 
         @if (mostrarFormulario)
         {
+            <br />
+            <br />
+
             <div class="modal fade show d-block" tabindex="10" style="background: rgba(0,0,0,0.5);">
                 <div class="modal-dialog-centered modal-contenido-pequeno">
                     <div class="modal-content">
@@ -88,6 +105,10 @@
                             <EditForm Model="@entidadActual" OnValidSubmit="GuardarEntidad">
                                 <DataAnnotationsValidator />
 
+                                <div class="mb-3">
+                                    <strong><label class="form-label">Beneficiario:</label></strong>
+                                    <label class="form-label">@datosbenefi</label>
+                                </div>
                                 <div class="mb-3">
                                     <strong><label class="form-label">Tipo Institución:</label></strong>
                                     <InputSelect class="form-select small" @bind-Value="entidadActual.TipoInstitucion">
@@ -130,14 +151,20 @@
                                 </div>
                                 <div class="mb-3">
                                     <strong><label class="form-label">Promedio Nota:</label></strong>
-                                    <InputNumber class="form-control" @bind-Value="entidadActual.Promedio" maxlength="2" style="width:25%" />
+                                    <InputSelect class="form-select" @bind-Value="entidadActual.Promedio">
+                                        <option value="-1">-- Seleccione uno --</option>
+                                        @foreach (var nota in optionnotas)
+                                        {
+                                            <option value="@nota.idnotas">@nota.desnotas</option>
+                                        }
+                                    </InputSelect>
                                     <ValidationMessage For="@(() => entidadActual.Promedio)" />
                                 </div>
                                 <div class="d-flex justify-content-end">
-                                    <button type="submit" class="btn btn-success me-2">
+                                    <button type="submit" class="me-2 boton-postular btn-success">
                                         <i class="bi bi-save"></i> Guardar
                                     </button>
-                                    <button type="button" class="btn btn-secondary" @onclick="Cancelar">
+                                    <button type="button" class="boton-postular btn-primary" @onclick="Cancelar">
                                         <i class="bi bi-times"></i> Cancelar
                                     </button>
                                 </div>
@@ -158,10 +185,18 @@
     {
         public string Grados { get; set; }
     }
+    private List<GradoAcademicoopt?> grados = new();
+
+    public class Notasoopt
+    {
+        public int idnotas { get; set; }
+        public string desnotas { get; set; }
+    }    
+    private List<Notasoopt?> optionnotas = new();
+    private const string notaprimaria = "A";
 
     string datosbenefi = string.Empty;
     private Beneficiario? beneficiario = new();
-    private List<GradoAcademicoopt?> grados = new();
 
     private string? mensajeAlerta;
     private bool mostrarAlerta = false;
@@ -236,6 +271,12 @@
                 new GradoAcademicoopt { Grados = "5TO GRADO" },
                 new GradoAcademicoopt { Grados = "6TO GRADO" }
             };
+
+            optionnotas = new List<Notasoopt?>
+            {
+                new Notasoopt { idnotas = 20, desnotas = "A" },
+            };
+            
         }
         else if (value == "MEDIA")
         {
@@ -248,15 +289,28 @@
                 new GradoAcademicoopt { Grados = "5TO AÑO" },
                 new GradoAcademicoopt { Grados = "6TO AÑO" }
             };
+
+            optionnotas = new List<Notasoopt?>
+            {
+                new Notasoopt { idnotas = 18, desnotas = "18" },
+                new Notasoopt { idnotas = 19, desnotas = "19" },
+                new Notasoopt { idnotas = 20, desnotas = "20" },
+            };
         }
         else
         {
             grados = new List<GradoAcademicoopt?>();
+            optionnotas = new List<Notasoopt?>();
         }
 
         if (entidadActual.NivelEducativo != value)
             entidadActual.GradoEducativo = " ";
 
         entidadActual.NivelEducativo = value;
+    }
+
+    private void Regresar()
+    {
+        NavManager.NavigateTo($"/");
     }
 }
