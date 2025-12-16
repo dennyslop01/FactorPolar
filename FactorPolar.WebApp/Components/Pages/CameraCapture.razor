@@ -1,0 +1,101 @@
+﻿@inject IJSRuntime JS
+@inject FactorPolar.Infrastructure.Services.GoogleDriveService DriveService
+
+@inject ISnackbar Snackbar // (Asumiendo MudBlazor)
+
+<MudCard>
+    <MudCardContent>
+        <video id="cameraFeed" style="width: 100%; max-width: 500px; background: black;" muted></video>
+
+        @if (isUploading)
+        {
+            <MudProgressCircular Indeterminate="true" />
+            <MudText>Subiendo video a Drive...</MudText>
+        }
+    </MudCardContent>
+    <MudCardActions>
+        @if (!isRecording)
+        {
+            <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="StartVideo">
+                Grabar Video (Máx 1 min)
+            </MudButton>
+        }
+        else
+        {
+            <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="StopVideo">
+                Detener Grabación
+            </MudButton>
+            <MudText Color="Color.Warning" Class="ml-4">Grabando...</MudText>
+        }
+    </MudCardActions>
+</MudCard>
+
+@code {
+    private bool isRecording = false;
+    private bool isUploading = false;
+    private DotNetObjectReference<CameraCapture>? objRef;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            objRef = DotNetObjectReference.Create(this);
+        }
+    }
+
+    private async Task StartVideo()
+    {
+        isRecording = true;
+        // Llama al JS pasando el ID del video y la referencia a C#
+        await JS.InvokeVoidAsync("cameraFunctions.startRecording", "cameraFeed", objRef);
+    }
+
+    private async Task StopVideo()
+    {
+        await JS.InvokeVoidAsync("cameraFunctions.stopRecording");
+        // El estado isRecording cambiará cuando el JS nos devuelva el video
+    }
+
+    [JSInvokable]
+    public void NotifyTimeLimit()
+    {
+        Snackbar.Add("Tiempo límite alcanzado (1 min). Procesando video...", Severity.Info);
+    }
+
+    [JSInvokable]
+    public async Task ProcessVideo(byte[] videoData)
+    {
+        isRecording = false;
+        isUploading = true;
+        StateHasChanged();
+
+        try
+        {
+            // Crear stream desde los bytes recibidos
+            using var stream = new MemoryStream(videoData);
+
+            // Generar nombre ordenado: AAAA-MM-DD_Hora_Video.webm
+            string fileName = $"{DateTime.Now:yyyy-MM-dd_HHmm}_VideoNino.webm";
+
+            // SUBIR A DRIVE
+            // Nota: Aquí podrías pasar un FolderId si creaste una carpeta para el niño
+            var fileId = await DriveService.UploadFileAsync(stream, fileName, "video/webm");
+
+            Snackbar.Add($"Video guardado en Drive correctamente.", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error al subir: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            isUploading = false;
+            StateHasChanged();
+        }
+    }
+
+    public void Dispose()
+    {
+        objRef?.Dispose();
+    }
+}

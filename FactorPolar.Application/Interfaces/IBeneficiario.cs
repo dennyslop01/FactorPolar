@@ -1,9 +1,4 @@
 ﻿using FactorPolar.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FactorPolar.Application.Interfaces
 {
@@ -16,5 +11,7 @@ namespace FactorPolar.Application.Interfaces
         Task<Beneficiario?> GetByIdlAsync(int id);
         Task<Beneficiario?> UpdateAsync(int id, int opcion);
         Task<Beneficiario?> UpdateAcademicDataAsync(int id, BenefiModel benefi);
+        Task<bool> UpdateRutaNotaAsync(int id, string rutaNota);
+        Task<bool> UpdateRutaVideoAsync(int id, string rutaVideo);
     }
 }

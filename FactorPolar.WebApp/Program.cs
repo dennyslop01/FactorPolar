@@ -2,13 +2,12 @@ using FactorPolar.Application.Interfaces;
 using FactorPolar.Domain.Entities;
 using FactorPolar.Infrastructure.DataContext;
 using FactorPolar.Infrastructure.Repositories;
+using FactorPolar.Infrastructure.Services;
 using FactorPolar.Webapp.Components;
 using ITfoxtec.Identity.Saml2;
 using ITfoxtec.Identity.Saml2.MvcCore.Configuration;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using MudBlazor.Services;
 using System.Security.Cryptography.X509Certificates;
 
@@ -26,12 +25,14 @@ builder.Services.AddDbContext<FactorDbContext>(options =>
 });
 
 builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
+builder.Services.Configure<IGoogleDrive>(builder.Configuration.GetSection("GoogleDrive"));
 
 builder.Services.AddMudServices();
 builder.Services.AddScoped<ICredentialRepository, CredentialRepository>();
 builder.Services.AddScoped<IEmployee, EmployeeRepository>();
 builder.Services.AddScoped<IBeneficiario, BeneficiarioRepository>();
 builder.Services.AddScoped<IUsuario, UsuarioRepository>();
+builder.Services.AddScoped<GoogleDriveService>();
 
 builder.Services.AddCascadingAuthenticationState();
 //builder.Services.AddAuthorizationCore();

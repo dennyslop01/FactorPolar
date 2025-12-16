@@ -7,15 +7,19 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Services\**" />
     <Compile Remove="TokenHandler\**" />
-    <EmbeddedResource Remove="Services\**" />
     <EmbeddedResource Remove="TokenHandler\**" />
-    <None Remove="Services\**" />
     <None Remove="TokenHandler\**" />
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Services\GoogleAuthHelperSevice.cs" />
+    <Compile Remove="Services\GoogleAuthorizationService.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Google.Apis.Auth" Version="1.73.0" />
+    <PackageReference Include="Google.Apis.Drive.v3" Version="1.73.0.3996" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.11" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.11">
       <PrivateAssets>all</PrivateAssets>

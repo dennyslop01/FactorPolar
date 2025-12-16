@@ -140,5 +140,51 @@ namespace FactorPolar.Infrastructure.Repositories
                 .ToListAsync();
             return benefi;
         }
+
+        public async Task<bool> UpdateRutaNotaAsync(int id, string rutaNota)
+        {
+            var beneficiario = await _context.Beneficiarios
+                .Include(b => b.Employee)
+                .Where(x => x.Id == id)
+                .AsQueryable().AsNoTracking()
+                .FirstOrDefaultAsync();
+            if (beneficiario == null)
+            {
+                return false;
+            }
+
+            beneficiario.RutaNotas = rutaNota;
+
+            _context.Beneficiarios.Update(beneficiario);
+            _context.Entry(beneficiario.Employee).State = EntityState.Unchanged;
+
+            await _context.SaveChangesAsync();
+            _context.Entry(beneficiario).State = EntityState.Detached;
+            _context.Entry(beneficiario.Employee).State = EntityState.Detached;
+            return true;
+        }
+
+        public async Task<bool> UpdateRutaVideoAsync(int id, string rutaVideo)
+        {
+            var beneficiario = await _context.Beneficiarios
+                .Include(b => b.Employee)
+                .Where(x => x.Id == id)
+                .AsQueryable().AsNoTracking()
+                .FirstOrDefaultAsync();
+            if (beneficiario == null)
+            {
+                return false;
+            }
+
+            beneficiario.RutaVideo = rutaVideo;
+
+            _context.Beneficiarios.Update(beneficiario);
+            _context.Entry(beneficiario.Employee).State = EntityState.Unchanged;
+
+            await _context.SaveChangesAsync();
+            _context.Entry(beneficiario).State = EntityState.Detached;
+            _context.Entry(beneficiario.Employee).State = EntityState.Detached;
+            return true;
+        }
     }
 }

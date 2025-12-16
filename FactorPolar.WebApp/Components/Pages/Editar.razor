@@ -76,7 +76,16 @@
                 <button class="boton-postular btn-secondary me-1" title="Regresar" @onclick="Regresar">
                     <i class="bi bi-chevron-double-left"></i>&nbsp;Regresar
                 </button>
-
+            </div>
+            <br />
+            <br />
+            <div class="row">
+                <div class="col-10">
+                    <strong><label class="form-label">Boletin:</label></strong>
+                </div>
+                <div class="col-10">
+                    <SubirImagenes folderName="@folderName" beneficiarioId="@beneficiario.Id" rutaNota="@beneficiario.RutaNotas" />
+                </div>
             </div>
         }
         <br />
@@ -203,6 +212,8 @@
     private BenefiModel entidadActual = new();
     private bool mostrarFormulario = false;
 
+    private string folderName = string.Empty;
+
     [Inject] private IBeneficiario repobenefi { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
@@ -213,6 +224,7 @@
             if (beneficiario != null)
             {
                 datosbenefi = $"{beneficiario.CedulaIdentidad} - {beneficiario.FullName} - {beneficiario.Edad} años";
+                folderName = $"{beneficiario.CedulaIdentidad.Replace(".", "")}_{beneficiario.FechaNacimiento.ToString("yyyyMMdd")}_{beneficiario.Edad.ToString()}";
             }
         }
         catch (Exception ex)

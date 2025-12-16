@@ -43,9 +43,8 @@
 
 @code {
     [Parameter]
-    public IEnumerable<TItem>
-    Items
-    { get; set; }
+    public IEnumerable<TItem> Items { get; set; }
+
     [Parameter] public int DefaultPageSize { get; set; } = 10;
     [Parameter] public RenderFragment ChildContentHeader { get; set; }
     [Parameter]

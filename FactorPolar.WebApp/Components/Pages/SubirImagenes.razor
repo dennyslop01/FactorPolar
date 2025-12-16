@@ -1,0 +1,121 @@
+﻿@rendermode InteractiveServer
+@inject FactorPolar.Infrastructure.Services.GoogleDriveService DriveService
+
+<label for="fileInput" class="btn btn-primary" style="cursor:pointer;">
+    <i class="bi bi-upload"></i> Subir Foto Boletín
+</label>
+<InputFile id="fileInput" OnChange="UploadPhoto" accept=".jpg, .jpeg, .png" capture="camera" style="display:none;" />
+<br />
+<br />
+
+@if (fileNames.Any())
+{
+    <div>
+        @foreach (var name in fileNames)
+        {
+            <strong>
+                <label class="form-label">
+                    <i class="bi bi-envelope"></i> @name
+                </label>
+            </strong>
+        }
+    </div>
+}
+
+@code {
+
+    [Parameter] public string folderName { get; set; }
+    [Parameter] public int beneficiarioId { get; set; }
+    [Parameter] public string rutaNota { get; set; }
+
+    private string Message = "";
+    private string ImageUrl; // Para mostrar un preview de la imagen
+    private List<string> fileNames = new List<string>();
+
+    [Inject] private IBeneficiario repobenefi { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        fileNames.Clear();
+        if (!string.IsNullOrEmpty(rutaNota))
+            fileNames.Add("Foto Boletin");
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        fileNames.Clear();
+        if (!string.IsNullOrEmpty(rutaNota))
+            fileNames.Add("Foto Boletin");
+    }
+
+    private async Task UploadPhoto(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file != null)
+        {
+            try
+            {
+                // 1. REDIMENSIONAR IMAGEN (CRÍTICO)
+                // Reducimos a máx 800x800 px. Esto baja el peso de 5MB a ~150KB.
+                // Formato WebP o JPEG para máxima compresión.
+                var resizedImage = await file.RequestImageFileAsync("image/jpeg", 800, 800);
+
+                using var stream = resizedImage.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024);
+
+                if (!string.IsNullOrEmpty(folderName))
+                {
+                    string folderId = await DriveService.CreateFolderAsync(folderName);
+                    // Nombre ordenado
+                    string fileName = $"{DateTime.Now:yyyyMMdd}_FotoBoletin.jpg";
+                    string imageId = string.Empty;
+
+                    Beneficiario? benefi = await repobenefi.GetByIdlAsync(beneficiarioId);
+                    if (benefi.RutaNotas != null)
+                    {
+                        string fileId = benefi.RutaNotas.Split('/').Last();
+                        await DriveService.DeleteFileWithParentCheckAsync(fileId, folderId);
+                        imageId = await DriveService.UploadFileAsync(stream, fileName, "image/jpeg", folderId);
+                    }
+                    else
+                    {
+                        imageId = await DriveService.UploadFileAsync(stream, fileName, "image/jpeg", folderId);
+                        fileNames.Add("Foto Boletin");
+                    }
+
+                    await repobenefi.UpdateRutaNotaAsync(beneficiarioId, $"{folderId}/{imageId}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Message = $"Error al procesar la foto: {ex.Message}";
+            }
+        }
+    }
+}
+
+<style>
+    .btn {
+        display: inline-block;
+        /* padding: 10px 20px; */
+        font-size: 11px;
+        cursor: pointer;
+        text-align: center;
+        text-decoration: none;
+        outline: none;
+        color: #fff;
+        background-color: #007bff;
+        border: none;
+        /* border-radius: 15px; */
+        /* box-shadow: 0 4px #999; */
+    }
+
+    .btn:hover {
+        background-color: #0056b3;
+    }
+
+    .btn:active {
+        background-color: #0056b3;
+        box-shadow: 0 2px #666;
+        transform: translateY(2px);
+    }
+</style>
