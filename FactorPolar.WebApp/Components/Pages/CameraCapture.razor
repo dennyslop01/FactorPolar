@@ -1,4 +1,6 @@
-﻿@inject IJSRuntime JS
+﻿@rendermode InteractiveServer
+
+@inject IJSRuntime JS
 @inject FactorPolar.Infrastructure.Services.GoogleDriveService DriveService
 
 @inject ISnackbar Snackbar // (Asumiendo MudBlazor)
@@ -9,38 +11,103 @@
 
         @if (isUploading)
         {
-            <MudProgressCircular Indeterminate="true" />
-            <MudText>Subiendo video a Drive...</MudText>
+            @* <MudProgressCircular Indeterminate="true" /> *@
+            <MudText Style="text-transform:capitalize;font-size: 11px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">Subiendo video a Drive...</MudText>
         }
     </MudCardContent>
     <MudCardActions>
         @if (!isRecording)
         {
-            <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="StartVideo">
-                Grabar Video (Máx 1 min)
+            <MudButton class="btn btn-primary" Style="text-transform:capitalize;font-size: 11px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;" OnClick="StartVideo">
+                <i class="bi bi-upload"></i> Grabar Video (Máx 1 min)
             </MudButton>
         }
         else
         {
-            <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="StopVideo">
+            <MudButton class="btn2 btn-secondary" Style="text-transform:capitalize;font-size: 11px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;" OnClick="StopVideo">
                 Detener Grabación
             </MudButton>
-            <MudText Color="Color.Warning" Class="ml-4">Grabando...</MudText>
+            <MudText Color="Color.Warning" Class="ml-5" Style="text-transform:capitalize;font-size: 11px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">Grabando...</MudText>
         }
     </MudCardActions>
 </MudCard>
+<br />
+<br />
+
+@if (fileNames.Any())
+{
+    <div>
+        @foreach (var name in fileNames)
+        {
+            <strong>
+                <label class="form-label">
+                    <i class="bi bi-camera-video"></i> @name
+                </label>
+            </strong>
+        }
+    </div>
+}
+<br />
+<br />
+
+@if (mostrarAlerta)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @mensajeAlerta
+        <button type="button" class="btn-close" @onclick="() => mostrarAlerta = false"></button>
+    </div>
+}
+
+@if (cargando)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5); align-content:center">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="modal-cargando text-lg-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 
 @code {
+    [Parameter] public string folderName { get; set; }
+    [Parameter] public int beneficiarioId { get; set; }
+    [Parameter] public string rutaVideo { get; set; }
+
+    private List<string> fileNames = new List<string>();
     private bool isRecording = false;
     private bool isUploading = false;
     private DotNetObjectReference<CameraCapture>? objRef;
+
+    private string? mensajeAlerta;
+    private bool mostrarAlerta = false;
+    private bool cargando = false;
+    [Inject] private IBeneficiario repobenefi { get; set; } = null!;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
             objRef = DotNetObjectReference.Create(this);
+            fileNames.Clear();
+            if (!string.IsNullOrEmpty(rutaVideo))
+                fileNames.Add("Video Talento");
+
         }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        fileNames.Clear();
+        if (!string.IsNullOrEmpty(rutaVideo))
+            fileNames.Add("Video Talento");
     }
 
     private async Task StartVideo()
@@ -63,25 +130,45 @@
     }
 
     [JSInvokable]
-    public async Task ProcessVideo(byte[] videoData)
+    public async Task NotifyVideoReady()
     {
+        cargando = true;
         isRecording = false;
         isUploading = true;
         StateHasChanged();
 
         try
         {
-            // Crear stream desde los bytes recibidos
-            using var stream = new MemoryStream(videoData);
+            // 2. PEDIMOS EL STREAM A JS (Aquí está la magia de .NET Core)
+            // Esto usa una referencia de stream, no carga todo en memoria RAM de golpe
+            var streamRef = await JS.InvokeAsync<IJSStreamReference>("cameraFunctions.getVideoStream");
 
-            // Generar nombre ordenado: AAAA-MM-DD_Hora_Video.webm
-            string fileName = $"{DateTime.Now:yyyy-MM-dd_HHmm}_VideoNino.webm";
+            // Límite de seguridad para el stream (ej. 100MB)
+            using var stream = await streamRef.OpenReadStreamAsync(maxAllowedSize: 100 * 1024 * 1024);
+
+            string fileName = $"{DateTime.Now:yyyyMMdd}_Video.webm";
+
+            string folderId = await DriveService.CreateFolderAsync(folderName);
+            string fileIdResult = string.Empty;
+
+            Beneficiario? benefi = await repobenefi.GetByIdlAsync(beneficiarioId);
+            // Borrar archivo anterior si existe
+            if (benefi?.RutaVideo != null)
+            {
+                string oldFileId = benefi.RutaVideo.Split('/').Last();
+                await DriveService.DeleteFileAsync(oldFileId);
+            }
 
             // SUBIR A DRIVE
             // Nota: Aquí podrías pasar un FolderId si creaste una carpeta para el niño
-            var fileId = await DriveService.UploadFileAsync(stream, fileName, "video/webm");
+            fileIdResult = await DriveService.UploadFileAsync(stream, fileName, "video/webm", folderId);
 
-            Snackbar.Add($"Video guardado en Drive correctamente.", Severity.Success);
+            if (benefi?.RutaNotas == null)
+                fileNames.Add("Video Talento");
+
+            await repobenefi.UpdateRutaVideoAsync(beneficiarioId, $"{folderId}/{fileIdResult}");
+
+            Snackbar.Add($"Video guardado en Drive correctamente.", Severity.Success);cargando = false;
         }
         catch (Exception ex)
         {
@@ -89,9 +176,11 @@
         }
         finally
         {
+            cargando = false;
             isUploading = false;
             StateHasChanged();
         }
+        
     }
 
     public void Dispose()

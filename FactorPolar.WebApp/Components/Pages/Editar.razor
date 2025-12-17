@@ -87,6 +87,14 @@
                     <SubirImagenes folderName="@folderName" beneficiarioId="@beneficiario.Id" rutaNota="@beneficiario.RutaNotas" />
                 </div>
             </div>
+            <div class="row">
+                <div class="col-10">
+                    <strong><label class="form-label">Video Talento:</label></strong>
+                </div>
+                <div class="col-10">
+                    <CameraCapture folderName="@folderName" beneficiarioId="@beneficiario.Id" rutaVideo="@beneficiario.RutaVideo" />
+                </div>
+            </div>
         }
         <br />
 
@@ -183,8 +191,27 @@
                 </div>
             </div>
         }
+    
+
     </div>
 </div>
+
+@if (cargando)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5); align-content:center">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="modal-cargando text-lg-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
 
 @code {
     [Parameter]
@@ -211,6 +238,7 @@
     private bool mostrarAlerta = false;
     private BenefiModel entidadActual = new();
     private bool mostrarFormulario = false;
+    private bool cargando = false;
 
     private string folderName = string.Empty;
 
@@ -218,6 +246,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        cargando = true;
         try
         {
             beneficiario = await repobenefi.GetByIdlAsync(int.Parse(Id));
@@ -231,6 +260,7 @@
         {
             datosbenefi = $"Error al cargar datos del beneficiario: {ex.Message}";
         }
+        cargando = false;
     }
 
     private void EditarEntidad()

@@ -4,7 +4,7 @@
 <label for="fileInput" class="btn btn-primary" style="cursor:pointer;">
     <i class="bi bi-upload"></i> Subir Foto Boletín
 </label>
-<InputFile id="fileInput" OnChange="UploadPhoto" accept=".jpg, .jpeg, .png" capture="camera" style="display:none;" />
+<InputFile id="fileInput" OnChange="UploadFile" accept=".jpg, .jpeg, .png, .pdf" capture="camera" style="display:none;" />
 <br />
 <br />
 
@@ -15,10 +15,36 @@
         {
             <strong>
                 <label class="form-label">
-                    <i class="bi bi-envelope"></i> @name
+                    <i class="bi bi-card-checklist"></i> @name
                 </label>
             </strong>
         }
+    </div>
+}
+<br />
+<br />
+@if (mostrarAlerta)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @mensajeAlerta
+        <button type="button" class="btn-close" @onclick="() => mostrarAlerta = false"></button>
+    </div>
+}
+
+@if (cargando)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5); align-content:center">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="modal-cargando text-lg-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 }
 
@@ -31,6 +57,9 @@
     private string Message = "";
     private string ImageUrl; // Para mostrar un preview de la imagen
     private List<string> fileNames = new List<string>();
+    private string? mensajeAlerta;
+    private bool mostrarAlerta = false;
+    private bool cargando = false;
 
     [Inject] private IBeneficiario repobenefi { get; set; } = null!;
 
@@ -48,49 +77,121 @@
             fileNames.Add("Foto Boletin");
     }
 
-    private async Task UploadPhoto(InputFileChangeEventArgs e)
+    private async Task UploadFile(InputFileChangeEventArgs e) // Cambiado a UploadFile
     {
+        cargando = true;
         var file = e.File;
-        if (file != null)
+        if (file == null) return;
+
+        try
         {
-            try
+            Stream streamToUpload;
+            string fileName;
+            string contentType = file.ContentType;
+
+            // --- LÓGICA DE PROCESAMIENTO SEGÚN EL TIPO ---
+            if (contentType.Contains("image"))
             {
-                // 1. REDIMENSIONAR IMAGEN (CRÍTICO)
-                // Reducimos a máx 800x800 px. Esto baja el peso de 5MB a ~150KB.
-                // Formato WebP o JPEG para máxima compresión.
+                // Si es imagen, mantenemos tu lógica de redimensionado
                 var resizedImage = await file.RequestImageFileAsync("image/jpeg", 800, 800);
+                streamToUpload = resizedImage.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024);
+                fileName = $"{DateTime.Now:yyyyMMdd}_FotoBoletin.jpg";
+                contentType = "image/jpeg";
+            }
+            else if (contentType == "application/pdf")
+            {
+                // Si es PDF, abrimos el stream directamente sin redimensionar
+                streamToUpload = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // Aumentamos a 10MB para PDFs
+                fileName = $"{DateTime.Now:yyyyMMdd}_Documento.pdf";
+            }
+            else
+            {
+                mensajeAlerta = "Formato no soportado. Solo imágenes y PDF.";
+                mostrarAlerta = true;
+                return;
+            }
 
-                using var stream = resizedImage.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024);
-
+            // --- LÓGICA DE CARGA A GOOGLE DRIVE / GCS ---
+            using (streamToUpload)
+            {
                 if (!string.IsNullOrEmpty(folderName))
                 {
                     string folderId = await DriveService.CreateFolderAsync(folderName);
-                    // Nombre ordenado
-                    string fileName = $"{DateTime.Now:yyyyMMdd}_FotoBoletin.jpg";
-                    string imageId = string.Empty;
+                    string fileIdResult = string.Empty;
 
                     Beneficiario? benefi = await repobenefi.GetByIdlAsync(beneficiarioId);
-                    if (benefi.RutaNotas != null)
+
+                    // Borrar archivo anterior si existe
+                    if (benefi?.RutaNotas != null)
                     {
-                        string fileId = benefi.RutaNotas.Split('/').Last();
-                        await DriveService.DeleteFileWithParentCheckAsync(fileId, folderId);
-                        imageId = await DriveService.UploadFileAsync(stream, fileName, "image/jpeg", folderId);
-                    }
-                    else
-                    {
-                        imageId = await DriveService.UploadFileAsync(stream, fileName, "image/jpeg", folderId);
-                        fileNames.Add("Foto Boletin");
+                        string oldFileId = benefi.RutaNotas.Split('/').Last();
+                        await DriveService.DeleteFileAsync(oldFileId);
                     }
 
-                    await repobenefi.UpdateRutaNotaAsync(beneficiarioId, $"{folderId}/{imageId}");
+                    // Subida con el ContentType dinámico
+                    fileIdResult = await DriveService.UploadFileAsync(streamToUpload, fileName, contentType, folderId);
+
+                    if (benefi?.RutaNotas == null)
+                        fileNames.Add("Foto Boletin"); //fileNames.Add(contentType.Contains("pdf") ? "Documento PDF" : "Foto Boletin");
+
+                    await repobenefi.UpdateRutaNotaAsync(beneficiarioId, $"{folderId}/{fileIdResult}");
                 }
             }
-            catch (Exception ex)
-            {
-                Message = $"Error al procesar la foto: {ex.Message}";
-            }
+
+            mensajeAlerta = "Archivo subido correctamente.";
+            mostrarAlerta = true;
         }
+        catch (Exception ex)
+        {
+            mensajeAlerta = $"Error al procesar el archivo: {ex.Message}";
+            mostrarAlerta = true;
+        }
+        cargando = false;
     }
+
+    // private async Task UploadPhoto(InputFileChangeEventArgs e)
+    // {
+    //     var file = e.File;
+    //     if (file != null)
+    //     {
+    //         try
+    //         {
+    //             // 1. REDIMENSIONAR IMAGEN (CRÍTICO)
+    //             // Reducimos a máx 800x800 px. Esto baja el peso de 5MB a ~150KB.
+    //             // Formato WebP o JPEG para máxima compresión.
+    //             var resizedImage = await file.RequestImageFileAsync("image/jpeg", 800, 800);
+
+    //             using var stream = resizedImage.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024);
+
+    //             if (!string.IsNullOrEmpty(folderName))
+    //             {
+    //                 string folderId = await DriveService.CreateFolderAsync(folderName);
+    //                 // Nombre ordenado
+    //                 string fileName = $"{DateTime.Now:yyyyMMdd}_FotoBoletin.jpg";
+    //                 string imageId = string.Empty;
+
+    //                 Beneficiario? benefi = await repobenefi.GetByIdlAsync(beneficiarioId);
+    //                 if (benefi.RutaNotas != null)
+    //                 {
+    //                     string fileId = benefi.RutaNotas.Split('/').Last();
+    //                     await DriveService.DeleteFileWithParentCheckAsync(fileId, folderId);
+    //                     imageId = await DriveService.UploadFileAsync(stream, fileName, "image/jpeg", folderId);
+    //                 }
+    //                 else
+    //                 {
+    //                     imageId = await DriveService.UploadFileAsync(stream, fileName, "image/jpeg", folderId);
+    //                     fileNames.Add("Foto Boletin");
+    //                 }
+
+    //                 await repobenefi.UpdateRutaNotaAsync(beneficiarioId, $"{folderId}/{imageId}");
+    //             }
+    //         }
+    //         catch (Exception ex)
+    //         {
+    //             Message = $"Error al procesar la foto: {ex.Message}";
+    //         }
+    //     }
+    // }
 }
 
 <style>
@@ -98,6 +199,7 @@
         display: inline-block;
         /* padding: 10px 20px; */
         font-size: 11px;
+        font-variant-caps: small-caps;
         cursor: pointer;
         text-align: center;
         text-decoration: none;
@@ -118,4 +220,31 @@
         box-shadow: 0 2px #666;
         transform: translateY(2px);
     }
+
+    .btn2 {
+        display: inline-block;
+        /* padding: 10px 20px; */
+        font-size: 11px;
+        font-variant-caps: small-caps;
+        cursor: pointer;
+        text-align: center;
+        text-decoration: none;
+        outline: none;
+        color: #fff;
+        background-color: #BCBCBC;
+        border: none;
+        /* border-radius: 15px; */
+        /* box-shadow: 0 4px #999; */
+    }
+
+    .btn2:hover {
+        background-color: #BCBCBC;
+    }
+
+    .btn2:active {
+        background-color: #BCBCBC;
+        box-shadow: 0 2px #666;
+        transform: translateY(2px);
+    }
+
 </style>

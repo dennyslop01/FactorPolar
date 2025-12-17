@@ -32,16 +32,14 @@ window.cameraFunctions = {
 
             mediaRecorder.onstop = async () => {
                 const blob = new Blob(recordedChunks, { type: 'video/webm' });
-                recordedChunks = []; // Limpiar memoria
+                recordedChunks = [];
 
-                // Convertir Blob a ArrayBuffer para enviar a C#
-                const arrayBuffer = await blob.arrayBuffer();
-                const uint8Array = new Uint8Array(arrayBuffer);
+                // 1. Guardamos el blob en una variable global temporal
+                window.currentVideoBlob = blob;
 
-                // Enviar datos a Blazor
-                await dotnetHelper.invokeMethodAsync('ProcessVideo', uint8Array);
+                // 2. Solo avisamos a C# que ya terminamos (sin enviar los datos todavía)
+                await dotnetHelper.invokeMethodAsync('NotifyVideoReady');
 
-                // Apagar cámara
                 stream.getTracks().forEach(track => track.stop());
             };
 
@@ -59,11 +57,22 @@ window.cameraFunctions = {
             console.error("Error accediendo a la cámara:", err);
             alert("No se pudo acceder a la cámara. Verifique los permisos.");
         }
+        console.log("startRecording");
     },
 
     stopRecording: () => {
+        console.log("stopRecording");
         if (mediaRecorder && mediaRecorder.state === "recording") {
             mediaRecorder.stop();
         }
+    },
+
+    getVideoStream: () => {
+        if (window.currentVideoBlob) {
+            // Blazor .NET 9 prefiere recibir el Blob directamente
+            // y él se encarga de crear el stream reference internamente.
+            return window.currentVideoBlob;
+        }
+        return null;
     }
 };

@@ -101,28 +101,25 @@ namespace FactorPolar.Infrastructure.Services
         public async Task DeleteFileAsync(string fileId)
         {
             var service = GetService();
-
-            try
+            // En lugar de service.Files.Delete(fileId), hacemos un Update:       
+            var fileMetadata = new Google.Apis.Drive.v3.Data.File()
             {
-                var request = service.Files.Delete(fileId);
-                request.SupportsAllDrives = true; // Necesario para Shared Drives
-
-                await request.ExecuteAsync();
-                Console.WriteLine($"Archivo/Carpeta con ID {fileId} eliminado correctamente.");
-            }
-            catch (Exception ex)
-            {
-                // Esto captura errores específicos de la API de Google, como "File not found" (código 404)
-                Console.Error.WriteLine($"Error al intentar eliminar el archivo {fileId}: {ex.Message}");
-
-                // Puedes lanzar una excepción personalizada o manejarla aquí si es necesario
-                throw new InvalidOperationException($"No se pudo eliminar el archivo. Ver detalles en el log de errores.", ex);
-            }
-            //var service = GetService();
-            //var request = service.Files.Delete(fileId);
-            //request.SupportsAllDrives = true;
-            //await request.ExecuteAsync();
+                Trashed = true // <-- Esto lo envía a la papelera
+            };
+            var request = service.Files.Update(fileMetadata, fileId); 
+            request.SupportsAllDrives = true; // Indispensable en Shared Drives
+            await request.ExecuteAsync();
         }
+
+        //public async Task DeleteFileAsync(string fileId)
+        //{
+        //    var service = GetService();
+
+        //    var service = GetService();
+        //    var request = service.Files.Delete(fileId);
+        //    request.SupportsAllDrives = true;
+        //    await request.ExecuteAsync();
+        //}
 
         public async Task DeleteFileWithParentCheckAsync(string fileId, string parentFolderId)
         {
