@@ -56,6 +56,7 @@ window.cameraFunctions = {
         } catch (err) {
             console.error("Error accediendo a la cámara:", err);
             alert("No se pudo acceder a la cámara. Verifique los permisos.");
+            stopRecording();
         }
         console.log("startRecording");
     },

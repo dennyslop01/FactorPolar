@@ -7,27 +7,46 @@
 
 <MudCard>
     <MudCardContent>
-        <video id="cameraFeed" style="width: 100%; max-width: 500px; background: black;" muted></video>
+        <div class="d-flex justify-space-between align-center mb-2">
+            <video id="cameraFeed" style="width: 100%; max-width: 500px; background: black;" muted></video>
+
+            @if (isRecording)
+            {
+                @* Reloj de cuenta regresiva *@
+                <MudChip T="string" Color="Color.Error" Variant="Variant.Outlined" Icon="@Icons.Material.Filled.Timer">
+                    @FormatTime(secondsLeft)
+                </MudChip>
+            }
+        </div>
 
         @if (isUploading)
         {
-            @* <MudProgressCircular Indeterminate="true" /> *@
-            <MudText Style="text-transform:capitalize;font-size: 11px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">Subiendo video a Drive...</MudText>
+            <MudProgressLinear Color="Color.Info" Indeterminate="true" Class="my-2" />
+            <MudText Style="text-transform:capitalize;font-size: 11px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
+                Subiendo video a Drive...
+            </MudText>
         }
     </MudCardContent>
     <MudCardActions>
         @if (!isRecording)
         {
-            <MudButton class="btn btn-primary" Style="text-transform:capitalize;font-size: 11px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;" OnClick="StartVideo">
-                <i class="bi bi-upload"></i> Grabar Video (Máx 1 min)
+            <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                       Style="text-transform:capitalize;font-size: 11px;"
+                       OnClick="StartVideo">
+                <i class="bi bi-camera-video-fill mr-2"></i> Grabar Video (Máx 1 min)
             </MudButton>
         }
         else
         {
-            <MudButton class="btn2 btn-secondary" Style="text-transform:capitalize;font-size: 11px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;" OnClick="StopVideo">
+            <MudButton Variant="Variant.Filled" Color="Color.Secondary"
+                       Style="text-transform:capitalize;font-size: 11px;"
+                       OnClick="StopVideo">
                 Detener Grabación
             </MudButton>
-            <MudText Color="Color.Warning" Class="ml-5" Style="text-transform:capitalize;font-size: 11px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">Grabando...</MudText>
+            <MudText Color="Color.Warning" Class="ml-5"
+                     Style="text-transform:capitalize;font-size: 11px; font-weight: bold;">
+                GRABANDO...
+            </MudText>
         }
     </MudCardActions>
 </MudCard>
@@ -90,6 +109,8 @@
     private bool mostrarAlerta = false;
     private bool cargando = false;
     [Inject] private IBeneficiario repobenefi { get; set; } = null!;
+    private int secondsLeft = 60;
+    private Timer? _timer;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -114,13 +135,30 @@
     {
         isRecording = true;
         // Llama al JS pasando el ID del video y la referencia a C#
-        await JS.InvokeVoidAsync("cameraFunctions.startRecording", "cameraFeed", objRef);
+        try
+        {
+            await JS.InvokeVoidAsync("cameraFunctions.startRecording", "cameraFeed", objRef);
+            isRecording = true;
+            secondsLeft = 60; // Reiniciar a 1 minuto
+
+            // Iniciar el temporizador
+            _timer = new Timer(1000);
+            _timer.Elapsed += OnTimerElapsed;
+            _timer.AutoReset = true;
+            _timer.Enabled = true;
+        }
+        catch
+        {
+            ResetToInitialState();
+        }
     }
 
     private async Task StopVideo()
     {
+        StopTimer();
         await JS.InvokeVoidAsync("cameraFunctions.stopRecording");
         // El estado isRecording cambiará cuando el JS nos devuelva el video
+        await Task.Delay(2000);
     }
 
     [JSInvokable]
@@ -183,8 +221,47 @@
         
     }
 
+    private void ResetToInitialState()
+    {
+        isRecording = false;
+        isUploading = false;
+        cargando = false;
+        mostrarAlerta = false;
+        mensajeAlerta = null;
+        StateHasChanged();
+    }
+
     public void Dispose()
     {
+        StopTimer();
         objRef?.Dispose();
+    }
+
+    private void OnTimerElapsed(object? sender, ElapsedEventArgs e)
+    {
+        if (secondsLeft > 0)
+        {
+            secondsLeft--;
+            InvokeAsync(StateHasChanged); // Forzar actualización de la UI
+        }
+        else
+        {
+            _ = StopVideo(); // Detener automáticamente al llegar a cero
+        }
+    }
+
+    private string FormatTime(int totalSeconds)
+    {
+        return $"00:{totalSeconds:D2}";
+    }
+
+    private void StopTimer()
+    {
+        if (_timer != null)
+        {
+            _timer.Stop();
+            _timer.Dispose();
+            _timer = null;
+        }
     }
 }
