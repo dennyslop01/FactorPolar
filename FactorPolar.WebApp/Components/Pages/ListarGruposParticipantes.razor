@@ -1,4 +1,5 @@
-﻿@rendermode InteractiveServer
+﻿@using System.Globalization
+@rendermode InteractiveServer
 
 <h6>Grupos de Talentos</h6>
 
@@ -35,12 +36,12 @@
                             <ChildContentRow Context="p">
                                 <tr>
                                     <td width="10%">@p.Id</td>
-                                    <td width="40%">@p.FullName</td>
+                                    <td width="40%">@CultureInfo.CurrentCulture.TextInfo.ToTitleCase(p.FullName.ToLower())</td>
                                     <td width="25%">@p.FechaNacimiento.ToShortDateString()</td>
                                     <td width="15%">@p.Edad</td>
                                     <td width="10%" class="justify-content-end">
-                                        <button class="btn btn-primary btn-sm me-1" @onclick="() => VerDetalle(p)" title="Ver Detalle">
-                                            <i class="bi bi-pencil"></i> Detalle
+                                        <button class="boton-postular" style="background-color:#dfdf00" @onclick="() => VerDetalle(p)" title="Ver Detalle">
+                                            <i class="bi bi-eye"></i>&nbsp;Detalle
                                         </button>
                                     </td>
                                 </tr>
@@ -66,12 +67,12 @@
                             <ChildContentRow Context="p">
                                 <tr>
                                     <td width="10%">@p.Id</td>
-                                    <td width="40%">@p.FullName</td>
+                                    <td width="40%">@CultureInfo.CurrentCulture.TextInfo.ToTitleCase(p.FullName.ToLower())</td>
                                     <td width="25%">@p.FechaNacimiento.ToShortDateString()</td>
                                     <td width="15%">@p.Edad</td>
                                     <td width="10%" class="justify-content-end">
-                                        <button class="btn btn-primary btn-sm me-1" @onclick="() => VerDetalle(p)" title="Ver Detalle">
-                                            <i class="bi bi-pencil"></i> Detalle
+                                        <button class="boton-postular" style="background-color:#dfdf00" @onclick="() => VerDetalle(p)" title="Ver Detalle">
+                                            <i class="bi bi-eye"></i>&nbsp;Detalle
                                         </button>
                                     </td>
                                 </tr>
@@ -89,7 +90,7 @@
                                 <tr>
                                     <th width="10%">#</th>
                                     <th width="40">Nombre</th>
-                                    <th width="25%">Fecha Nacimiento</th>
+                                    <th width="25%">Fecha de Nacimiento</th>
                                     <th width="15%">Edad</th>
                                     <th width="10%"> </th>
                                 </tr>
@@ -97,12 +98,12 @@
                             <ChildContentRow Context="p">
                                 <tr>
                                     <td width="10%">@p.Id</td>
-                                    <td width="40%">@p.FullName</td>
+                                    <td width="40%">@CultureInfo.CurrentCulture.TextInfo.ToTitleCase(p.FullName.ToLower())</td>
                                     <td width="25%">@p.FechaNacimiento.ToShortDateString()</td>
                                     <td width="15%">@p.Edad</td>
                                     <td width="10%" class="justify-content-end">
-                                        <button class="btn btn-primary btn-sm me-1" @onclick="() => VerDetalle(p)" title="Ver Detalle">
-                                            <i class="bi bi-pencil"></i> Detalle
+                                        <button class="boton-postular" style="background-color:#dfdf00" @onclick="() => VerDetalle(p)" title="Ver Detalle">
+                                            <i class="bi bi-eye"></i>&nbsp;Detalle
                                         </button>
                                     </td>
                                 </tr>
@@ -128,12 +129,12 @@
                             <ChildContentRow Context="p">
                                 <tr>
                                     <td width="10%">@p.Id</td>
-                                    <td width="40%">@p.FullName</td>
+                                    <td width="40%">@CultureInfo.CurrentCulture.TextInfo.ToTitleCase(p.FullName.ToLower())</td>
                                     <td width="25%">@p.FechaNacimiento.ToShortDateString()</td>
                                     <td width="15%">@p.Edad</td>
                                     <td width="10%" class="justify-content-end">
-                                        <button class="btn btn-primary btn-sm me-1" @onclick="() => VerDetalle(p)" title="Ver Detalle">
-                                            <i class="bi bi-pencil"></i> Detalle
+                                        <button class="boton-postular" style="background-color:#dfdf00" @onclick="() => VerDetalle(p)" title="Ver Detalle">
+                                            <i class="bi bi-eye"></i>&nbsp;Detalle
                                         </button>
                                     </td>
                                 </tr>
@@ -184,6 +185,6 @@
 
     private void VerDetalle(Beneficiario ben)
     {
-        NavManager.NavigateTo($"/documento1/{ben.Id}");
+        NavManager.NavigateTo($"/detalle/{ben.Id}");
     }
 }

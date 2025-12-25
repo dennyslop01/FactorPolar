@@ -1,4 +1,5 @@
 ﻿@page "/"
+@using System.Globalization
 @rendermode InteractiveServer
 
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -7,29 +8,29 @@
 
 <AuthorizeView>
     <Authorized>
-        <h6>Hola, Bienvenido!</h6>
+        <h6>Bienvenido</h6>
         @if (existe)
         {
             <div class="row">
-                <div class="col-2">
-                    <strong><label class="form-label">Nombre:</label></strong>
+                <div class="col-4">
+                    <strong><label class="form-label">Nombre y apellido:</label></strong>
                 </div>
-                <div class="col-8">
+                <div class="col-7">
                     <label class="form-label">@employeeName</label>
                 </div>
             </div>
             <div class="row">
-                <div class="col-2">
-                    <strong><label class="form-label">CI:</label></strong>
+                <div class="col-4">
+                    <strong><label class="form-label">N. Cédula:</label></strong>
                 </div>
-                <div class="col-8">
+                <div class="col-7">
                     <label class="form-label">@employeeNumber</label>
                 </div>
             </div>
             <br />
             <div class="row">
-                <div class="col-2">
-                    <strong><label class="form-label">Beneficiarios:</label></strong>
+                <div class="col-5">
+                    <strong><label class="form-label">Hijos a postular:</label></strong>
                 </div>
             </div>
 
@@ -38,9 +39,9 @@
                 <table class="table" id="mitabla">
                     <thead class="table">
                         <tr>
-                            <th width="10%">#</th>
-                            <th width="40">Nombre</th>
-                            <th width="25%">Fecha Nacimiento</th>
+                            @* <th width="10%">#</th> *@
+                            <th width="40">Nombre y apellido</th>
+                            <th width="25%">Fecha de Nacimiento</th>
                             <th width="15%">Edad</th>
                             <th width="10%"> </th>
                         </tr>
@@ -49,20 +50,20 @@
                         @foreach (var (p, index) in beneficiario.Select((p, i) => (p, i + 1)))
                         {
                             <tr>
-                                <td width="10%">@index</td>
-                                <td width="40%">@p.FullName</td>
+                                @* <td width="10%">@index</td> *@
+                                <td width="40%">@CultureInfo.CurrentCulture.TextInfo.ToTitleCase(p.FullName.ToLower())</td>
                                 <td width="25%">@p.FechaNacimiento.ToShortDateString()</td>
                                 <td width="15%">@p.Edad</td>
                                 <td width="10%" class="justify-content-end">
                                     @if (string.IsNullOrEmpty(p.Promedio.ToString()))
                                     {
-                                        <button class="boton-postular btn-success" @onclick="() => EditarEntidad(p)" title="Editar">
+                                        <button class="boton-postular" style="background-color:#33ccff" @onclick="() => EditarEntidad(p)" title="Editar">
                                             <i class="bi bi-pencil"></i>&nbsp;Postular
                                         </button>
                                     }
                                     else
                                     {
-                                        <button class="boton-postular btn-primary" @onclick="() => EditarEntidad(p)" title="Editar">
+                                        <button class="boton-postular" style="background-color:#dfdf00" @onclick="() => EditarEntidad(p)" title="Editar">
                                             <i class="bi bi-pencil"></i>&nbsp;Editar
                                         </button>
                                     }
@@ -87,11 +88,12 @@
         @if(!existe && !existeAdminUser)
         {
             <p>@userName</p>
-            <p>El correo ingresado no tiene acceso a este beneficio, en caso de tener beneficiarios que aplique por favor comuniquese con Gestion Humana!</p>
+            <p>Si no visualiza sus datos, por favor contacte al equipo de Gestión de Gente de su localidad</p>
         }
     </Authorized>
     <NotAuthorized>
-        <h3>Hola, usted debe realizar login!</h3>
+        <h5>Indica tu correo corporativo:  <a class="btn-link" href="/Saml2/Login">Aquí</a></h5>
+        <h6>Si no visualiza sus datos, por favor contacte al equipo de Gestión de Gente de su localidad</h6>
     </NotAuthorized>
 </AuthorizeView>
 
@@ -139,7 +141,7 @@
             string nombre = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value;
             string apellido = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Surname)?.Value;
 
-            userName = $"{nombre}, {apellido}";
+            userName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase($"{nombre}, {apellido}".ToLower());
 
             await LoadUserDataAsync();
             await LoadAdminDataAsync();
@@ -164,7 +166,7 @@
             if (employee != null)
             {
                 existe = true;
-                employeeName = employee.FullName;
+                employeeName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(employee.FullName.ToLower());
                 employeeNumber = employee.EmployeeNumber.ToString();
 
                 beneficiario = await repobenefi.GetByEmployeeEmailAsync(employee.Email);

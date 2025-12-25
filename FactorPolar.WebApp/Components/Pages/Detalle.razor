@@ -1,0 +1,159 @@
+﻿@page "/detalle/{Id}"
+@using System.Globalization
+@rendermode InteractiveServer
+
+<h5>Detalle Participante</h5>
+
+@if (beneficiario != null)
+{
+    <p>@datosbenefi</p>
+
+    <strong>Datos Académicos</strong>
+    <hr>
+    <div class="row">
+        <div class="col-3">
+            <strong><label class="form-label">Tipo de Institución:</label></strong>
+        </div>
+        <div class="col-8">
+            <label class="form-label">@beneficiario?.TipoInstitucion</label>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-3">
+            <strong><label class="form-label">Institución Educativa:</label></strong>
+        </div>
+        <div class="col-8">
+            <label class="form-label">@beneficiario?.NombreInstitucion</label>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-3">
+            <strong><label class="form-label">RIF:</label></strong>
+        </div>
+        <div class="col-8">
+            <label class="form-label">@beneficiario?.RifInstitucion</label>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-3">
+            <strong><label class="form-label">Nivel Educativo:</label></strong>
+        </div>
+        <div class="col-8">
+            <label class="form-label">@beneficiario?.NivelEducativo</label>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-3">
+            <strong><label class="form-label">Nivel Académico:</label></strong>
+        </div>
+        <div class="col-8">
+            <label class="form-label">@beneficiario?.GradoEducativo</label>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-3">
+            <strong><label class="form-label">Promedio de Notas:</label></strong>
+        </div>
+        <div class="col-8">
+            <label class="form-label">
+                @if (beneficiario?.NivelEducativo == "PRIMARIA")
+                {
+                    @notaprimaria
+                }
+                else
+                {
+                    @beneficiario?.Promedio
+                }
+            </label>
+        </div>
+    </div>
+    <div class="d-flex justify-content-start">
+        <button class="boton-postular me-1" style="background-color:#dfdf00" title="Regresar" @onclick="Regresar">
+            <i class="bi bi-chevron-double-left"></i>&nbsp;Regresar
+        </button>
+    </div>
+    <br />
+    <br />
+    <div class="row">
+        <div class="col-10">
+            <strong><label class="form-label">Boletin:</label></strong>
+        </div>
+        <div class="col-10">
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-10">
+            <strong><label class="form-label">Video Talento:</label></strong>
+        </div>
+        <div class="col-10">
+        </div>
+    </div>
+}
+<br />
+
+@if (mostrarAlerta)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @mensajeAlerta
+        <button type="button" class="btn-close" @onclick="() => mostrarAlerta = false"></button>
+    </div>
+}
+
+@if (cargando)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5); align-content:center">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="modal-cargando text-lg-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    string datosbenefi = string.Empty;
+    private Beneficiario? beneficiario = new();
+    private const string notaprimaria = "A";
+
+    private string? mensajeAlerta;
+    private bool mostrarAlerta = false;
+    private BenefiModel entidadActual = new();
+    private bool mostrarFormulario = false;
+    private bool cargando = false;
+    private string folderName = string.Empty;
+
+    [Inject] private IBeneficiario repobenefi { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        cargando = true;
+        try
+        {
+            beneficiario = await repobenefi.GetByIdlAsync(int.Parse(Id));
+            if (beneficiario != null)
+            {
+                datosbenefi = CultureInfo.CurrentCulture.TextInfo.ToTitleCase($"{beneficiario.FullName}".ToLower());
+                folderName = $"{beneficiario.CedulaIdentidad.Replace(".", "")}_{beneficiario.FechaNacimiento.ToString("yyyyMMdd")}_{beneficiario.Edad.ToString()}";
+            }
+        }
+        catch (Exception ex)
+        {
+            datosbenefi = $"Error al cargar datos del beneficiario: {ex.Message}";
+        }
+        cargando = false;
+    }
+
+    private void Regresar()
+    {
+        NavManager.NavigateTo($"/");
+    }
+}

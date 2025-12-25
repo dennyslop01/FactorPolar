@@ -1,10 +1,11 @@
 ﻿@page "/editar/{Id}"
+@using System.Globalization
 @rendermode InteractiveServer
 @inject IJSRuntime JSRuntime
 
 <div class="row align-content-center">
     <div class="col-lg-12">
-        <h5>Editar Beneficiario</h5>
+        <h5>Datos registrados</h5>
         @if (beneficiario!=null)
         {
             <p>@datosbenefi</p>
@@ -13,7 +14,7 @@
             <hr>
             <div class="row">
                 <div class="col-3">
-                    <strong><label class="form-label">Tipo Institución:</label></strong>
+                    <strong><label class="form-label">Tipo de Institución:</label></strong>
                 </div>
                 <div class="col-8">
                     <label class="form-label">@beneficiario?.TipoInstitucion</label>
@@ -29,7 +30,7 @@
             </div>
             <div class="row">
                 <div class="col-3">
-                    <strong><label class="form-label">Rif:</label></strong>
+                    <strong><label class="form-label">RIF:</label></strong>
                 </div>
                 <div class="col-8">
                     <label class="form-label">@beneficiario?.RifInstitucion</label>
@@ -53,7 +54,7 @@
             </div>
             <div class="row">
                 <div class="col-3">
-                    <strong><label class="form-label">Promedio Nota:</label></strong>
+                    <strong><label class="form-label">Promedio de Notas:</label></strong>
                 </div>
                 <div class="col-8">
                     <label class="form-label">
@@ -69,12 +70,16 @@
                 </div>
             </div>
             <div class="d-flex justify-content-start">
-                <button class="boton-postular btn-primary me-1" title="Editar" @onclick="EditarEntidad">
+                <button class="boton-postular me-1" style="background-color:#33ccff" title="Editar" @onclick="EditarEntidad">
                     <i class="bi bi-pencil"></i>&nbsp;Editar
                 </button>
 
-                <button class="boton-postular btn-secondary me-1" title="Regresar" @onclick="Regresar">
+                <button class="boton-postular me-1" style="background-color:#dfdf00" title="Regresar" @onclick="Regresar">
                     <i class="bi bi-chevron-double-left"></i>&nbsp;Regresar
+                </button>
+
+                <button class="boton-postular btn-secondary me-1" title="Salir" @onclick="Salir">
+                    <i class="bi bi-arrow-right-square"></i>&nbsp;Salir
                 </button>
             </div>
             <br />
@@ -115,7 +120,7 @@
                 <div class="modal-dialog-centered modal-contenido-pequeno">
                     <div class="modal-content">
                         <div class="modal-header modal-contenido-pequeno">
-                            <h5 class="modal-title">Editar</h5>
+                            @* <h5 class="modal-title">Editar</h5> *@
                             <button type="button" class="btn-close" @onclick="Cancelar"></button>
                         </div>
                         <div class="modal-body">
@@ -127,7 +132,7 @@
                                     <label class="form-label">@datosbenefi</label>
                                 </div>
                                 <div class="mb-3">
-                                    <strong><label class="form-label">Tipo Institución:</label></strong>
+                                    <strong><label class="form-label">Tipo de Institución:</label></strong>
                                     <InputSelect class="form-select small" @bind-Value="entidadActual.TipoInstitucion">
                                         <option value="">-- Seleccione uno --</option>
                                         <option value="PÚBLICA">PÚBLICA</option>
@@ -136,12 +141,12 @@
                                     <ValidationMessage For="@(() => entidadActual.TipoInstitucion)" />
                                 </div>
                                 <div class="mb-3">
-                                    <strong><label class="form-label">Nombre Institución:</label></strong>
+                                    <strong><label class="form-label">Nombre de la Institución:</label></strong>
                                     <InputText class="form-control" @bind-Value="entidadActual.NombreInstitucion" maxlength="200" />
                                     <ValidationMessage For="@(() => entidadActual.NombreInstitucion)" />
                                 </div>
                                 <div class="mb-3">
-                                    <strong><label class="form-label">Rif Institución:</label></strong>
+                                    <strong><label class="form-label">RIF:</label></strong>
                                     <InputText class="form-control" @bind-Value="entidadActual.RifInstitucion" maxlength="15" />
                                     <ValidationMessage For="@(() => entidadActual.RifInstitucion)" />
                                 </div>
@@ -161,13 +166,13 @@
                                         <option value=" ">-- Seleccione uno --</option>
                                         @foreach(var grado in grados)
                                         {
-                                            <option value="@grado.Grados">@grado.Grados</option>
+                                            <option value="@grado.Grados">@grado.DesGrados</option>
                                         }
                                     </InputSelect>
                                     <ValidationMessage For="@(() => entidadActual.GradoEducativo)" />
                                 </div>
                                 <div class="mb-3">
-                                    <strong><label class="form-label">Promedio Nota:</label></strong>
+                                    <strong><label class="form-label">Promedio de Nota:</label></strong>
                                     <InputSelect class="form-select" @bind-Value="entidadActual.Promedio">
                                         <option value="-1">-- Seleccione uno --</option>
                                         @foreach (var nota in optionnotas)
@@ -220,6 +225,7 @@
     public class GradoAcademicoopt
     {
         public string Grados { get; set; }
+        public string DesGrados { get; set; }
     }
     private List<GradoAcademicoopt?> grados = new();
 
@@ -252,7 +258,7 @@
             beneficiario = await repobenefi.GetByIdlAsync(int.Parse(Id));
             if (beneficiario != null)
             {
-                datosbenefi = $"{beneficiario.CedulaIdentidad} - {beneficiario.FullName} - {beneficiario.Edad} años";
+                datosbenefi = CultureInfo.CurrentCulture.TextInfo.ToTitleCase($"{beneficiario.FullName}".ToLower());
                 folderName = $"{beneficiario.CedulaIdentidad.Replace(".", "")}_{beneficiario.FechaNacimiento.ToString("yyyyMMdd")}_{beneficiario.Edad.ToString()}";
             }
         }
@@ -306,30 +312,30 @@
         {
             grados = new List<GradoAcademicoopt?>
             {
-                new GradoAcademicoopt { Grados = "1ER GRADO" },
-                new GradoAcademicoopt { Grados = "2DO GRADO" },
-                new GradoAcademicoopt { Grados = "3ER GRADO" },
-                new GradoAcademicoopt { Grados = "4TO GRADO" },
-                new GradoAcademicoopt { Grados = "5TO GRADO" },
-                new GradoAcademicoopt { Grados = "6TO GRADO" }
+                new GradoAcademicoopt { Grados = "1ER GRADO", DesGrados = "1er Grado"  },
+                new GradoAcademicoopt { Grados = "2DO GRADO", DesGrados = "2do Grado" },
+                new GradoAcademicoopt { Grados = "3ER GRADO", DesGrados = "3er Grado" },
+                new GradoAcademicoopt { Grados = "4TO GRADO", DesGrados = "4to Grado" },
+                new GradoAcademicoopt { Grados = "5TO GRADO", DesGrados = "5to Grado" },
+                new GradoAcademicoopt { Grados = "6TO GRADO", DesGrados = "6to Grado" }
             };
 
             optionnotas = new List<Notasoopt?>
             {
                 new Notasoopt { idnotas = 20, desnotas = "A" },
             };
-            
+
         }
         else if (value == "MEDIA")
         {
             grados = new List<GradoAcademicoopt?>
             {
-                new GradoAcademicoopt { Grados = "7MO GRADO" },
-                new GradoAcademicoopt { Grados = "8VO GRADO" },
-                new GradoAcademicoopt { Grados = "9NO GRADO" },
-                new GradoAcademicoopt { Grados = "4TO AÑO" },
-                new GradoAcademicoopt { Grados = "5TO AÑO" },
-                new GradoAcademicoopt { Grados = "6TO AÑO" }
+                new GradoAcademicoopt { Grados = "7MO GRADO", DesGrados = "7mo Grado" },
+                new GradoAcademicoopt { Grados = "8VO GRADO", DesGrados = "8vo Grado" },
+                new GradoAcademicoopt { Grados = "9NO GRADO", DesGrados = "9no Grado" },
+                new GradoAcademicoopt { Grados = "4TO AÑO", DesGrados = "4to Año" },
+                new GradoAcademicoopt { Grados = "5TO AÑO", DesGrados = "5to Año" },
+                new GradoAcademicoopt { Grados = "6TO AÑO", DesGrados = "6to Año" }
             };
 
             optionnotas = new List<Notasoopt?>
@@ -354,5 +360,10 @@
     private void Regresar()
     {
         NavManager.NavigateTo($"/");
+    }
+
+    private void Salir()
+    {
+        NavManager.NavigateTo($"/Saml2/Logout");
     }
 }

@@ -7,13 +7,14 @@
 <MudDialogProvider />
 
 <MudLayout>
-    <MudAppBar Elevation="2" Style="background: linear-gradient(135deg, #144e77  0%, #144e77  100%);">
+    <MudAppBar Elevation="5" Class="navbar-top" Style="background: linear-gradient(150deg, #00338D  0%, #00338D  100%);">
         <a href="/"><MudImage Src="LogoPolar.png" Alt="Empresas Polar" /></a>
         <MudText Typo="Typo.h4" Style="color: white;"></MudText>
         <MudSpacer />
         <MudText Typo="Typo.body1" Style="color: white; margin-right: 16px;">
             <AuthLinks />
         </MudText>
+        <a href="/"><MudImage Src="FactorPolar.png" Alt="Empresas Polar" /></a>
     </MudAppBar>
     @* Needed for snackbars *@
     <MudSnackbarProvider />
@@ -80,6 +81,13 @@
         width: 90%;
         font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
         font-size: 11px;
+    }
+
+    .navbar-top {
+        height: 70px; /* Aumenta la altura de la barra */
+        display: flex;
+        align-items: center; /* Centra los elementos verticalmente */
+        padding: 0 20px; /* Añade espacio a los lados */
     }
 </style>
 
