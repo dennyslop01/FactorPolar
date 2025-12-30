@@ -39,5 +39,11 @@ namespace FactorPolar.Domain.Entities
         public DateTime UpdateDate { get; set; }
         public Employee Employee { get; set; }
         public int? Promedio { get; set; }
+        public string? TipoInstitucionAux { get; set; }
+        public string? NombreInstitucionAux { get; set; }
+        public string? RifInstitucionAux { get; set; }
+        public string? NivelEducativoAux { get; set; }
+        public string? GradoEducativoAux { get; set; }
+
     }
 }

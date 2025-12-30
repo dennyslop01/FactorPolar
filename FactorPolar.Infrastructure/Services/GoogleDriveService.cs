@@ -1,5 +1,4 @@
-﻿using FactorPolar.Application.Interfaces;
-using Google.Apis.Auth.OAuth2;
+﻿using Google.Apis.Auth.OAuth2;
 using Google.Apis.Drive.v3;
 using Google.Apis.Services;
 using Google.Apis.Upload;
@@ -181,6 +180,21 @@ namespace FactorPolar.Infrastructure.Services
             }
 
             return null; // La carpeta no existe
+        }
+
+        public async Task<string> GetFileAsync(string fileId)
+        {
+            var service = GetService();
+
+            var request = service.Files.Get(fileId);
+            var stream = new MemoryStream();
+            await request.DownloadAsync(stream);
+            stream.Position = 0;
+
+            // Convertir a Base64 para mostrarlo en el componente
+            var base64 = Convert.ToBase64String(stream.ToArray());
+
+            return base64;
         }
     }
 }

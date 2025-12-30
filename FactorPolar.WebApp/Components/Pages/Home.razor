@@ -6,9 +6,9 @@
 
 <PageTitle>Home</PageTitle>
 
-<AuthorizeView>
+@* <AuthorizeView>
     <Authorized>
-        <h6>Bienvenido</h6>
+ *@        <h6>Bienvenido</h6>
         @if (existe)
         {
             <div class="row">
@@ -90,12 +90,13 @@
             <p>@userName</p>
             <p>Si no visualiza sus datos, por favor contacte al equipo de Gestión de Gente de su localidad</p>
         }
-    </Authorized>
+@*     </Authorized>
     <NotAuthorized>
         <h5>Indica tu correo corporativo:  <a class="btn-link" href="/Saml2/Login">Aquí</a></h5>
         <h6>Si no visualiza sus datos, por favor contacte al equipo de Gestión de Gente de su localidad</h6>
     </NotAuthorized>
-</AuthorizeView>
+ </AuthorizeView>*@
+
 
 @if (cargando)
 {
@@ -122,7 +123,7 @@
     private Employee employee = new();
     private Usuario usuario = new();
     private List<Beneficiario>? beneficiario = new();
-    private string? userEmail;
+    private string? userEmail = "temporal.dennys.lopez@empresaspolar.com";
     private string? userName;
     private string? employeeName;
     private string? employeeNumber;
@@ -156,10 +157,10 @@
 
     private async Task LoadUserDataAsync()
     {
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-        userEmail = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
-        userName = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+        // var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        // var user = authState.User;
+        // userEmail = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+        // userName = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
         if (!string.IsNullOrEmpty(userEmail))
         {
             employee = await repoemployee.GetByEmailAsync(userEmail);

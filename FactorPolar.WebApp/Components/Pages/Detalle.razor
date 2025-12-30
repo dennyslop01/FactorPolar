@@ -1,5 +1,6 @@
 ﻿@page "/detalle/{Id}"
 @using System.Globalization
+@inject FactorPolar.Infrastructure.Services.GoogleDriveService DriveService
 @rendermode InteractiveServer
 
 <h5>Detalle Participante</h5>
@@ -15,7 +16,7 @@
             <strong><label class="form-label">Tipo de Institución:</label></strong>
         </div>
         <div class="col-8">
-            <label class="form-label">@beneficiario?.TipoInstitucion</label>
+            <label class="form-label">@((beneficiario.TipoInstitucionAux != null) ? beneficiario.TipoInstitucionAux : beneficiario?.TipoInstitucion)</label>
         </div>
     </div>
     <div class="row">
@@ -23,7 +24,7 @@
             <strong><label class="form-label">Institución Educativa:</label></strong>
         </div>
         <div class="col-8">
-            <label class="form-label">@beneficiario?.NombreInstitucion</label>
+            <label class="form-label">@((beneficiario.NombreInstitucionAux != null) ? beneficiario.NombreInstitucionAux : beneficiario?.NombreInstitucion)</label>
         </div>
     </div>
     <div class="row">
@@ -31,7 +32,7 @@
             <strong><label class="form-label">RIF:</label></strong>
         </div>
         <div class="col-8">
-            <label class="form-label">@beneficiario?.RifInstitucion</label>
+            <label class="form-label">@((beneficiario.RifInstitucionAux != null) ? beneficiario.RifInstitucionAux : beneficiario?.RifInstitucion)</label>
         </div>
     </div>
     <div class="row">
@@ -39,7 +40,7 @@
             <strong><label class="form-label">Nivel Educativo:</label></strong>
         </div>
         <div class="col-8">
-            <label class="form-label">@beneficiario?.NivelEducativo</label>
+            <label class="form-label">@((beneficiario.NivelEducativoAux != null) ? beneficiario.NivelEducativoAux : beneficiario?.NivelEducativo)</label>
         </div>
     </div>
     <div class="row">
@@ -47,7 +48,7 @@
             <strong><label class="form-label">Nivel Académico:</label></strong>
         </div>
         <div class="col-8">
-            <label class="form-label">@beneficiario?.GradoEducativo</label>
+            <label class="form-label">@((beneficiario.GradoEducativoAux != null) ? beneficiario.GradoEducativoAux : beneficiario?.GradoEducativo)</label>
         </div>
     </div>
     <div class="row">
@@ -67,16 +68,26 @@
             </label>
         </div>
     </div>
-    <div class="d-flex justify-content-start">
-        <button class="boton-postular me-1" style="background-color:#dfdf00" title="Regresar" @onclick="Regresar">
-            <i class="bi bi-chevron-double-left"></i>&nbsp;Regresar
-        </button>
-    </div>
     <br />
     <br />
-    <div class="row">
+    <div class="row justify-content-start">
         <div class="col-10">
             <strong><label class="form-label">Boletin:</label></strong>
+        </div>
+        <div class="col-6">
+            <div class="container mt-4">
+                <!-- Miniatura (Thumbnail) -->
+                <div class="card" style="width: 18rem; cursor: pointer;" @onclick="() => AbrirModal(imageSrc)">
+                    @* <img src="@imageSrc" class="card-img-top" alt="Vista previa"> *@
+                    <iframe src="@imageSrc" width="100%" height="80vh" style="border: none; border-radius: 8px;"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+    <hr />
+    <div class="row">
+        <div class="col-10">
+            <strong><label class="form-label"></label></strong>
         </div>
         <div class="col-10">
         </div>
@@ -88,6 +99,15 @@
         <div class="col-10">
         </div>
     </div>
+    <br />
+    <br />
+    <div class="d-flex justify-content-start">
+        <button class="boton-postular me-1" style="background-color:#dfdf00" title="Regresar" @onclick="Regresar">
+            <i class="bi bi-chevron-double-left"></i>&nbsp;Regresar
+        </button>
+    </div>
+    <br />
+    <br />
 }
 <br />
 
@@ -116,6 +136,32 @@
     </div>
 }
 
+@if (mostrarModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5); align-content:center">
+        <div class="modal-dialog modal-xxl">
+            <div class="modal-content bg-transparent border-0 text-white">
+                <div class="modal-header border-0">
+                    <button type="button" class="btn-close btn-close-white" @onclick="CerrarModal"></button>
+                </div>
+                <div class="modal-body p-0 text-center">
+                    @if (urlSeleccionada.Contains("preview"))
+                    {
+                        @* Para PDFs *@
+                        <iframe src="@urlSeleccionada" width="100%" height="80vh" style="border: none; border-radius: 8px;"></iframe>
+                    }
+                    else
+                    {
+                        @* Para Imágenes: ID añadido para JS y listener para cargar el zoom *@
+                        <img src="@urlSeleccionada" id="imagenZoom" class="img-fluid" style="max-height: max-content; max-width:max-content; cursor: crosshair;">
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
 @code {
     [Parameter]
     public string Id { get; set; }
@@ -130,9 +176,20 @@
     private bool mostrarFormulario = false;
     private bool cargando = false;
     private string folderName = string.Empty;
+    private string imageSrc = null;
+    private bool mostrarModal = false;
+    private string urlSeleccionada = "";
 
     [Inject] private IBeneficiario repobenefi { get; set; } = null!;
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (mostrarModal && !urlSeleccionada.Contains("preview"))
+        {
+            // Cargar el script de zoom después de renderizar la imagen
+            await jsRuntime.InvokeVoidAsync("inicializarZoom");
+        }
+    }
     protected override async Task OnInitializedAsync()
     {
         cargando = true;
@@ -143,6 +200,13 @@
             {
                 datosbenefi = CultureInfo.CurrentCulture.TextInfo.ToTitleCase($"{beneficiario.FullName}".ToLower());
                 folderName = $"{beneficiario.CedulaIdentidad.Replace(".", "")}_{beneficiario.FechaNacimiento.ToString("yyyyMMdd")}_{beneficiario.Edad.ToString()}";
+                string fileId = beneficiario.RutaNotas.Split('/').Last();
+
+                var base64 = await DriveService.GetFileAsync(fileId);
+                if (!base64.StartsWith("JVBERi0"))
+                    imageSrc = $"data:image/png;base64,{base64}";
+                else
+                    imageSrc = $"data:application/pdf;base64,{base64}";                
             }
         }
         catch (Exception ex)
@@ -156,4 +220,42 @@
     {
         NavManager.NavigateTo($"/");
     }
+
+    private void AbrirModal(string url)
+    {
+        urlSeleccionada = url;
+        mostrarModal = true;
+        // Opcional: Bloquear scroll del body mediante JS
+    }
+
+    private void CerrarModal()
+    {
+        mostrarModal = false;
+    }
 }
+
+<script>
+    window.inicializarZoom = () => {
+        const img = document.getElementById('imagenZoom');
+        if (img) {
+            img.addEventListener('click', function() {
+                // Alternar la clase 'zoom-aplicado' al hacer clic
+                this.classList.toggle('zoom-aplicado');
+            });
+        }
+    };
+</script>
+
+<style>
+    /* Estilo por defecto */
+    #imagenZoom {
+        transition: transform 0.3s ease;
+        transform-origin: center center;
+    }
+
+    /* Estilo cuando se aplica el zoom */
+    #imagenZoom.zoom-aplicado {
+        transform: scale(2.0); /* Aplica un zoom del 200% */
+        cursor: zoom-out;
+    }
+</style>

@@ -8,13 +8,25 @@
 
 <MudLayout>
     <MudAppBar Elevation="5" Class="navbar-top" Style="background: linear-gradient(150deg, #00338D  0%, #00338D  100%);">
+
+        <!-- Contenido de la izquierda -->
         <a href="/"><MudImage Src="LogoPolar.png" Alt="Empresas Polar" /></a>
-        <MudText Typo="Typo.h4" Style="color: white;"></MudText>
+
+        <!-- Opcional: Si quieres un título junto al logo principal -->
+        @* <MudText Typo="Typo.h4" Style="color: white; margin-left: 10px;">Tu Título</MudText> *@
+
+        <!-- El Spacer empuja todo lo que sigue hacia la derecha -->
         <MudSpacer />
+
+        <!-- Contenido de la derecha -->
         <MudText Typo="Typo.body1" Style="color: white; margin-right: 16px;">
+            <!-- Esto parece contener enlaces de autenticación o texto -->
             <AuthLinks />
         </MudText>
-        <a href="/"><MudImage Src="FactorPolar.png" Alt="Empresas Polar" /></a>
+
+        <!-- El logo de Factor Polar, pegado al final -->
+        <a href="/"><MudImage Src="FactorPolar.png" Alt="Empresas Polar" />;&ensp;&ensp;&ensp;&ensp;</a>
+
     </MudAppBar>
     @* Needed for snackbars *@
     <MudSnackbarProvider />
@@ -39,6 +51,13 @@
     .button, .icon {
         font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
         font-size: 11px;
+    }
+
+    html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow-x: hidden; /* Evita un scroll horizontal accidental */
+        width: 100%;
     }
 
     /* Estilo para el botón dentro de la tabla */
@@ -84,10 +103,11 @@
     }
 
     .navbar-top {
-        height: 70px; /* Aumenta la altura de la barra */
-        display: flex;
-        align-items: center; /* Centra los elementos verticalmente */
-        padding: 0 20px; /* Añade espacio a los lados */
+        width: 100vw !important;
+        /* Ajusta la posición si es necesario */
+        position: absolute;
+        left: 0;
+        right: 0;
     }
 </style>
 

@@ -115,11 +115,22 @@ namespace FactorPolar.Infrastructure.Repositories
             {
                 return null;
             }
-            beneficiario.TipoInstitucion = benefi.TipoInstitucion;
-            beneficiario.NombreInstitucion = benefi.NombreInstitucion;
-            beneficiario.RifInstitucion = benefi.RifInstitucion;
-            beneficiario.NivelEducativo = benefi.NivelEducativo;
-            beneficiario.GradoEducativo = benefi.GradoEducativo;
+
+            if(beneficiario.TipoInstitucion.ToUpper() != benefi.TipoInstitucion.ToUpper())
+                beneficiario.TipoInstitucionAux = benefi.TipoInstitucion.ToUpper();
+
+            if (beneficiario.NombreInstitucion.ToUpper() != benefi.NombreInstitucion.ToUpper())
+                beneficiario.NombreInstitucionAux = benefi.NombreInstitucion.ToUpper();
+
+            if (beneficiario.RifInstitucion.ToUpper() != benefi.RifInstitucion.ToUpper())
+                beneficiario.RifInstitucionAux = benefi.RifInstitucion.ToUpper();
+
+            if (beneficiario.NivelEducativo.ToUpper() != benefi.NivelEducativo.ToUpper())
+                beneficiario.NivelEducativoAux = benefi.NivelEducativo.ToUpper();
+
+            if (beneficiario.GradoEducativo.ToUpper() != benefi.GradoEducativo.ToUpper())
+                beneficiario.GradoEducativoAux = benefi.GradoEducativo.ToUpper();
+            
             beneficiario.Promedio = benefi.Promedio;
 
             _context.Beneficiarios.Update(beneficiario);
