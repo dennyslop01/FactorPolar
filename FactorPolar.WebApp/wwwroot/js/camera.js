@@ -2,6 +2,24 @@
 let recordedChunks = [];
 let stream;
 
+window.getVideoDuration = (elementId) => {
+    return new Promise((resolve) => {
+        const input = document.getElementById(elementId);
+        if (input.files.length === 0) resolve(0);
+
+        const file = input.files[0];
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+
+        video.onloadedmetadata = function () {
+            window.URL.revokeObjectURL(video.src);
+            resolve(video.duration); // Retorna duración en segundos
+        };
+
+        video.src = URL.createObjectURL(file);
+    });
+};
+
 window.cameraFunctions = {
     startRecording: async (videoElementId, dotnetHelper) => {
         try {

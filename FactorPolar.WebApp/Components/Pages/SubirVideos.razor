@@ -1,0 +1,209 @@
+﻿@rendermode InteractiveServer
+@inject FactorPolar.Infrastructure.Services.GoogleDriveService DriveService
+
+<label for="fileVideo" class="btn btn-primary" style="cursor:pointer;">
+    <i class="bi bi-upload"></i> Subir Video
+</label>
+<InputFile id="fileVideo" OnChange="UploadFileVideo" accept="video/*" capture="environment" style="display:none;" />
+<br />
+<br />
+
+@if (fileNames.Any())
+{
+    <div>
+        @foreach (var name in fileNames)
+        {
+            <strong>
+                <label class="form-label">
+                    <i class="bi bi-camera-video"></i> @name
+                </label>
+            </strong>
+        }
+    </div>
+}
+<br />
+<br />
+@if (mostrarAlerta)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @mensajeAlerta
+        <button type="button" class="btn-close" @onclick="() => mostrarAlerta = false"></button>
+    </div>
+}
+
+@if (cargando)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5); align-content:center">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="modal-cargando text-lg-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+
+    [Parameter] public string folderName { get; set; }
+    [Parameter] public int beneficiarioId { get; set; }
+    [Parameter] public string rutaVideo { get; set; }
+
+    private string Message = "";
+    private string ImageUrl; // Para mostrar un preview de la imagen
+    private List<string> fileNames = new List<string>();
+    private string? mensajeAlerta;
+    private bool mostrarAlerta = false;
+    private bool cargando = false;
+
+    [Inject] private IBeneficiario repobenefi { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        fileNames.Clear();
+        if (!string.IsNullOrEmpty(rutaVideo))
+            fileNames.Add("Video Talento");
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        fileNames.Clear();
+        if (!string.IsNullOrEmpty(rutaVideo))
+            fileNames.Add("Video Talento");
+    }
+
+    private async Task UploadFileVideo(InputFileChangeEventArgs e) // Cambiado a UploadFileVideo
+    {
+        cargando = true;
+        var file = e.File;
+        if (file == null) return;
+
+        try
+        {
+            Stream streamToUpload;
+            string fileName;
+            string contentType = file.ContentType;
+
+            // --- LÓGICA DE PROCESAMIENTO SEGÚN EL TIPO ---
+            if (!file.ContentType.StartsWith("video/"))
+            {
+                mensajeAlerta = "Formato no soportado. Solo videos.";
+                mostrarAlerta = true;
+                return;
+            }
+            
+            double duration = await jsRuntime.InvokeAsync<double>("getVideoDuration", "fileVideo");
+
+            if (duration > 60)
+            {
+                // Mostrar error: "El video no puede superar los 60 segundos"
+                mensajeAlerta = "El video no puede superar los 60 segundos";
+                mostrarAlerta = true;
+                return;
+            }            
+            
+            // Si es imagen, mantenemos tu lógica de redimensionado
+            long maxVideoSize = 100 * 1024 * 1024;
+            streamToUpload = file.OpenReadStream(maxAllowedSize: maxVideoSize);
+            fileName = $"{DateTime.Now:yyyyMMdd}_Video.webm";
+            contentType = file.ContentType;            
+
+            // --- LÓGICA DE CARGA A GOOGLE DRIVE / GCS ---
+            using (streamToUpload)
+            {
+                if (!string.IsNullOrEmpty(folderName))
+                {
+                    string folderId = await DriveService.CreateFolderAsync(folderName);
+                    string fileIdResult = string.Empty;
+
+                    Beneficiario? benefi = await repobenefi.GetByIdlAsync(beneficiarioId);
+
+                    // Borrar archivo anterior si existe
+                    if (benefi?.RutaVideo != null)
+                    {
+                        string oldFileId = benefi.RutaVideo.Split('/').Last();
+                        await DriveService.DeleteFileAsync(oldFileId);
+                    }
+
+                    // Subida con el ContentType dinámico
+                    fileIdResult = await DriveService.UploadFileAsync(streamToUpload, fileName, contentType, folderId);
+
+                    if (benefi?.RutaVideo == null)
+                        fileNames.Add("Video Talento");
+
+                    await repobenefi.UpdateRutaVideoAsync(beneficiarioId, $"{folderId}/{fileIdResult}");
+                }
+            }
+
+            mensajeAlerta = "Archivo subido correctamente.";
+            mostrarAlerta = true;
+        }
+        catch (Exception ex)
+        {
+            mensajeAlerta = $"Error al procesar el archivo: {ex.Message}";
+            mostrarAlerta = true;
+        }
+        cargando = false;
+    }
+}
+
+<style>
+    .btn {
+        display: inline-block;
+        /* padding: 10px 20px; */
+        font-size: 11px;
+        font-variant-caps: small-caps;
+        cursor: pointer;
+        text-align: center;
+        text-decoration: none;
+        outline: none;
+        color: #fff;
+        background-color: #007bff;
+        border: none;
+        /* border-radius: 15px; */
+        /* box-shadow: 0 4px #999; */
+    }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+
+        .btn:active {
+            background-color: #0056b3;
+            box-shadow: 0 2px #666;
+            transform: translateY(2px);
+        }
+
+    .btn2 {
+        display: inline-block;
+        /* padding: 10px 20px; */
+        font-size: 11px;
+        font-variant-caps: small-caps;
+        cursor: pointer;
+        text-align: center;
+        text-decoration: none;
+        outline: none;
+        color: #fff;
+        background-color: #BCBCBC;
+        border: none;
+        /* border-radius: 15px; */
+        /* box-shadow: 0 4px #999; */
+    }
+
+        .btn2:hover {
+            background-color: #BCBCBC;
+        }
+
+        .btn2:active {
+            background-color: #BCBCBC;
+            box-shadow: 0 2px #666;
+            transform: translateY(2px);
+        }
+
+</style>
+
