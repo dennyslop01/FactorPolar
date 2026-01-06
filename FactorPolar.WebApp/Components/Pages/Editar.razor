@@ -12,14 +12,6 @@
 
             <strong>Datos Académicos</strong>
             <hr>
-            @if (mostrarAlerta)
-            {
-                <div id="divAlerta" class="alert alert-success alert-dismissible fade show toast-container" role="alert" style="display:none;">
-                    @mensajeAlerta
-                    <button type="button" class="btn-close" @onclick="() => mostrarAlerta = false"></button>
-                </div>
-            }
-
             <div class="row">
                 <div class="col-3">
                     <strong><label class="form-label">Tipo de Institución:</label></strong>
@@ -113,7 +105,20 @@
             </div>
         }
 
-        
+
+        @if (mostrarAlerta)
+        {
+            <div id="divAlerta" class="alert alert-success alert-dismissible fade show toast-container" role="alert" style="display:none;">
+                @mensajeAlerta
+                <button type="button" class="btn-close" @onclick="() => mostrarAlerta = false"></button>
+            </div>
+        }
+        else
+        {
+            <div id="divAlerta" class="alert alert-success alert-dismissible fade show toast-container" role="alert" style="display:none;">
+            </div>
+        }
+
         <br />
 
         @if (mostrarFormulario)
@@ -264,7 +269,6 @@
             {
                 datosbenefi = CultureInfo.CurrentCulture.TextInfo.ToTitleCase($"{beneficiario.FullName}".ToLower());
                 folderName = $"{beneficiario.CedulaIdentidad.Replace(".", "")}_{beneficiario.FechaNacimiento.ToString("yyyyMMdd")}_{beneficiario.Edad.ToString()}";
-                await jsRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlerta", 8000);
             }
         }
         catch (Exception ex)
@@ -272,6 +276,14 @@
             datosbenefi = $"Error al cargar datos del beneficiario: {ex.Message}";
         }
         cargando = false;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await jsRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlerta", 10);
+        }
     }
 
     private void EditarEntidad()
@@ -324,12 +336,20 @@
             mostrarFormulario = false;
             mensajeAlerta = "Datos guardados exitosamente.";
             mostrarAlerta = true;
+            // 3. Forzamos el renderizado y esperamos un "ciclo" para que el DOM se actualice
+            StateHasChanged();
+            await Task.Delay(1); // Pequeña espera para asegurar que el DOM esté listo
+
             await JSRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlerta", 8000);
         }
         catch (Exception ex)
         {
             mensajeAlerta = ex.Message;
             mostrarAlerta = true;
+            // 3. Forzamos el renderizado y esperamos un "ciclo" para que el DOM se actualice
+            StateHasChanged();
+            await Task.Delay(1); // Pequeña espera para asegurar que el DOM esté listo
+
             await JSRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlerta", 8000);
         }
     }

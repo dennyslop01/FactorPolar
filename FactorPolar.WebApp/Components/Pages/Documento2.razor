@@ -37,7 +37,7 @@ else
 </EditForm>
 @if (mostrarAlerta)
 {
-    <div id="divAlerta" class="alert alert-success alert-dismissible fade show toast-container" role="alert" style="display:none;">
+    <div id="divAlerta" class="alert alert-success alert-dismissible fade show toast-container" role="alert">
         @mensajeAlerta
         <button type="button" class="btn-close" @onclick="() => mostrarAlerta = false"></button>
     </div>

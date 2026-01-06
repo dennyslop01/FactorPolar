@@ -117,7 +117,7 @@
     window.TimeoutHelper = {
         showAndHide: function (elementId, timeoutMs) {
             const divElement = document.getElementById(elementId);
-
+            //console.log('Elemento encontrado:', divElement);
             if (divElement) {
                 // Ya no necesitas 'display: block;' aquí si usas OnAfterRenderAsync
                 // porque Blazor ya lo ha puesto visible condicionalmente.

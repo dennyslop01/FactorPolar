@@ -76,6 +76,11 @@
         <button type="button" class="btn-close" @onclick="() => mostrarAlerta = false"></button>
     </div>
 }
+else
+{
+    <div id="divAlerta" class="alert alert-success alert-dismissible fade show toast-container" role="alert" style="display:none;">
+    </div>
+}
 
 @if (cargando)
 {

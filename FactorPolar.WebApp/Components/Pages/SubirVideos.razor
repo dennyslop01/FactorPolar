@@ -30,6 +30,11 @@
         <button type="button" class="btn-close" @onclick="() => mostrarAlerta = false"></button>
     </div>
 }
+else
+{
+    <div id="divAlertavideo" class="alert alert-success alert-dismissible fade show toast-container" role="alert" style="display:none;">
+    </div>
+}
 
 @if (cargando)
 {
@@ -70,6 +75,14 @@
             fileNames.Add("Video Talento");
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await jsRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlertavideo", 10);
+        }
+    }
+
     protected override async Task OnParametersSetAsync()
     {
         fileNames.Clear();
@@ -94,6 +107,10 @@
             {
                 mensajeAlerta = "Formato no soportado. Solo videos.";
                 mostrarAlerta = true;
+                // 3. Forzamos el renderizado y esperamos un "ciclo" para que el DOM se actualice
+                StateHasChanged();
+                await Task.Delay(1); // Pequeña espera para asegurar que el DOM esté listo
+
                 await jsRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlertavideo", 8000);
                 return;
             }
@@ -105,6 +122,10 @@
                 // Mostrar error: "El video no puede superar los 60 segundos"
                 mensajeAlerta = "El video no puede superar los 60 segundos";
                 mostrarAlerta = true;
+                // 3. Forzamos el renderizado y esperamos un "ciclo" para que el DOM se actualice
+                StateHasChanged();
+                await Task.Delay(1); // Pequeña espera para asegurar que el DOM esté listo
+
                 await jsRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlertavideo", 8000);
                 return;
             }            
@@ -144,12 +165,20 @@
 
             mensajeAlerta = "Archivo subido correctamente.";
             mostrarAlerta = true;
+            // 3. Forzamos el renderizado y esperamos un "ciclo" para que el DOM se actualice
+            StateHasChanged();
+            await Task.Delay(1); // Pequeña espera para asegurar que el DOM esté listo
+
             await jsRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlertavideo", 8000);
         }
         catch (Exception ex)
         {
             mensajeAlerta = $"Error al procesar el archivo: {ex.Message}";
             mostrarAlerta = true;
+            // 3. Forzamos el renderizado y esperamos un "ciclo" para que el DOM se actualice
+            StateHasChanged();
+            await Task.Delay(1); // Pequeña espera para asegurar que el DOM esté listo
+
             await jsRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlertavideo", 8000);
         }
         cargando = false;
