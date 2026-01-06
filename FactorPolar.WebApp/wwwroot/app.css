@@ -76,7 +76,7 @@ h1:focus {
 .toast-container {
     position: fixed; /* Fija la posición en la ventana */
     top: 60px; /* Distancia desde la parte superior */
-    right: 20px; /* Distancia desde la derecha */
+    right: 10px; /* Distancia desde la derecha */
     z-index: 1000; /* Asegura que esté por encima de otros elementos */
     /* Estilos adicionales para apariencia si no usas Bootstrap */
 }

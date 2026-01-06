@@ -1,5 +1,5 @@
 ﻿@rendermode InteractiveServer
-@inject FactorPolar.Infrastructure.Services.GoogleDriveService DriveService
+@inject GoogleDriveService DriveService
 
 <label for="fileVideo" class="btn btn-primary" style="cursor:pointer;">
     <i class="bi bi-upload"></i> Subir Video
@@ -27,7 +27,6 @@
 {
     <div id="divAlertavideo" class="alert alert-success alert-dismissible fade show toast-container" role="alert" style="display:none;">
         @mensajeAlerta
-        <button type="button" class="btn-close" @onclick="() => mostrarAlerta = false"></button>
     </div>
 }
 else
@@ -38,14 +37,18 @@ else
 
 @if (cargando)
 {
-    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5); align-content:center">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-body">
-                    <div class="modal-cargando text-lg-center">
-                        <div class="spinner-border" role="status">
+    <div class="modal fade show d-block modal-loading-center" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+        <!-- 'modal-dialog-centered' centra el modal verticalmente -->
+        <div class="modal-dialog modal-dialog-centered">
+            <!-- Ajustamos el ancho con 'mx-auto' y eliminamos bordes/fondo si solo quieres ver el spinner -->
+            <div class="modal-content" style="background: transparent; border: none;">
+                <div class="modal-body text-center">
+                    <div class="modal-cargando">
+                        <!-- Spinner de Bootstrap -->
+                        <div class="spinner-border text-light" style="width: 3rem; height: 3rem;" role="status">
                             <span class="visually-hidden">Loading...</span>
                         </div>
+                        <p class="text-light mt-2">Cargando...</p>
                     </div>
                 </div>
             </div>
@@ -65,6 +68,7 @@ else
     private string? mensajeAlerta;
     private bool mostrarAlerta = false;
     private bool cargando = false;
+    private int progressPercent = 0;
 
     [Inject] private IBeneficiario repobenefi { get; set; } = null!;
 
@@ -98,8 +102,19 @@ else
 
         try
         {
-            Stream streamToUpload;
-            string fileName;
+            var progressHandler = new Progress<long>(bytesSent =>
+            {
+                if (file.Size > 0)
+                {
+                    // Calculamos porcentaje
+                    progressPercent = (int)((double)bytesSent / file.Size * 100);
+
+                    // IMPORTANTE: Forzamos a Blazor a repintar la UI con el nuevo valor
+                    StateHasChanged();
+                }
+            });
+
+            string fileName = $"{DateTime.Now:yyyyMMdd}_Videoc.webm";
             string contentType = file.ContentType;
 
             // --- LÓGICA DE PROCESAMIENTO SEGÚN EL TIPO ---
@@ -107,6 +122,7 @@ else
             {
                 mensajeAlerta = "Formato no soportado. Solo videos.";
                 mostrarAlerta = true;
+                cargando = false;
                 // 3. Forzamos el renderizado y esperamos un "ciclo" para que el DOM se actualice
                 StateHasChanged();
                 await Task.Delay(1); // Pequeña espera para asegurar que el DOM esté listo
@@ -114,27 +130,24 @@ else
                 await jsRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlertavideo", 8000);
                 return;
             }
-            
-            double duration = await jsRuntime.InvokeAsync<double>("getVideoDuration", "fileVideo");
 
-            if (duration > 60)
+            double duration = await jsRuntime.InvokeAsync<double>("videoValidation.getDuration", "fileVideo");
+            if (duration > 65)
             {
                 // Mostrar error: "El video no puede superar los 60 segundos"
                 mensajeAlerta = "El video no puede superar los 60 segundos";
                 mostrarAlerta = true;
+                cargando = false;
                 // 3. Forzamos el renderizado y esperamos un "ciclo" para que el DOM se actualice
                 StateHasChanged();
                 await Task.Delay(1); // Pequeña espera para asegurar que el DOM esté listo
 
                 await jsRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlertavideo", 8000);
                 return;
-            }            
-            
-            // Si es imagen, mantenemos tu lógica de redimensionado
-            long maxVideoSize = 100 * 1024 * 1024;
-            streamToUpload = file.OpenReadStream(maxAllowedSize: maxVideoSize);
-            fileName = $"{DateTime.Now:yyyyMMdd}_Video.webm";
-            contentType = file.ContentType;            
+            }
+
+            long maxVideoSize = 500 * 1024 * 1024;
+            Stream streamToUpload = file.OpenReadStream(maxVideoSize);
 
             // --- LÓGICA DE CARGA A GOOGLE DRIVE / GCS ---
             using (streamToUpload)
@@ -153,8 +166,11 @@ else
                         await DriveService.DeleteFileAsync(oldFileId);
                     }
 
+                    //var token = await DriveService.GetAccessTokenAsync();
+                    //fileIdResult = await jsRuntime.InvokeAsync<string>("compressAndUploadToDrive", file, token);
+
                     // Subida con el ContentType dinámico
-                    fileIdResult = await DriveService.UploadFileAsync(streamToUpload, fileName, contentType, folderId);
+                    fileIdResult = await DriveService.UploadLargeFileAsync(streamToUpload, fileName, file.ContentType, folderId, progressHandler);
 
                     if (benefi?.RutaVideo == null)
                         fileNames.Add("Video Talento");
@@ -165,6 +181,8 @@ else
 
             mensajeAlerta = "Archivo subido correctamente.";
             mostrarAlerta = true;
+            cargando = false;
+
             // 3. Forzamos el renderizado y esperamos un "ciclo" para que el DOM se actualice
             StateHasChanged();
             await Task.Delay(1); // Pequeña espera para asegurar que el DOM esté listo
@@ -175,13 +193,13 @@ else
         {
             mensajeAlerta = $"Error al procesar el archivo: {ex.Message}";
             mostrarAlerta = true;
+            cargando = false;
             // 3. Forzamos el renderizado y esperamos un "ciclo" para que el DOM se actualice
             StateHasChanged();
             await Task.Delay(1); // Pequeña espera para asegurar que el DOM esté listo
 
             await jsRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlertavideo", 8000);
         }
-        cargando = false;
     }
 }
 
@@ -240,3 +258,63 @@ else
 
 </style>
 
+<script>
+    window.compressAndUploadToDrive = async (fileElement, accessToken) => {
+        // 1. Obtener el objeto File desde el input de Blazor
+        const file = fileElement;
+        const url = "www.googleapis.com";
+
+        // 2. Iniciar sesión de subida resumible
+        const metadata = {
+            name: file.name || "video_movil.mp4",
+            mimeType: file.type || "video/mp4"
+        };
+
+        const initRes = await fetch(url, {
+            method: "POST", // Este es el método correcto para INICIAR
+            headers: {
+                "Authorization": `Bearer ${accessToken}`,
+                "Content-Type": "application/json; charset=UTF-8",
+                "X-Upload-Content-Type": file.type || "video/mp4" // Agrega este encabezado
+            },
+            body: JSON.stringify(metadata)
+        });
+
+        if (!initRes.ok) {
+            const errorDetail = await initRes.text(); // Esto leerá el error real de Google
+            console.error("Detalle del error de Google:", errorDetail);
+            throw new Error(`Google Drive API Error: ${initRes.status} - ${errorDetail}`);
+        }
+    
+        const uploadUrl = initRes.headers.get("Location");
+
+        // 3. Subida por fragmentos (Chunks) para evitar lentitud y errores de memoria
+        const reader = file.stream().getReader();
+        let uploadedBytes = 0;
+        let finalResponse = null;
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const isLastChunk = uploadedBytes + value.length === file.size;
+
+            const res = await fetch(uploadUrl, {
+                method: "PUT",
+                headers: {
+                    "Content-Range": `bytes ${uploadedBytes}-${uploadedBytes + value.length - 1}/${file.size}`
+                },
+                body: value
+            });
+
+            uploadedBytes += value.length;
+
+            // El ID del archivo viene en la respuesta del último fragmento
+            if (res.status === 200 || res.status === 201) {
+                finalResponse = await res.json();
+            }
+        }
+
+        return finalResponse ? finalResponse.id : null;
+    };
+</script>

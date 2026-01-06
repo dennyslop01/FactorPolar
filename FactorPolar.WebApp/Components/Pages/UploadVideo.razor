@@ -1,0 +1,141 @@
+﻿@rendermode InteractiveServer
+@inject GoogleDriveService DriveService
+@inject ISnackbar Snackbar
+
+<MudCard Class="pa-6">
+    <MudText Typo="Typo.h5" GutterBottom="true">Subir Video (Galería)</MudText>
+    <MudText Typo="Typo.body2" Class="mb-4">Selecciona un video de tu celular. Máximo 1 minuto.</MudText>
+
+    <!-- Input oculto, activado por el botón -->
+    <InputFile id="videoInput" OnChange="OnInputFileChange" accept="video/*" hidden />
+
+    @if (!isUploading)
+    {
+        <MudButton HtmlTag="label"
+                   for="videoInput"
+                   Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.VideoLibrary"
+                   Size="Size.Large"
+                   FullWidth="true"
+                   Class="py-3">
+            SELECCIONAR VIDEO
+        </MudButton>
+    }
+    else
+    {
+        <!-- ZONA DE FEEDBACK VISUAL -->
+        <MudStack Spacing="2">
+            <MudText Align="Align.Center" Typo="Typo.h6">
+                Subiendo... @progressPercent%
+            </MudText>
+
+            <!-- La Barra de Progreso Controlada -->
+            <MudProgressLinear Color="Color.Success"
+                               Value="@progressPercent"
+                               Size="Size.Large"
+                               Striped="true"
+                               Class="my-2" />
+
+            <MudText Align="Align.Center" Typo="Typo.caption" Color="Color.Warning">
+                <MudIcon Icon="@Icons.Material.Filled.Warning" Size="Size.Small" />
+                Por favor no cierres esta pantalla ni apagues la pantalla.
+            </MudText>
+        </MudStack>
+    }
+</MudCard>
+
+
+@code{
+    [Parameter] public string folderName { get; set; }
+    [Parameter] public int beneficiarioId { get; set; }
+    [Parameter] public string rutaVideo { get; set; }
+
+    private bool isUploading = false;
+    private int progressPercent = 0;
+    private long maxFileSize = 500 * 1024 * 1024; // 500MB Límite técnico
+    [Inject] private IBeneficiario repobenefi { get; set; } = null!;
+
+    private async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file == null) return;
+
+        // 1. VALIDAR TIPO
+        if (!file.ContentType.StartsWith("video/"))
+        {
+            Snackbar.Add("Solo se permiten archivos de video.", Severity.Error);
+            return;
+        }
+
+        // 2. VALIDAR DURACIÓN (JS Interop)
+        double duration = await jsRuntime.InvokeAsync<double>("videoValidation.getDuration", "videoInput");
+        if (duration > 65)
+        {
+            Snackbar.Add($"Video muy largo ({duration:F0}s). Máximo 60 segundos.", Severity.Warning);
+            return;
+        }
+
+        isUploading = true;
+        progressPercent = 0;
+        StateHasChanged(); // Mostrar barra vacía
+
+        try
+        {
+            // 3. DEFINIR EL MANEJADOR DE PROGRESO (Blazor Pattern)
+            // Esta función se ejecuta cada vez que Drive sube un pedacito
+            var progressHandler = new Progress<long>(bytesSent =>
+            {
+                if (file.Size > 0)
+                {
+                    // Calculamos porcentaje
+                    progressPercent = (int)((double)bytesSent / file.Size * 100);
+
+                    // IMPORTANTE: Forzamos a Blazor a repintar la UI con el nuevo valor
+                    StateHasChanged();
+                }
+            });
+
+            // 4. SUBIR (Streaming)
+            using var stream = file.OpenReadStream(maxFileSize);
+            string fileName = $"{DateTime.Now:yyyyMMdd}_Talento_{file.Name}";
+
+            if (!string.IsNullOrEmpty(folderName))
+            {
+                string folderId = await DriveService.CreateFolderAsync(folderName);
+                string fileIdResult = string.Empty;
+
+                Beneficiario? benefi = await repobenefi.GetByIdlAsync(beneficiarioId);
+
+                // Borrar archivo anterior si existe
+                if (benefi?.RutaVideo != null)
+                {
+                    string oldFileId = benefi.RutaVideo.Split('/').Last();
+                    await DriveService.DeleteFileAsync(oldFileId);
+                }
+
+                // Pasamos el 'progressHandler' al servicio
+                await DriveService.UploadLargeFileAsync(stream, fileName, file.ContentType, folderId, progressHandler);
+
+                //fileIdResult = await DriveService.UploadFileAsync(streamToUpload, fileName, contentType, folderId);
+
+                //if (benefi?.RutaVideo == null)
+                //    fileNames.Add("Video Talento");
+
+                await repobenefi.UpdateRutaVideoAsync(beneficiarioId, $"{folderId}/{fileIdResult}");
+            }
+
+            Snackbar.Add("¡Video subido con éxito!", Severity.Success);
+            progressPercent = 100;
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error subiendo: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            isUploading = false;
+            StateHasChanged();
+        }
+    }
+}

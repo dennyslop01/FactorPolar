@@ -20,6 +20,29 @@ window.getVideoDuration = (elementId) => {
     });
 };
 
+window.videoValidation = {
+    getDuration: async (inputId) => {
+        return new Promise((resolve, reject) => {
+            const input = document.getElementById(inputId);
+            if (!input || !input.files[0]) {
+                resolve(0); return;
+            }
+
+            const file = input.files[0];
+            const video = document.createElement('video');
+            video.preload = 'metadata';
+
+            video.onloadedmetadata = function () {
+                window.URL.revokeObjectURL(video.src);
+                resolve(video.duration);
+            }
+            video.onerror = function () { resolve(-1); }
+
+            video.src = URL.createObjectURL(file);
+        });
+    }
+};
+
 window.cameraFunctions = {
     startRecording: async (videoElementId, dotnetHelper) => {
         try {

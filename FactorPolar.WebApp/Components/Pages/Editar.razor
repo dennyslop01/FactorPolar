@@ -1,7 +1,6 @@
 ﻿@page "/editar/{Id}"
 @using System.Globalization
 @rendermode InteractiveServer
-@inject IJSRuntime JSRuntime
 
 <div class="row align-content-center">
     <div class="col-lg-12">
@@ -110,7 +109,6 @@
         {
             <div id="divAlerta" class="alert alert-success alert-dismissible fade show toast-container" role="alert" style="display:none;">
                 @mensajeAlerta
-                <button type="button" class="btn-close" @onclick="() => mostrarAlerta = false"></button>
             </div>
         }
         else
@@ -211,14 +209,18 @@
 
 @if (cargando)
 {
-    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5); align-content:center">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-body">
-                    <div class="modal-cargando text-lg-center">
-                        <div class="spinner-border" role="status">
+    <div class="modal fade show d-block modal-loading-center" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+        <!-- 'modal-dialog-centered' centra el modal verticalmente -->
+        <div class="modal-dialog modal-dialog-centered">
+            <!-- Ajustamos el ancho con 'mx-auto' y eliminamos bordes/fondo si solo quieres ver el spinner -->
+            <div class="modal-content" style="background: transparent; border: none;">
+                <div class="modal-body text-center">
+                    <div class="modal-cargando">
+                        <!-- Spinner de Bootstrap -->
+                        <div class="spinner-border text-light" style="width: 3rem; height: 3rem;" role="status">
                             <span class="visually-hidden">Loading...</span>
                         </div>
+                        <p class="text-light mt-2">Cargando...</p>
                     </div>
                 </div>
             </div>
@@ -340,7 +342,7 @@
             StateHasChanged();
             await Task.Delay(1); // Pequeña espera para asegurar que el DOM esté listo
 
-            await JSRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlerta", 8000);
+            await jsRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlerta", 8000);
         }
         catch (Exception ex)
         {
@@ -350,7 +352,7 @@
             StateHasChanged();
             await Task.Delay(1); // Pequeña espera para asegurar que el DOM esté listo
 
-            await JSRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlerta", 8000);
+            await jsRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlerta", 8000);
         }
     }
 

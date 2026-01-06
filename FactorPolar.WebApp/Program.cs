@@ -37,9 +37,16 @@ builder.Services.AddScoped<GoogleDriveService>();
 builder.Services.AddCascadingAuthenticationState();
 //builder.Services.AddAuthorizationCore();
 
-//builder.Services.AddServerSideBlazor().AddCircuitOptions(options => {
-//    options.DetailedErrors = true;
-//});
+builder.Services.AddServerSideBlazor()
+    .AddHubOptions(options =>
+    {
+        options.MaximumReceiveMessageSize = 500 * 1024 * 1024; // 500MB
+
+        // Aumentar Timeout es obligatorio para redes móviles 4G/3G
+        options.ClientTimeoutInterval = TimeSpan.FromMinutes(20);
+        options.HandshakeTimeout = TimeSpan.FromMinutes(10);
+    });
+
 
 builder.Services.Configure<Saml2Configuration>(options =>
 {

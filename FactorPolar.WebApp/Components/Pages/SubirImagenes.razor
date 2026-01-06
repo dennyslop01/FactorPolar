@@ -1,5 +1,5 @@
 ﻿@rendermode InteractiveServer
-@inject FactorPolar.Infrastructure.Services.GoogleDriveService DriveService
+@inject GoogleDriveService DriveService
 
 <label for="fileInput" class="btn btn-primary" style="cursor:pointer;">
     <i class="bi bi-upload"></i> Subir Constancia de Notas
@@ -27,7 +27,6 @@
 {
     <div id="divAlertaimagen" class="alert alert-success alert-dismissible fade show toast-container" role="alert" style="display:none;">
         @mensajeAlerta
-        <button type="button" class="btn-close" @onclick="() => mostrarAlerta = false"></button>
     </div>
 }
 else
@@ -38,14 +37,18 @@ else
 
 @if (cargando)
 {
-    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5); align-content:center">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-body">
-                    <div class="modal-cargando text-lg-center">
-                        <div class="spinner-border" role="status">
+    <div class="modal fade show d-block modal-loading-center" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+        <!-- 'modal-dialog-centered' centra el modal verticalmente -->
+        <div class="modal-dialog modal-dialog-centered">
+            <!-- Ajustamos el ancho con 'mx-auto' y eliminamos bordes/fondo si solo quieres ver el spinner -->
+            <div class="modal-content" style="background: transparent; border: none;">
+                <div class="modal-body text-center">
+                    <div class="modal-cargando">
+                        <!-- Spinner de Bootstrap -->
+                        <div class="spinner-border text-light" style="width: 3rem; height: 3rem;" role="status">
                             <span class="visually-hidden">Loading...</span>
                         </div>
+                        <p class="text-light mt-2">Cargando...</p>
                     </div>
                 </div>
             </div>
@@ -121,6 +124,7 @@ else
             {
                 mensajeAlerta = "Formato no soportado. Solo imágenes y PDF.";
                 mostrarAlerta = true;
+                cargando = false;
                 // 3. Forzamos el renderizado y esperamos un "ciclo" para que el DOM se actualice
                 StateHasChanged();
                 await Task.Delay(1); // Pequeña espera para asegurar que el DOM esté listo
@@ -158,6 +162,7 @@ else
 
             mensajeAlerta = "Archivo subido correctamente.";
             mostrarAlerta = true;
+            cargando = false;
             // 3. Forzamos el renderizado y esperamos un "ciclo" para que el DOM se actualice
             StateHasChanged();
             await Task.Delay(1); // Pequeña espera para asegurar que el DOM esté listo
@@ -168,58 +173,14 @@ else
         {
             mensajeAlerta = $"Error al procesar el archivo: {ex.Message}";
             mostrarAlerta = true;
+            cargando = false;
             // 3. Forzamos el renderizado y esperamos un "ciclo" para que el DOM se actualice
             StateHasChanged();
             await Task.Delay(1); // Pequeña espera para asegurar que el DOM esté listo
 
             await jsRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlertaimagen", 8000);
         }
-        cargando = false;
     }
-
-    // private async Task UploadPhoto(InputFileChangeEventArgs e)
-    // {
-    //     var file = e.File;
-    //     if (file != null)
-    //     {
-    //         try
-    //         {
-    //             // 1. REDIMENSIONAR IMAGEN (CRÍTICO)
-    //             // Reducimos a máx 800x800 px. Esto baja el peso de 5MB a ~150KB.
-    //             // Formato WebP o JPEG para máxima compresión.
-    //             var resizedImage = await file.RequestImageFileAsync("image/jpeg", 800, 800);
-
-    //             using var stream = resizedImage.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024);
-
-    //             if (!string.IsNullOrEmpty(folderName))
-    //             {
-    //                 string folderId = await DriveService.CreateFolderAsync(folderName);
-    //                 // Nombre ordenado
-    //                 string fileName = $"{DateTime.Now:yyyyMMdd}_FotoBoletin.jpg";
-    //                 string imageId = string.Empty;
-
-    //                 Beneficiario? benefi = await repobenefi.GetByIdlAsync(beneficiarioId);
-    //                 if (benefi.RutaNotas != null)
-    //                 {
-    //                     string fileId = benefi.RutaNotas.Split('/').Last();
-    //                     await DriveService.DeleteFileWithParentCheckAsync(fileId, folderId);
-    //                     imageId = await DriveService.UploadFileAsync(stream, fileName, "image/jpeg", folderId);
-    //                 }
-    //                 else
-    //                 {
-    //                     imageId = await DriveService.UploadFileAsync(stream, fileName, "image/jpeg", folderId);
-    //                     fileNames.Add("Foto Boletin");
-    //                 }
-
-    //                 await repobenefi.UpdateRutaNotaAsync(beneficiarioId, $"{folderId}/{imageId}");
-    //             }
-    //         }
-    //         catch (Exception ex)
-    //         {
-    //             Message = $"Error al procesar la foto: {ex.Message}";
-    //         }
-    //     }
-    // }
 }
 
 <style>

@@ -9,11 +9,35 @@ namespace FactorPolar.Infrastructure.Services
     public class GoogleDriveService
     {
         private readonly IConfiguration _config;
-        private readonly string[] _scopes = { DriveService.Scope.Drive }; // Scope completo para poder borrar/crear
+        //private readonly string[] _scopes = { DriveService.Scope.Drive }; // Scope completo para poder borrar/crear
+        private readonly string[] _scopes = { DriveService.Scope.DriveFile };
 
         public GoogleDriveService(IConfiguration config)
         {
             _config = config;
+        }
+
+        public async Task<string> GetAccessTokenAsync()
+        {
+            var jsonPath = _config["GoogleDrive:CredentialsPath"];
+            GoogleCredential credential;
+
+            using (var stream = new FileStream(jsonPath, FileMode.Open, FileAccess.Read))
+            {
+                // _scopes debe incluir "www.googleapis.com"
+                credential = GoogleCredential.FromStream(stream).CreateScoped(_scopes);
+            }
+
+            // Solicita el token de acceso de forma asíncrona
+            var token = await credential.UnderlyingCredential.GetAccessTokenForRequestAsync();
+
+            if (string.IsNullOrEmpty(token))
+            {
+                // Fuerza la obtención del token si no está en caché
+                token = await credential.UnderlyingCredential.GetAccessTokenForRequestAsync();
+            }
+
+            return token;
         }
 
         private DriveService GetService()
@@ -99,15 +123,19 @@ namespace FactorPolar.Infrastructure.Services
         // 4. BORRAR ARCHIVO O CARPETA
         public async Task DeleteFileAsync(string fileId)
         {
-            var service = GetService();
-            // En lugar de service.Files.Delete(fileId), hacemos un Update:       
-            var fileMetadata = new Google.Apis.Drive.v3.Data.File()
+            try
             {
-                Trashed = true // <-- Esto lo envía a la papelera
-            };
-            var request = service.Files.Update(fileMetadata, fileId); 
-            request.SupportsAllDrives = true; // Indispensable en Shared Drives
-            await request.ExecuteAsync();
+                var service = GetService();
+                // En lugar de service.Files.Delete(fileId), hacemos un Update:       
+                var fileMetadata = new Google.Apis.Drive.v3.Data.File()
+                {
+                    Trashed = true // <-- Esto lo envía a la papelera
+                };
+                var request = service.Files.Update(fileMetadata, fileId);
+                request.SupportsAllDrives = true; // Indispensable en Shared Drives
+                await request.ExecuteAsync();
+            }
+            catch { }
         }
 
         //public async Task DeleteFileAsync(string fileId)
@@ -195,6 +223,49 @@ namespace FactorPolar.Infrastructure.Services
             var base64 = Convert.ToBase64String(stream.ToArray());
 
             return base64;
+        }
+
+        // Agregamos el parámetro 'progressReporter' al método
+        public async Task<string> UploadLargeFileAsync(Stream fileStream, string fileName, string contentType, string? folderId = null, IProgress<long>? progressReporter = null)
+        {
+            var service = GetService();
+            var targetFolderId = folderId ?? _config["GoogleDrive:SharedDriveId"];
+
+            var fileMetadata = new Google.Apis.Drive.v3.Data.File()
+            {
+                Name = fileName,
+                Parents = new List<string> { targetFolderId }
+            };
+
+            // Usamos CreateMediaUpload (Esencial para Resumable Upload)
+            var request = service.Files.Create(fileMetadata, fileStream, contentType);
+            request.Fields = "id";
+            request.SupportsAllDrives = true;
+
+            // ChunkSize: 1MB (Balance ideal para 4G en Venezuela)
+            // Menos de esto hace muchas peticiones HTTP, más de esto arriesga timeout.
+            request.ChunkSize = ResumableUpload.MinimumChunkSize * 4;
+
+            // EVENTO MÁGICO: Aquí conectamos el progreso de Google con Blazor
+            request.ProgressChanged += (IUploadProgress progress) =>
+            {
+                switch (progress.Status)
+                {
+                    case UploadStatus.Uploading:
+                        // Avisamos a la UI cuantos bytes llevamos
+                        progressReporter?.Report(progress.BytesSent);
+                        break;
+                    case UploadStatus.Failed:
+                        throw new Exception("Fallo de red en Drive: " + progress.Exception);
+                }
+            };
+
+            var uploadResult = await request.UploadAsync();
+
+            if (uploadResult.Status == UploadStatus.Failed)
+                throw new Exception($"Error: {uploadResult.Exception.Message}");
+
+            return request.ResponseBody?.Id ?? "ErrorID";
         }
     }
 }
