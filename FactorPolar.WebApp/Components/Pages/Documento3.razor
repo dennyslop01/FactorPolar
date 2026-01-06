@@ -37,7 +37,7 @@ else
 </EditForm>
 @if (mostrarAlerta)
 {
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
+    <div id="divAlerta" class="alert alert-success alert-dismissible fade show toast-container" role="alert" style="display:none;">
         @mensajeAlerta
         <button type="button" class="btn-close" @onclick="() => mostrarAlerta = false"></button>
     </div>
@@ -132,6 +132,7 @@ else
         {
             mensajeAlerta = "Debe escribir la palabra Acepto";
             mostrarAlerta = true;
+            //await JSRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlerta", 8000);
         }
         else
         {
@@ -140,12 +141,14 @@ else
                 await repobenefi.UpdateAsync(int.Parse(Id), 3);
                 mensajeAlerta = "Datos guardados correctamente.";
                 mostrarAlerta = true;
+                //await JSRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlerta", 8000);
                 NavManager.NavigateTo($"/editar/{Id}");
             }
             catch (Exception ex)
             {
                 mensajeAlerta = $"Error al guardar los datos: {ex.Message}";
                 mostrarAlerta = true;
+                //await JSRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlerta", 8000);
             }
         }
     }

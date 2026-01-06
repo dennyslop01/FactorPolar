@@ -25,7 +25,7 @@
         </MudText>
 
         <!-- El logo de Factor Polar, pegado al final -->
-        <a href="/"><MudImage Src="FactorPolar.png" Alt="Empresas Polar" />;&ensp;&ensp;&ensp;&ensp;</a>
+        <a href="/"><MudImage Src="FactorPolar.png" Alt="Empresas Polar" />;&ensp;&ensp;&ensp;</a>
 
     </MudAppBar>
     @* Needed for snackbars *@
@@ -113,3 +113,21 @@
     }
 </style>
 
+<script language="javascript">
+    window.TimeoutHelper = {
+        showAndHide: function (elementId, timeoutMs) {
+            const divElement = document.getElementById(elementId);
+
+            if (divElement) {
+                // Ya no necesitas 'display: block;' aquí si usas OnAfterRenderAsync
+                // porque Blazor ya lo ha puesto visible condicionalmente.
+                // Pero lo dejamos como seguro.
+                divElement.style.display = 'block';
+
+                setTimeout(function () {
+                    divElement.style.display = 'none';
+                }, timeoutMs);
+            }
+        }
+    };
+</script>

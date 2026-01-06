@@ -4,7 +4,7 @@
 <label for="fileVideo" class="btn btn-primary" style="cursor:pointer;">
     <i class="bi bi-upload"></i> Subir Video
 </label>
-<InputFile id="fileVideo" OnChange="UploadFileVideo" accept="video/*" capture="environment" style="display:none;" />
+<InputFile id="fileVideo" OnChange="UploadFileVideo" accept="video/*" style="display:none;" />
 <br />
 <br />
 
@@ -25,7 +25,7 @@
 <br />
 @if (mostrarAlerta)
 {
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
+    <div id="divAlertavideo" class="alert alert-success alert-dismissible fade show toast-container" role="alert" style="display:none;">
         @mensajeAlerta
         <button type="button" class="btn-close" @onclick="() => mostrarAlerta = false"></button>
     </div>
@@ -94,6 +94,7 @@
             {
                 mensajeAlerta = "Formato no soportado. Solo videos.";
                 mostrarAlerta = true;
+                await jsRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlertavideo", 8000);
                 return;
             }
             
@@ -104,6 +105,7 @@
                 // Mostrar error: "El video no puede superar los 60 segundos"
                 mensajeAlerta = "El video no puede superar los 60 segundos";
                 mostrarAlerta = true;
+                await jsRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlertavideo", 8000);
                 return;
             }            
             
@@ -142,11 +144,13 @@
 
             mensajeAlerta = "Archivo subido correctamente.";
             mostrarAlerta = true;
+            await jsRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlertavideo", 8000);
         }
         catch (Exception ex)
         {
             mensajeAlerta = $"Error al procesar el archivo: {ex.Message}";
             mostrarAlerta = true;
+            await jsRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlertavideo", 8000);
         }
         cargando = false;
     }

@@ -14,7 +14,7 @@
             <hr>
             @if (mostrarAlerta)
             {
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <div id="divAlerta" class="alert alert-success alert-dismissible fade show toast-container" role="alert" style="display:none;">
                     @mensajeAlerta
                     <button type="button" class="btn-close" @onclick="() => mostrarAlerta = false"></button>
                 </div>
@@ -66,13 +66,16 @@
                 </div>
                 <div class="col-8">
                     <label class="form-label">
-                        @if (beneficiario?.NivelEducativo == "PRIMARIA")
+                        @if (beneficiario.Promedio != null)
                         {
-                            @notaprimaria
-                        }
-                        else
-                        {
-                            @beneficiario?.Promedio
+                            if (beneficiario?.NivelEducativo == "PRIMARIA")
+                            {
+                                @notaprimaria
+                            }
+                            else
+                            {
+                                @beneficiario?.Promedio
+                            }
                         }
                     </label>
                 </div>
@@ -261,6 +264,7 @@
             {
                 datosbenefi = CultureInfo.CurrentCulture.TextInfo.ToTitleCase($"{beneficiario.FullName}".ToLower());
                 folderName = $"{beneficiario.CedulaIdentidad.Replace(".", "")}_{beneficiario.FechaNacimiento.ToString("yyyyMMdd")}_{beneficiario.Edad.ToString()}";
+                await jsRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlerta", 8000);
             }
         }
         catch (Exception ex)
@@ -320,11 +324,13 @@
             mostrarFormulario = false;
             mensajeAlerta = "Datos guardados exitosamente.";
             mostrarAlerta = true;
+            await JSRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlerta", 8000);
         }
         catch (Exception ex)
         {
             mensajeAlerta = ex.Message;
             mostrarAlerta = true;
+            await JSRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlerta", 8000);
         }
     }
 

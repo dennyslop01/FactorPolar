@@ -25,7 +25,7 @@
 <br />
 @if (mostrarAlerta)
 {
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
+    <div id="divAlertaimagen" class="alert alert-success alert-dismissible fade show toast-container" role="alert" style="display:none;">
         @mensajeAlerta
         <button type="button" class="btn-close" @onclick="() => mostrarAlerta = false"></button>
     </div>
@@ -108,6 +108,7 @@
             {
                 mensajeAlerta = "Formato no soportado. Solo imágenes y PDF.";
                 mostrarAlerta = true;
+                await jsRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlertaimagen", 8000);
                 return;
             }
 
@@ -140,11 +141,13 @@
 
             mensajeAlerta = "Archivo subido correctamente.";
             mostrarAlerta = true;
+            await jsRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlertaimagen", 8000);
         }
         catch (Exception ex)
         {
             mensajeAlerta = $"Error al procesar el archivo: {ex.Message}";
             mostrarAlerta = true;
+            await jsRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlertaimagen", 8000);
         }
         cargando = false;
     }
