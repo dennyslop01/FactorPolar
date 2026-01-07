@@ -48,7 +48,24 @@ else
                         <div class="spinner-border text-light" style="width: 3rem; height: 3rem;" role="status">
                             <span class="visually-hidden">Loading...</span>
                         </div>
-                        <p class="text-light mt-2">Cargando...</p>
+                        @* <p class="text-light mt-2">Cargando...</p> *@
+                        <MudStack Spacing="2">
+                            <MudText Align="Align.Center" Typo="Typo.h6">
+                                Subiendo... @progressPercent%
+                            </MudText>
+
+                            <!-- La Barra de Progreso Controlada -->
+                            <MudProgressLinear Color="Color.Success"
+                                               Value="@progressPercent"
+                                               Size="Size.Large"
+                                               Striped="true"
+                                               Class="my-2" />
+
+                            <MudText Align="Align.Center" Typo="Typo.caption" Color="Color.Warning">
+                                <MudIcon Icon="@Icons.Material.Filled.Warning" Size="Size.Small" />
+                                Por favor no cierres esta pantalla ni apagues la pantalla.
+                            </MudText>
+                        </MudStack>
                     </div>
                 </div>
             </div>
@@ -69,14 +86,19 @@ else
     private bool mostrarAlerta = false;
     private bool cargando = false;
     private int progressPercent = 0;
+    string folderId = string.Empty;
 
     [Inject] private IBeneficiario repobenefi { get; set; } = null!;
+    // Necesario para que JS pueda llamar de vuelta a C#
+    private DotNetObjectReference<SubirVideos>? objRef;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         fileNames.Clear();
         if (!string.IsNullOrEmpty(rutaVideo))
             fileNames.Add("Video Talento");
+
+        objRef = DotNetObjectReference.Create(this);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -99,6 +121,10 @@ else
         cargando = true;
         var file = e.File;
         if (file == null) return;
+
+        folderId = string.Empty;
+        progressPercent = 0;
+        StateHasChanged();
 
         try
         {
@@ -146,61 +172,111 @@ else
                 return;
             }
 
-            long maxVideoSize = 500 * 1024 * 1024;
-            Stream streamToUpload = file.OpenReadStream(maxVideoSize);
+            // long maxVideoSize = 500 * 1024 * 1024;
+            // Stream streamToUpload = file.OpenReadStream(maxVideoSize);
 
-            // --- LÓGICA DE CARGA A GOOGLE DRIVE / GCS ---
-            using (streamToUpload)
+            // using (streamToUpload)
+            // {
+            if (!string.IsNullOrEmpty(folderName))
             {
-                if (!string.IsNullOrEmpty(folderName))
+                folderId = await DriveService.CreateFolderAsync(folderName);
+                string fileIdResult = string.Empty;
+
+                Beneficiario? benefi = await repobenefi.GetByIdlAsync(beneficiarioId);
+
+                // Borrar archivo anterior si existe
+                if (benefi?.RutaVideo != null)
                 {
-                    string folderId = await DriveService.CreateFolderAsync(folderName);
-                    string fileIdResult = string.Empty;
-
-                    Beneficiario? benefi = await repobenefi.GetByIdlAsync(beneficiarioId);
-
-                    // Borrar archivo anterior si existe
-                    if (benefi?.RutaVideo != null)
-                    {
-                        string oldFileId = benefi.RutaVideo.Split('/').Last();
-                        await DriveService.DeleteFileAsync(oldFileId);
-                    }
-
-                    //var token = await DriveService.GetAccessTokenAsync();
-                    //fileIdResult = await jsRuntime.InvokeAsync<string>("compressAndUploadToDrive", file, token);
-
-                    // Subida con el ContentType dinámico
-                    fileIdResult = await DriveService.UploadLargeFileAsync(streamToUpload, fileName, file.ContentType, folderId, progressHandler);
-
-                    if (benefi?.RutaVideo == null)
-                        fileNames.Add("Video Talento");
-
-                    await repobenefi.UpdateRutaVideoAsync(beneficiarioId, $"{folderId}/{fileIdResult}");
+                    string oldFileId = benefi.RutaVideo.Split('/').Last();
+                    await DriveService.DeleteFileAsync(oldFileId);
                 }
-            }
+                await jsRuntime.InvokeVoidAsync("uploadFunctions.uploadFile", "fileVideo", objRef, folderId);
 
-            mensajeAlerta = "Archivo subido correctamente.";
+                // Subida con el ContentType dinámico
+                // fileIdResult = await DriveService.UploadLargeFileAsync(streamToUpload, fileName, file.ContentType, folderId, progressHandler);
+
+                // if (benefi?.RutaVideo == null)
+                //     fileNames.Add("Video Talento");
+
+                // await repobenefi.UpdateRutaVideoAsync(beneficiarioId, $"{folderId}/{fileIdResult}");
+            }
+            // }
+
+            /*
+            mensajeAlerta = "Video subido correctamente.";
             mostrarAlerta = true;
             cargando = false;
 
-            // 3. Forzamos el renderizado y esperamos un "ciclo" para que el DOM se actualice
             StateHasChanged();
-            await Task.Delay(1); // Pequeña espera para asegurar que el DOM esté listo
+            await Task.Delay(1);
 
             await jsRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlertavideo", 8000);
+            */
         }
         catch (Exception ex)
         {
             mensajeAlerta = $"Error al procesar el archivo: {ex.Message}";
-            mostrarAlerta = true;
-            cargando = false;
-            // 3. Forzamos el renderizado y esperamos un "ciclo" para que el DOM se actualice
-            StateHasChanged();
-            await Task.Delay(1); // Pequeña espera para asegurar que el DOM esté listo
-
-            await jsRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlertavideo", 8000);
+            TerminarProceso();
         }
     }
+
+    // Métodos que JS llama para actualizar la UI
+    [JSInvokable]
+    public void UpdateProgress(int percent)
+    {
+        progressPercent = percent;
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void UploadComplete(string fileId)
+    {
+        try
+        {
+            ActualizarDatos(fileId);
+            mensajeAlerta = "Video subido correctamente.";
+            TerminarProceso();
+        }
+        catch (Exception ex)
+        {
+            mensajeAlerta = $"Error al procesar el archivo: {ex.Message}";
+            TerminarProceso();
+        }
+    }
+
+    [JSInvokable]
+    public void UploadFailed(string error)
+    {
+        mensajeAlerta = $"Error al procesar el archivo: {error}";
+        TerminarProceso();
+    }
+
+    private async void ActualizarDatos(string fileId)
+    {
+        try
+        {
+            Beneficiario? benefi = await repobenefi.GetByIdlAsync(beneficiarioId);
+            if (benefi?.RutaVideo == null)
+                fileNames.Add("Video Talento");
+
+            await repobenefi.UpdateRutaVideoAsync(beneficiarioId, $"{folderId}/{fileId}");
+        }        
+        catch (Exception ex)
+        {
+            throw new Exception($"Error al actualizar datos: {ex.Message}");
+        }
+    }
+
+    private async void TerminarProceso()
+    {
+        mostrarAlerta = true;
+        cargando = false;
+        StateHasChanged();
+        await Task.Delay(1);
+        await jsRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlertavideo", 8000);
+    }
+
+    public void Dispose() => objRef?.Dispose();
 }
 
 <style>
