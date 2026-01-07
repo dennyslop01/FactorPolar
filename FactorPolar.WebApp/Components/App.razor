@@ -29,6 +29,15 @@
     <script src="@Assets["js/pdfViewer.js"]"></script>
     <script src="@Assets["js/camera.js"]"></script>
     <script src="@Assets["js/upload.js"]"></script>
+    <script>
+        Blazor.start({
+            configureSignalR: function (builder) {
+                // Aumenta el tiempo que el cliente espera al servidor (en milisegundos)
+                builder.withServerTimeout(60000); // 60 segundos
+                builder.withKeepAliveInterval(30000); // 30 segundos
+            }
+        });
+    </script>
 </body>
 
 </html>

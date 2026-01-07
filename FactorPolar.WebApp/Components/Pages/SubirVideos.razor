@@ -50,9 +50,9 @@ else
                         </div>
                         @* <p class="text-light mt-2">Cargando...</p> *@
                         <MudStack Spacing="2">
-                            <MudText Align="Align.Center" Typo="Typo.h6">
+                            @* <MudText Align="Align.Center" Typo="Typo.h6">
                                 Subiendo... @progressPercent%
-                            </MudText>
+                            </MudText> *@
 
                             <!-- La Barra de Progreso Controlada -->
                             <MudProgressLinear Color="Color.Success"
@@ -172,7 +172,7 @@ else
                 return;
             }
 
-            // long maxVideoSize = 500 * 1024 * 1024;
+            // long maxVideoSize = 512 * 1024 * 1024;
             // Stream streamToUpload = file.OpenReadStream(maxVideoSize);
 
             // using (streamToUpload)

@@ -17,8 +17,8 @@ namespace FactorPolar.Webapp.Controllers
 
         [HttpPost]
         // Aumentamos límites solo para este endpoint
-        [RequestSizeLimit(500 * 1024 * 1024)]
-        [RequestFormLimits(MultipartBodyLengthLimit = 500 * 1024 * 1024)]
+        [RequestSizeLimit(512 * 1024 * 1024)]
+        [RequestFormLimits(MultipartBodyLengthLimit = 512 * 1024 * 1024)]
         public async Task<IActionResult> Upload(IFormFile file, [FromForm] string folderId) // <-- Agregado folderId
         {
             if (file == null || file.Length == 0) return BadRequest("Archivo vacío");

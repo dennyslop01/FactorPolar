@@ -53,7 +53,7 @@
 
     private bool isUploading = false;
     private int progressPercent = 0;
-    private long maxFileSize = 500 * 1024 * 1024; // 500MB Límite técnico
+    private long maxFileSize = 512 * 1024 * 1024; // 500MB Límite técnico
     [Inject] private IBeneficiario repobenefi { get; set; } = null!;
 
     private async Task OnInputFileChange(InputFileChangeEventArgs e)

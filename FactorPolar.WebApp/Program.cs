@@ -40,8 +40,10 @@ builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddServerSideBlazor()
     .AddHubOptions(options =>
     {
-        options.MaximumReceiveMessageSize = 500 * 1024 * 1024; // 500MB
-
+        // Tiempo entre pings automáticos para mantener la conexión viva
+        options.KeepAliveInterval = TimeSpan.FromSeconds(30);
+        // Límite de tamaño de mensaje (vital para evitar cierres por archivos grandes)
+        options.MaximumReceiveMessageSize = 512 * 1024 * 1024; // 512 MB
         // Aumentar Timeout es obligatorio para redes móviles 4G/3G
         options.ClientTimeoutInterval = TimeSpan.FromMinutes(20);
         options.HandshakeTimeout = TimeSpan.FromMinutes(10);
