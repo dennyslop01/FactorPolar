@@ -41,7 +41,7 @@ builder.Services.AddServerSideBlazor()
     .AddHubOptions(options =>
     {
         // Tiempo entre pings automáticos para mantener la conexión viva
-        options.KeepAliveInterval = TimeSpan.FromSeconds(30);
+        options.KeepAliveInterval = TimeSpan.FromSeconds(90);
         // Límite de tamaño de mensaje (vital para evitar cierres por archivos grandes)
         options.MaximumReceiveMessageSize = 512 * 1024 * 1024; // 512 MB
         // Aumentar Timeout es obligatorio para redes móviles 4G/3G

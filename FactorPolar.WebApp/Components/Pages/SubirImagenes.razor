@@ -3,9 +3,9 @@
 
 
 <label for="fileInput" class="btn btn-primary" style="cursor:pointer;">
-    <i class="bi bi-upload"></i> Subir Constancia de Notas
+    @* <i class="bi bi-upload"></i>  *@Cargar archivo PDF
 </label>
-<InputFile id="fileInput" OnChange="UploadFile" accept=".jpg, .jpeg, .png, .pdf" capture="camera" style="display:none;" />
+<InputFile id="fileInput" OnChange="UploadFile" accept=".pdf" capture="camera" style="display:none;" />@* .jpg, .jpeg, .png,  *@
 <br />
 <br />
 
@@ -62,6 +62,7 @@ else
     [Parameter] public string folderName { get; set; }
     [Parameter] public int beneficiarioId { get; set; }
     [Parameter] public string rutaNota { get; set; }
+    [Parameter] public string nombreNota { get; set; }
 
     private string Message = "";
     private string ImageUrl; // Para mostrar un preview de la imagen
@@ -72,26 +73,26 @@ else
 
     [Inject] private IBeneficiario repobenefi { get; set; } = null!;
 
-    protected override async Task OnInitializedAsync()
-    {
-        fileNames.Clear();
-        if (!string.IsNullOrEmpty(rutaNota))
-            fileNames.Add("Foto Boletin");
-    }
-
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
             await jsRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlertaimagen", 10);
+            fileNames.Clear();
+            if (nombreNota != null)
+            {
+                fileNames.Add(nombreNota);
+            }
         }
     }
 
     protected override async Task OnParametersSetAsync()
     {
         fileNames.Clear();
-        if (!string.IsNullOrEmpty(rutaNota))
-            fileNames.Add("Foto Boletin");
+        if (nombreNota != null)
+        {
+            fileNames.Add(nombreNota);
+        }
     }
 
     private async Task UploadFile(InputFileChangeEventArgs e) // Cambiado a UploadFile
@@ -107,15 +108,17 @@ else
             string contentType = file.ContentType;
 
             // --- LÓGICA DE PROCESAMIENTO SEGÚN EL TIPO ---
-            if (contentType.Contains("image"))
-            {
-                // Si es imagen, mantenemos tu lógica de redimensionado
-                var resizedImage = await file.RequestImageFileAsync("image/jpeg", 800, 800);
-                streamToUpload = resizedImage.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024);
-                fileName = $"{DateTime.Now:yyyyMMdd}_FotoBoletin.jpg";
-                contentType = "image/jpeg";
-            }
-            else if (contentType == "application/pdf")
+            // if (contentType.Contains("image"))
+            // {
+            //     // Si es imagen, mantenemos tu lógica de redimensionado
+            //     var resizedImage = await file.RequestImageFileAsync("image/jpeg", 800, 800);
+            //     streamToUpload = resizedImage.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024);
+            //     fileName = $"{DateTime.Now:yyyyMMdd}_FotoBoletin.jpg";
+            //     contentType = "image/jpeg";
+            // }
+            // else 
+            
+            if (contentType == "application/pdf")
             {
                 // Si es PDF, abrimos el stream directamente sin redimensionar
                 streamToUpload = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // Aumentamos a 10MB para PDFs
@@ -123,7 +126,7 @@ else
             }
             else
             {
-                mensajeAlerta = "Formato no soportado. Solo imágenes y PDF.";
+                mensajeAlerta = "Formato no soportado. Solo pdf.";/* imágenes y  */
                 mostrarAlerta = true;
                 cargando = false;
                 // 3. Forzamos el renderizado y esperamos un "ciclo" para que el DOM se actualice
@@ -154,10 +157,9 @@ else
                     // Subida con el ContentType dinámico
                     fileIdResult = await DriveService.UploadFileAsync(streamToUpload, fileName, contentType, folderId);
 
-                    if (benefi?.RutaNotas == null)
-                        fileNames.Add("Foto Boletin"); //fileNames.Add(contentType.Contains("pdf") ? "Documento PDF" : "Foto Boletin");
+                    fileNames.Add(file.Name); //fileNames.Add(contentType.Contains("pdf") ? "Documento PDF" : "Foto Boletin");
 
-                    await repobenefi.UpdateRutaNotaAsync(beneficiarioId, $"{folderId}/{fileIdResult}");
+                    await repobenefi.UpdateRutaNotaAsync(beneficiarioId, $"{folderId}/{fileIdResult}", file.Name);
                 }
             }
 

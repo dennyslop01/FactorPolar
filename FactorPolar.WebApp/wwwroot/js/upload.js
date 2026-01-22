@@ -22,7 +22,7 @@
         xhr.onload = () => {
             if (xhr.status === 200) {
                 const response = JSON.parse(xhr.responseText);
-                dotnetHelper.invokeMethodAsync('UploadComplete', response.id);
+                dotnetHelper.invokeMethodAsync('UploadComplete', response.id, file.name);
             } else {
                 dotnetHelper.invokeMethodAsync('UploadFailed', "Error servidor: " + xhr.status);
             }

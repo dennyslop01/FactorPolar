@@ -74,9 +74,38 @@ h1:focus {
 }
 
 .toast-container {
-    position: fixed; /* Fija la posición en la ventana */
-    top: 60px; /* Distancia desde la parte superior */
-    right: 10px; /* Distancia desde la derecha */
-    z-index: 1000; /* Asegura que esté por encima de otros elementos */
-    /* Estilos adicionales para apariencia si no usas Bootstrap */
+    position: fixed;
+    top: 60px; /* Un poco de margen superior */
+    left: 50%;
+    transform: translateX(-50%); /* El truco mágico para centrar horizontalmente */
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: auto;
+    pointer-events: none; /* Permite clickear lo que está detrás si el toast es invisible */
+}
+
+/* --- Adaptación para Móvil --- */
+@media (max-width: 768px) {
+    .toast-container {
+        top: 60px; /* Más pegado al borde en pantallas pequeñas */
+        width: 90%; /* Que ocupe casi todo el ancho para mejor lectura */
+    }
+}
+
+/* Estilo para móviles */
+@media (max-width: 600px) {
+    .img-responsive-half {
+        width: 110% !important;
+        height: auto;
+    }
+}
+
+/* Estilo para pantallas grandes (opcional, si quieres definir un tamaño fijo) */
+@media (min-width: 601px) {
+    .img-responsive-half {
+        width: 100%; /* O el tamaño original que desees */
+        height: auto;
+    }
 }

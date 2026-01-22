@@ -6,14 +6,14 @@
 
 <PageTitle>Home</PageTitle>
 
-<AuthorizeView>
-    <Authorized>
+@* <AuthorizeView>
+    <Authorized> *@
         <h6>Bienvenido</h6>
         @if (existe)
         {
             <div class="row">
                 <div class="col-4">
-                    <strong><label class="form-label">Nombre y apellido:</label></strong>
+                    <strong><label class="form-label">Nombre y Apellido:</label></strong>
                 </div>
                 <div class="col-7">
                     <label class="form-label">@employeeName</label>
@@ -21,7 +21,7 @@
             </div>
             <div class="row">
                 <div class="col-4">
-                    <strong><label class="form-label">N. Cédula:</label></strong>
+            <strong><label class="form-label">Número de cédula:</label></strong>
                 </div>
                 <div class="col-7">
                     <label class="form-label">@employeeNumber</label>
@@ -40,7 +40,7 @@
                     <thead class="table">
                         <tr>
                             @* <th width="10%">#</th> *@
-                            <th width="40">Nombre y apellido</th>
+                            <th width="40">Nombre y Apellido</th>
                             <th width="25%">Fecha de Nacimiento</th>
                             <th width="15%">Edad</th>
                             <th width="10%"> </th>
@@ -55,16 +55,18 @@
                                 <td width="25%">@p.FechaNacimiento.ToShortDateString()</td>
                                 <td width="15%">@p.Edad</td>
                                 <td width="10%" class="justify-content-end">
-                                    @if (string.IsNullOrEmpty(p.Promedio.ToString()))
+                                    @if (string.IsNullOrEmpty(p.Promedio.ToString()) &&
+                                            string.IsNullOrEmpty(p.RutaNotas.ToString()) &&
+                                            string.IsNullOrEmpty(p.RutaVideo.ToString()))
                                     {
                                         <button class="boton-postular" style="background-color:#33ccff" @onclick="() => EditarEntidad(p)" title="Editar">
-                                            <i class="bi bi-pencil"></i>&nbsp;Postular
+                                            @* <i class="bi bi-pencil"></i>&nbsp; *@Postular
                                         </button>
                                     }
                                     else
                                     {
-                                        <button class="boton-postular" style="background-color:#dfdf00" @onclick="() => EditarEntidad(p)" title="Editar">
-                                            <i class="bi bi-pencil"></i>&nbsp;Editar
+                                        <button class="boton-postular" style="background-color:#f53f5b" @onclick="() => EditarEntidad(p)" title="Editar">
+                                            @* <i class="bi bi-pencil"></i>&nbsp; *@Editar
                                         </button>
                                     }
                                 </td>
@@ -72,10 +74,15 @@
                         }
                     </tbody>
                 </table>
-                <br />
                 <hr />
             }
         }
+
+        <div class="d-flex justify-content-end">
+            <button class="boton-cerrar btn-secondary me-1" title="Salir" @onclick="Salir">
+                Cerrar sessión
+            </button>
+        </div>
 
         @if(existeAdminUser)
         {
@@ -90,12 +97,33 @@
             <p>@userName</p>
             <p>Si no visualiza sus datos, por favor contacte al equipo de Gestión de Gente de su localidad</p>
         }
-    </Authorized>
+    @* </Authorized>
     <NotAuthorized>
-        <h5>Indica tu correo corporativo:  <a class="btn-link" href="/Saml2/Login">Aquí</a></h5>
-        <h6>Si no visualiza sus datos, por favor contacte al equipo de Gestión de Gente de su localidad</h6>
+        <div class="row">
+            <div class="col-11">
+                <h6>
+                    ¡Bienvenido a la plataforma de Factor Polar! El espacio donde la excelencia, la innovación y la creatividad se unen para impulsar a tu hijo a alcanzar su más alto potencial.
+                </h6>
+            </div>
+            <div class="col-11">
+                <h6>Indica tu correo corporativo: <a class="btn-link" href="/Saml2/Login">Aquí</a></h6>
+            </div>
+            <div class="col-11">
+                <h7>Si no visualiza sus datos, por favor contacte al equipo de Gestión de Gente de su localidad</h7>
+            </div>
+            <div class="col-11">
+                <br />
+            </div>
+            <div class="col-11">
+                <MudContainer>
+                    <MudStack Row="true" Spacing="10" Justify="Justify.Center" AlignItems="AlignItems.Center">
+                        <MudImage Src="Imagen Factor Polar.png" Class="img-responsive-half" />
+                    </MudStack>
+                </MudContainer>
+            </div>
+        </div>
     </NotAuthorized>
- </AuthorizeView>
+ </AuthorizeView> *@
 
 @if (cargando)
 {
@@ -123,7 +151,7 @@
     private Employee employee = new();
     private Usuario usuario = new();
     private List<Beneficiario>? beneficiario = new();
-    private string? userEmail = string.Empty; //"temporal.dennys.lopez@empresaspolar.com";
+    private string? userEmail = "temporal.dennys.lopez@empresaspolar.com";
     private string? userName;
     private string? employeeName;
     private string? employeeNumber;
@@ -168,6 +196,11 @@
             {
                 existe = true;
                 employeeName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(employee.FullName.ToLower());
+
+                string[] cadena = employeeName.Split(',');
+                if(cadena.Length > 1)
+                    employeeName = $"{cadena[1]}, {cadena[0]}";
+
                 employeeNumber = employee.EmployeeNumber.ToString();
 
                 beneficiario = await repobenefi.GetByEmployeeEmailAsync(employee.Email);
@@ -199,5 +232,10 @@
         //     NavManager.NavigateTo($"/documento3/{ben.Id}");
         // else
         NavManager.NavigateTo($"/editar/{ben.Id}");
+    }
+
+    private void Salir()
+    {
+        NavManager.NavigateTo($"/Saml2/Logout");
     }
 }

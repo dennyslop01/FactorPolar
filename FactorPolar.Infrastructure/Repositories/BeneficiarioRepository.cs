@@ -10,7 +10,7 @@ namespace FactorPolar.Infrastructure.Repositories
         private readonly FactorDbContext _context = context;
         public Beneficiario Create(Beneficiario beneficiario, string email)
         {
-            EmployeeRepository employeeRepository = new EmployeeRepository(_context);
+            EmployeeRepository employeeRepository = new(_context);
 
             Employee? auxemp = employeeRepository.GetByEmail(email);
             if (auxemp == null)
@@ -116,19 +116,19 @@ namespace FactorPolar.Infrastructure.Repositories
                 return null;
             }
 
-            if(beneficiario.TipoInstitucion.ToUpper() != benefi.TipoInstitucion.ToUpper())
+            if(beneficiario.TipoInstitucion?.ToUpper() != benefi.TipoInstitucion.ToUpper())
                 beneficiario.TipoInstitucionAux = benefi.TipoInstitucion.ToUpper();
 
-            if (beneficiario.NombreInstitucion.ToUpper() != benefi.NombreInstitucion.ToUpper())
+            if (beneficiario.NombreInstitucion?.ToUpper() != benefi.NombreInstitucion.ToUpper())
                 beneficiario.NombreInstitucionAux = benefi.NombreInstitucion.ToUpper();
 
-            if (beneficiario.RifInstitucion.ToUpper() != benefi.RifInstitucion.ToUpper())
+            if (beneficiario.RifInstitucion?.ToUpper() != benefi.RifInstitucion.ToUpper())
                 beneficiario.RifInstitucionAux = benefi.RifInstitucion.ToUpper();
 
-            if (beneficiario.NivelEducativo.ToUpper() != benefi.NivelEducativo.ToUpper())
+            if (beneficiario.NivelEducativo?.ToUpper() != benefi.NivelEducativo.ToUpper())
                 beneficiario.NivelEducativoAux = benefi.NivelEducativo.ToUpper();
 
-            if (beneficiario.GradoEducativo.ToUpper() != benefi.GradoEducativo.ToUpper())
+            if (beneficiario.GradoEducativo?.ToUpper() != benefi.GradoEducativo.ToUpper())
                 beneficiario.GradoEducativoAux = benefi.GradoEducativo.ToUpper();
             
             beneficiario.Promedio = benefi.Promedio;
@@ -152,7 +152,7 @@ namespace FactorPolar.Infrastructure.Repositories
             return benefi;
         }
 
-        public async Task<bool> UpdateRutaNotaAsync(int id, string rutaNota)
+        public async Task<bool> UpdateRutaNotaAsync(int id, string rutaNota, string nombre)
         {
             var beneficiario = await _context.Beneficiarios
                 .Include(b => b.Employee)
@@ -165,6 +165,7 @@ namespace FactorPolar.Infrastructure.Repositories
             }
 
             beneficiario.RutaNotas = rutaNota;
+            beneficiario.NombreNotas = nombre;
 
             _context.Beneficiarios.Update(beneficiario);
             _context.Entry(beneficiario.Employee).State = EntityState.Unchanged;
@@ -175,7 +176,7 @@ namespace FactorPolar.Infrastructure.Repositories
             return true;
         }
 
-        public async Task<bool> UpdateRutaVideoAsync(int id, string rutaVideo)
+        public async Task<bool> UpdateRutaVideoAsync(int id, string rutaVideo, string nombre)
         {
             var beneficiario = await _context.Beneficiarios
                 .Include(b => b.Employee)
@@ -188,6 +189,7 @@ namespace FactorPolar.Infrastructure.Repositories
             }
 
             beneficiario.RutaVideo = rutaVideo;
+            beneficiario.NombreVideo = nombre;
 
             _context.Beneficiarios.Update(beneficiario);
             _context.Entry(beneficiario.Employee).State = EntityState.Unchanged;

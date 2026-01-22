@@ -124,7 +124,7 @@ else
             objRef = DotNetObjectReference.Create(this);
             fileNames.Clear();
             if (!string.IsNullOrEmpty(rutaVideo))
-                fileNames.Add("Video Talento");
+                fileNames.Add("Video talento");
 
         }
     }
@@ -133,7 +133,7 @@ else
     {
         fileNames.Clear();
         if (!string.IsNullOrEmpty(rutaVideo))
-            fileNames.Add("Video Talento");
+            fileNames.Add("Video talento");
     }
 
     private async Task StartVideo()
@@ -209,7 +209,7 @@ else
             if (benefi?.RutaNotas == null)
                 fileNames.Add("Video Talento");
 
-            await repobenefi.UpdateRutaVideoAsync(beneficiarioId, $"{folderId}/{fileIdResult}");
+            await repobenefi.UpdateRutaVideoAsync(beneficiarioId, $"{folderId}/{fileIdResult}", "errorimage");
 
             Snackbar.Add($"Video guardado en Drive correctamente.", Severity.Success);cargando = false;
         }

@@ -122,7 +122,7 @@
                 //if (benefi?.RutaVideo == null)
                 //    fileNames.Add("Video Talento");
 
-                await repobenefi.UpdateRutaVideoAsync(beneficiarioId, $"{folderId}/{fileIdResult}");
+                await repobenefi.UpdateRutaVideoAsync(beneficiarioId, $"{folderId}/{fileIdResult}", file.Name);
             }
 
             Snackbar.Add("¡Video subido con éxito!", Severity.Success);

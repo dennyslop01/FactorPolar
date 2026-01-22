@@ -2,12 +2,19 @@
 @inject GoogleDriveService DriveService
 
 <label for="fileVideo" class="btn btn-primary" style="cursor:pointer;">
-    <i class="bi bi-upload"></i> Subir Video
+    @* <i class="bi bi-upload"></i> *@ Cargar .MP4
 </label>
 <InputFile id="fileVideo" OnChange="UploadFileVideo" accept="video/*" style="display:none;" />
 <br />
 <br />
-
+<div>
+    <p>
+        Duración máxima: 1 minuto<br />
+        Resolución: 720p o 1080p (HD)<br />
+        Tamaño: máximo 150 MB<br />
+        Orientación: horizontal
+    </p>
+</div>
 @if (fileNames.Any())
 {
     <div>
@@ -63,7 +70,7 @@ else
 
                             <MudText Align="Align.Center" Typo="Typo.caption" Color="Color.Warning">
                                 <MudIcon Icon="@Icons.Material.Filled.Warning" Size="Size.Small" />
-                                Por favor no cierres esta pantalla ni apagues la pantalla.
+                                Por favor no cierres la pantalla ni apagues el equipo.
                             </MudText>
                         </MudStack>
                     </div>
@@ -78,6 +85,7 @@ else
     [Parameter] public string folderName { get; set; }
     [Parameter] public int beneficiarioId { get; set; }
     [Parameter] public string rutaVideo { get; set; }
+    [Parameter] public string nombreVideo { get; set; }
 
     private string Message = "";
     private string ImageUrl; // Para mostrar un preview de la imagen
@@ -94,10 +102,6 @@ else
 
     protected override void OnInitialized()
     {
-        fileNames.Clear();
-        if (!string.IsNullOrEmpty(rutaVideo))
-            fileNames.Add("Video Talento");
-
         objRef = DotNetObjectReference.Create(this);
     }
 
@@ -106,14 +110,12 @@ else
         if (firstRender)
         {
             await jsRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlertavideo", 10);
+            fileNames.Clear();
+            if (nombreVideo != null)
+            {
+                fileNames.Add(nombreVideo);
+            }
         }
-    }
-
-    protected override async Task OnParametersSetAsync()
-    {
-        fileNames.Clear();
-        if (!string.IsNullOrEmpty(rutaVideo))
-            fileNames.Add("Video Talento");
     }
 
     private async Task UploadFileVideo(InputFileChangeEventArgs e) // Cambiado a UploadFileVideo
@@ -196,7 +198,7 @@ else
                 // fileIdResult = await DriveService.UploadLargeFileAsync(streamToUpload, fileName, file.ContentType, folderId, progressHandler);
 
                 // if (benefi?.RutaVideo == null)
-                //     fileNames.Add("Video Talento");
+                //     fileNames.Add("Video talento");
 
                 // await repobenefi.UpdateRutaVideoAsync(beneficiarioId, $"{folderId}/{fileIdResult}");
             }
@@ -229,11 +231,11 @@ else
     }
 
     [JSInvokable]
-    public void UploadComplete(string fileId)
+    public void UploadComplete(string fileId, string fileName)
     {
         try
         {
-            ActualizarDatos(fileId);
+            ActualizarDatos(fileId, fileName);
             mensajeAlerta = "Video subido correctamente.";
             TerminarProceso();
         }
@@ -242,6 +244,7 @@ else
             mensajeAlerta = $"Error al procesar el archivo: {ex.Message}";
             TerminarProceso();
         }
+        StateHasChanged();
     }
 
     [JSInvokable]
@@ -251,15 +254,14 @@ else
         TerminarProceso();
     }
 
-    private async void ActualizarDatos(string fileId)
+    private async void ActualizarDatos(string fileId, string fileName)
     {
         try
         {
             Beneficiario? benefi = await repobenefi.GetByIdlAsync(beneficiarioId);
-            if (benefi?.RutaVideo == null)
-                fileNames.Add("Video Talento");
+            fileNames.Add(fileName);
 
-            await repobenefi.UpdateRutaVideoAsync(beneficiarioId, $"{folderId}/{fileId}");
+            await repobenefi.UpdateRutaVideoAsync(beneficiarioId, $"{folderId}/{fileId}", fileName);
         }        
         catch (Exception ex)
         {

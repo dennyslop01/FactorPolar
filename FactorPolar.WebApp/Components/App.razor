@@ -24,6 +24,21 @@
 
 <body>
     <Routes />
+    <div id="components-reconnect-modal">
+        <div class="show">
+            <div class="dialog">
+                <div class="content">
+                    @* Mensaje personalizado en español *@
+                    <p class="components-reconnect-first-attempt-visible">
+                        @* Reconectando con el servidor... *@
+                    </p>
+                    <p class="components-reconnect-repeated-attempt-visible">
+                        @* Reconexión fallida. Reintentando... *@
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
     <script src="_framework/blazor.web.js"></script>
     <script src="@Assets["lib/pdfjs/build/pdf.js"]"></script>
     <script src="@Assets["js/pdfViewer.js"]"></script>
@@ -33,8 +48,8 @@
         Blazor.start({
             configureSignalR: function (builder) {
                 // Aumenta el tiempo que el cliente espera al servidor (en milisegundos)
-                builder.withServerTimeout(60000); // 60 segundos
-                builder.withKeepAliveInterval(30000); // 30 segundos
+                builder.withServerTimeout(90000); // 60 segundos
+                builder.withKeepAliveInterval(90000); // 30 segundos
             }
         });
     </script>

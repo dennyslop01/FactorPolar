@@ -16,7 +16,7 @@
                     <hr>
                     <div class="row">
                         <div class="col-3">
-                            <strong><label class="form-label">Tipo de Institución:</label></strong>
+                            <strong><label class="form-label">Tipo de Institución:(*)</label></strong>
                         </div>
                         <div class="col-8">
                             <label class="form-label">@((beneficiario.TipoInstitucionAux != null)? beneficiario.TipoInstitucionAux : beneficiario?.TipoInstitucion)</label>
@@ -24,7 +24,7 @@
                     </div>
                     <div class="row">
                         <div class="col-3">
-                            <strong><label class="form-label">Institución Educativa:</label></strong>
+                            <strong><label class="form-label">Institución Educativa:(*)</label></strong>
                         </div>
                         <div class="col-8">
                             <label class="form-label">@((beneficiario.NombreInstitucionAux != null) ? beneficiario.NombreInstitucionAux : beneficiario?.NombreInstitucion)</label>
@@ -32,7 +32,7 @@
                     </div>
                     <div class="row">
                         <div class="col-3">
-                            <strong><label class="form-label">RIF:</label></strong>
+                            <strong><label class="form-label">RIF:(*)</label></strong>
                         </div>
                         <div class="col-8">
                             <label class="form-label">@((beneficiario.RifInstitucionAux != null) ? beneficiario.RifInstitucionAux : beneficiario?.RifInstitucion)</label>
@@ -40,7 +40,7 @@
                     </div>
                     <div class="row">
                         <div class="col-3">
-                            <strong><label class="form-label">Nivel Educativo:</label></strong>
+                            <strong><label class="form-label">Nivel Educativo:(*)</label></strong>
                         </div>
                         <div class="col-8">
                             <label class="form-label">@((beneficiario.NivelEducativoAux != null) ? beneficiario.NivelEducativoAux : beneficiario?.NivelEducativo)</label>
@@ -48,7 +48,7 @@
                     </div>
                     <div class="row">
                         <div class="col-3">
-                            <strong><label class="form-label">Nivel Académico:</label></strong>
+                            <strong><label class="form-label">Nivel Académico:(*)</label></strong>
                         </div>
                         <div class="col-8">
                             <label class="form-label">@((beneficiario.GradoEducativoAux != null) ? beneficiario.GradoEducativoAux : beneficiario?.GradoEducativo)</label>
@@ -56,7 +56,7 @@
                     </div>
                     <div class="row">
                         <div class="col-3">
-                            <strong><label class="form-label">Promedio de Notas:</label></strong>
+                            <strong><label class="form-label">Promedio de Notas:(*)</label></strong>
                         </div>
                         <div class="col-8">
                             <label class="form-label">
@@ -76,33 +76,33 @@
                     </div>
                     <div class="d-flex justify-content-start">
                         <button class="boton-postular me-1" style="background-color:#33ccff" title="Editar" @onclick="EditarEntidad">
-                            <i class="bi bi-pencil"></i>&nbsp;Editar
+                            @* <i class="bi bi-pencil"></i>&nbsp; *@Editar
                         </button>
 
                         <button class="boton-postular me-1" style="background-color:#dfdf00" title="Regresar" @onclick="Regresar">
-                            <i class="bi bi-chevron-double-left"></i>&nbsp;Regresar
+                            @* <i class="bi bi-chevron-double-left"></i>&nbsp; *@Regresar
                         </button>
 
-                        <button class="boton-postular btn-secondary me-1" title="Salir" @onclick="Salir">
-                            <i class="bi bi-arrow-right-square"></i>&nbsp;Salir
+                        <button class="boton-postularConf btn-secondary me-1" title="Salir" @onclick="Salir">
+                            @* <i class="bi bi-arrow-right-square"></i>&nbsp; *@Confirmar Postulación
                         </button>
                     </div>
                     <br />
                     <br />
                     <div class="row">
                         <div class="col-10">
-                            <strong><label class="form-label">Boletin:</label></strong>
+                        <strong><label class="form-label">Constancia de notas:</label></strong>
                         </div>
                         <div class="col-10">
-                            <SubirImagenes folderName="@folderName" beneficiarioId="@beneficiario.Id" rutaNota="@beneficiario.RutaNotas" />
+                            <SubirImagenes folderName="@folderName" beneficiarioId="@beneficiario.Id" rutaNota="@beneficiario.RutaNotas" nombreNota="@beneficiario.NombreNotas" />
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-10">
-                            <strong><label class="form-label">Video Talento:</label></strong>
+                            <strong><label class="form-label">Video del Talento:</label></strong>
                         </div>
                         <div class="col-10">
-                            <SubirVideos folderName="@folderName" beneficiarioId="@beneficiario.Id" rutaVideo="@beneficiario.RutaVideo" />
+                            <SubirVideos folderName="@folderName" beneficiarioId="@beneficiario.Id" rutaVideo="@beneficiario.RutaVideo" nombreVideo="@beneficiario.NombreVideo" />
                         </div>
                     </div>
                 }
@@ -143,36 +143,36 @@
                                             <label class="form-label">@datosbenefi</label>
                                         </div>
                                         <div class="mb-3">
-                                            <strong><label class="form-label">Tipo de Institución:</label></strong>
+                                    <strong><label class="form-label">Tipo de Institución:(*)</label></strong>
                                             <InputSelect class="form-select small" @bind-Value="entidadActual.TipoInstitucion">
                                                 <option value="">-- Seleccione uno --</option>
-                                                <option value="PÚBLICA">PÚBLICA</option>
-                                                <option value="PRIVADA">PRIVADA</option>
+                                                <option value="PÚBLICA">Pública</option>
+                                                <option value="PRIVADA">Privada</option>
                                             </InputSelect>
                                             <ValidationMessage For="@(() => entidadActual.TipoInstitucion)" />
                                         </div>
                                         <div class="mb-3">
-                                            <strong><label class="form-label">Nombre de la Institución:</label></strong>
+                                    <strong><label class="form-label">Nombre de la Institución:(*)</label></strong>
                                             <InputText class="form-control" @bind-Value="entidadActual.NombreInstitucion" maxlength="200" />
                                             <ValidationMessage For="@(() => entidadActual.NombreInstitucion)" />
                                         </div>
                                         <div class="mb-3">
-                                            <strong><label class="form-label">RIF:</label></strong>
+                                    <strong><label class="form-label">RIF:(*)</label></strong>
                                             <InputText class="form-control" @bind-Value="entidadActual.RifInstitucion" maxlength="15" />
                                             <ValidationMessage For="@(() => entidadActual.RifInstitucion)" />
                                         </div>
                                         <div class="mb-3">
-                                            <strong><label class="form-label">Nivel Educativo:</label></strong>
+                                    <strong><label class="form-label">Nivel Educativo:(*)</label></strong>
                                             @* <InputSelect class="form-select" @bind-Value="entidadActual.NivelEducativo"> *@
                                             <InputSelect class="form-select" ValueExpression="@(() => entidadActual.NivelEducativo)" ValueChanged="@((string value) => CargarGrado(value))" Value="entidadActual.NivelEducativo">
                                                 <option value="">-- Seleccione uno --</option>
-                                                <option value="PRIMARIA">PRIMARIA</option>
-                                                <option value="MEDIA">MEDIA</option>
+                                                <option value="PRIMARIA">Primaria</option>
+                                                <option value="MEDIA">Media</option>
                                             </InputSelect>
                                             <ValidationMessage For="@(() => entidadActual.NivelEducativo)" />
                                         </div>
                                         <div class="mb-3">
-                                            <strong><label class="form-label">Grado Educativo:</label></strong>
+                                    <strong><label class="form-label">Grado Educativo:(*)</label></strong>
                                             <InputSelect class="form-select" @bind-Value="entidadActual.GradoEducativo">
                                                 <option value=" ">-- Seleccione uno --</option>
                                                 @foreach(var grado in grados)
@@ -183,7 +183,7 @@
                                             <ValidationMessage For="@(() => entidadActual.GradoEducativo)" />
                                         </div>
                                         <div class="mb-3">
-                                            <strong><label class="form-label">Promedio de Nota:</label></strong>
+                                    <strong><label class="form-label">Promedio de Notas:(*)</label></strong>
                                             <InputSelect class="form-select" @bind-Value="entidadActual.Promedio">
                                                 <option value="-1">-- Seleccione uno --</option>
                                                 @foreach (var nota in optionnotas)
@@ -195,10 +195,10 @@
                                         </div>
                                         <div class="d-flex justify-content-end">
                                             <button type="submit" class="me-2 boton-postular btn-success">
-                                                <i class="bi bi-save"></i> Guardar
+                                                @* <i class="bi bi-save"></i> *@ Guardar
                                             </button>
                                             <button type="button" class="boton-postular btn-primary" @onclick="Cancelar">
-                                                <i class="bi bi-times"></i> Cancelar
+                                                @* <i class="bi bi-times"></i> *@ Cancelar
                                             </button>
                                         </div>
                                     </EditForm>
@@ -207,6 +207,7 @@
                         </div>
                     </div>
                 }
+
             </div>
         </div>
     @* </Authorized>

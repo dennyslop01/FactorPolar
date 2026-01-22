@@ -44,6 +44,9 @@ namespace FactorPolar.Domain.Entities
         public string? RifInstitucionAux { get; set; }
         public string? NivelEducativoAux { get; set; }
         public string? GradoEducativoAux { get; set; }
+        public string? NombreNotas { get; set; }
+        public string? NombreVideo { get; set; }
+        public int? EstadoPostulacion { get; set; }
 
     }
 }
