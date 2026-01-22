@@ -258,6 +258,57 @@
 }
 
 
+@if (mostrarFormulario2)
+{
+    <br />
+    <br />
+
+    <div class="modal fade show d-block" tabindex="10" style="background: rgba(0,0,0,0.5);">
+        <div class="modal-dialog-centered modal-contenido-pequeno">
+            <div class="modal-content">
+                <div class="modal-header modal-contenido-pequeno">
+                    @* <h5 class="modal-title">Editar</h5> *@
+                    <button type="button" class="btn-close" @onclick="Cancelar"></button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="@entidadActual" OnValidSubmit="GuardarEntidad">
+                        <DataAnnotationsValidator />
+
+                        <div class="mb-3">
+                            <strong><label class="form-label">Beneficiario:</label></strong>
+                            <label class="form-label">@datosbenefi</label>
+                        </div>
+                        <div class="mb-3">
+                            <strong><label class="form-label">No se puede completar la postulación, falta alguno de los siguientes:</label></strong>
+                            <ul>
+                                @if (string.IsNullOrEmpty(beneficiario?.Promedio.ToString()))
+                                {
+                                    <li>Promedio de Notas</li>
+                                }
+                                @if (string.IsNullOrEmpty(beneficiario.RutaNotas))
+                                {
+                                    <li>Constancia de Notas</li>
+                                }
+                                @if (string.IsNullOrEmpty(beneficiario.RutaVideo))
+                                {
+                                    <li>Video del Talento</li>
+                                }
+                            </ul>
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button type="button" class="boton-postular btn-primary" @onclick="Cancelar">
+                                @* <i class="bi bi-times"></i> *@ Cancelar
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+
 @code {
     [Parameter]
     public string Id { get; set; }
@@ -289,6 +340,7 @@
     private bool mostrarAlerta = false;
     private BenefiModel entidadActual = new();
     private bool mostrarFormulario = false;
+    private bool mostrarFormulario2 = false;
     private bool cargando = false;
 
     private string folderName = string.Empty;
@@ -301,7 +353,7 @@
         try
         {
             var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-           if (!authState.User.Identity.IsAuthenticated)
+            if (!authState.User.Identity.IsAuthenticated)
                 NavManager.NavigateTo($"/");
         }
         catch
@@ -350,7 +402,7 @@
         else
             entidadActual.TipoInstitucion = beneficiario?.TipoInstitucion ?? string.Empty;
 
-        
+
         if (beneficiario.NombreInstitucionAux != null)
             entidadActual.NombreInstitucion = beneficiario.NombreInstitucionAux;
         else
@@ -365,7 +417,7 @@
             entidadActual.NivelEducativo = beneficiario.NivelEducativoAux;
         else
             entidadActual.NivelEducativo = beneficiario?.NivelEducativo ?? string.Empty;
-        
+
         CargarGrado(entidadActual.NivelEducativo);
 
         if (beneficiario.GradoEducativoAux != null)
@@ -382,6 +434,7 @@
     private void Cancelar()
     {
         mostrarFormulario = false;
+        mostrarFormulario2 = false;
     }
 
     private async Task GuardarEntidad()
@@ -466,9 +519,33 @@
         NavManager.NavigateTo($"/");
     }
 
-    private void Salir()
+    private async Task Salir()
     {
-        NavManager.NavigateTo($"/Saml2/Logout");
+        try
+        {
+            if (string.IsNullOrEmpty(beneficiario?.Promedio.ToString()) ||
+                string.IsNullOrEmpty(beneficiario.RutaNotas) ||
+                string.IsNullOrEmpty(beneficiario.RutaVideo))
+            {
+                mostrarFormulario2 = true;
+                StateHasChanged();
+            }
+            else
+            {
+                await repobenefi.UpdateEstadoPostulacionAsync(beneficiario.Id);
+                NavManager.NavigateTo($"/");
+            }
+        }
+        catch (Exception ex)
+        {
+            mensajeAlerta = ex.Message;
+            mostrarAlerta = true;
+            // 3. Forzamos el renderizado y esperamos un "ciclo" para que el DOM se actualice
+            StateHasChanged();
+            await Task.Delay(1); // Pequeña espera para asegurar que el DOM esté listo
+
+            await jsRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlerta", 8000);
+        }
     }
 
     private void OnNombreChanged(string nuevoNombre)

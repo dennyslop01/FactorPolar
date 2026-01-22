@@ -2,6 +2,7 @@
 using FactorPolar.Domain.Entities;
 using FactorPolar.Infrastructure.DataContext;
 using Microsoft.EntityFrameworkCore;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace FactorPolar.Infrastructure.Repositories
 {
@@ -190,6 +191,30 @@ namespace FactorPolar.Infrastructure.Repositories
 
             beneficiario.RutaVideo = rutaVideo;
             beneficiario.NombreVideo = nombre;
+
+            _context.Beneficiarios.Update(beneficiario);
+            _context.Entry(beneficiario.Employee).State = EntityState.Unchanged;
+
+            await _context.SaveChangesAsync();
+            _context.Entry(beneficiario).State = EntityState.Detached;
+            _context.Entry(beneficiario.Employee).State = EntityState.Detached;
+            return true;
+        }
+
+        public async Task<bool> UpdateEstadoPostulacionAsync(int id)
+        {
+            var beneficiario = await _context.Beneficiarios
+                .Include(b => b.Employee)
+                .Where(x => x.Id == id)
+                .AsQueryable().AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            if (beneficiario == null)
+            {
+                return false;
+            }
+
+            beneficiario.EstadoPostulacion = 1;
 
             _context.Beneficiarios.Update(beneficiario);
             _context.Entry(beneficiario.Employee).State = EntityState.Unchanged;

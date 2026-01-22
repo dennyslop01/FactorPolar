@@ -65,9 +65,18 @@
                                     }
                                     else
                                     {
-                                        <button class="boton-postular" style="background-color:#f53f5b" @onclick="() => EditarEntidad(p)" title="Editar">
-                                            @* <i class="bi bi-pencil"></i>&nbsp; *@Editar
-                                        </button>
+                                        if(p.EstadoPostulacion is null)
+                                        {
+                                            <button class="boton-postular" style="background-color:#f53f5b" @onclick="() => EditarEntidad(p)" title="Editar">
+                                                @* <i class="bi bi-pencil"></i>&nbsp; *@Editar
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button class="boton-postular" style="background-color:#ffa100" @onclick="() => EditarEntidad(p)" title="Editar">
+                                                @* <i class="bi bi-pencil"></i>&nbsp; *@Postulado
+                                            </button>
+                                        }
                                     }
                                 </td>
                             </tr>
@@ -231,6 +240,9 @@
         // else if (ben.Documento3 == null)
         //     NavManager.NavigateTo($"/documento3/{ben.Id}");
         // else
+        if(ben.EstadoPostulacion is not null)
+            return;
+        
         NavManager.NavigateTo($"/editar/{ben.Id}");
     }
 

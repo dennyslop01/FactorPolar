@@ -13,5 +13,6 @@ namespace FactorPolar.Application.Interfaces
         Task<Beneficiario?> UpdateAcademicDataAsync(int id, BenefiModel benefi);
         Task<bool> UpdateRutaNotaAsync(int id, string rutaNota, string nombre);
         Task<bool> UpdateRutaVideoAsync(int id, string rutaVideo, string mombre);
+        Task<bool> UpdateEstadoPostulacionAsync(int id);
     }
 }
