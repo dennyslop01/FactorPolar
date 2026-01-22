@@ -2,6 +2,7 @@
 @using System.Globalization
 @rendermode InteractiveServer
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject HttpClient Http
 
 @* <AuthorizeView>
     <Authorized> *@
@@ -153,7 +154,25 @@
                                         </div>
                                         <div class="mb-3">
                                     <strong><label class="form-label">Nombre de la Institución:(*)</label></strong>
-                                            <InputText class="form-control" @bind-Value="entidadActual.NombreInstitucion" maxlength="200" />
+                                            <InputText class="form-control"
+                                                       Value="@entidadActual.NombreInstitucion"
+                                                       ValueChanged="@((string value) => OnNombreChanged(value))"
+                                                       ValueExpression="@(() => entidadActual.NombreInstitucion)"
+                                                       maxlength="200"
+                                                       list="institucionesList"
+                                                       placeholder="Escriba para buscar..." />
+
+                                            <datalist id="institucionesList">
+                                                @if (instituciones != null)
+                                                {
+                                                    @foreach (var item in instituciones)
+                                                    {
+                                                        @* value es lo que se escribirá en el input; 
+                                                            el texto interno (label) ayuda al usuario a identificarlo *@
+                                                        <option value="@item.Nombre">RIF: @item.Rif</option>
+                                                    }
+                                                }
+                                            </datalist>
                                             <ValidationMessage For="@(() => entidadActual.NombreInstitucion)" />
                                         </div>
                                         <div class="mb-3">
@@ -194,7 +213,7 @@
                                             <ValidationMessage For="@(() => entidadActual.Promedio)" />
                                         </div>
                                         <div class="d-flex justify-content-end">
-                                            <button type="submit" class="me-2 boton-postular btn-success">
+                                    <button type="submit" class="me-2 boton-postular" style="background-color:#b6bf00">
                                                 @* <i class="bi bi-save"></i> *@ Guardar
                                             </button>
                                             <button type="button" class="boton-postular btn-primary" @onclick="Cancelar">
@@ -257,6 +276,11 @@
     }    
     private List<Notasoopt?> optionnotas = new();
     private const string notaprimaria = "A";
+    public class Institucion
+    {
+        public string Nombre { get; set; } = string.Empty;
+        public string Rif { get; set; } = string.Empty;
+    }
 
     string datosbenefi = string.Empty;
     private Beneficiario? beneficiario = new();
@@ -268,6 +292,7 @@
     private bool cargando = false;
 
     private string folderName = string.Empty;
+    private List<Institucion>? instituciones;
 
     [Inject] private IBeneficiario repobenefi { get; set; } = null!;
 
@@ -292,6 +317,15 @@
                 datosbenefi = CultureInfo.CurrentCulture.TextInfo.ToTitleCase($"{beneficiario.FullName}".ToLower());
                 folderName = $"{beneficiario.CedulaIdentidad.Replace(".", "")}_{beneficiario.FechaNacimiento.ToString("yyyyMMdd")}_{beneficiario.Edad.ToString()}";
             }
+
+            var filePath = Path.Combine(Env.WebRootPath, "data", "instituciones.json");
+            var jsonString = await File.ReadAllTextAsync(filePath);
+            var opciones = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+            instituciones = JsonSerializer.Deserialize<List<Institucion>>(jsonString, opciones);
+
         }
         catch (Exception ex)
         {
@@ -435,5 +469,20 @@
     private void Salir()
     {
         NavManager.NavigateTo($"/Saml2/Logout");
+    }
+
+    private void OnNombreChanged(string nuevoNombre)
+    {
+        entidadActual.NombreInstitucion = nuevoNombre;
+
+        // Buscamos si el nombre ingresado existe en nuestra lista de instituciones
+        var institucionEncontrada = instituciones?.FirstOrDefault(i =>
+            i.Nombre.Equals(nuevoNombre, StringComparison.OrdinalIgnoreCase));
+
+        if (institucionEncontrada != null)
+        {
+            // Si existe, asignamos el RIF automáticamente
+            entidadActual.RifInstitucion = institucionEncontrada.Rif;
+        }
     }
 }

@@ -35,7 +35,7 @@ builder.Services.AddScoped<IUsuario, UsuarioRepository>();
 builder.Services.AddScoped<GoogleDriveService>();
 
 builder.Services.AddCascadingAuthenticationState();
-//builder.Services.AddAuthorizationCore();
+builder.Services.AddHttpClient();
 
 builder.Services.AddServerSideBlazor()
     .AddHubOptions(options =>

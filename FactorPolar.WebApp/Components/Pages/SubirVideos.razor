@@ -118,6 +118,15 @@ else
         }
     }
 
+    protected override async Task OnParametersSetAsync()
+    {
+        fileNames.Clear();
+        if (nombreVideo != null)
+        {
+            fileNames.Add(nombreVideo);
+        }
+    }
+
     private async Task UploadFileVideo(InputFileChangeEventArgs e) // Cambiado a UploadFileVideo
     {
         cargando = true;
