@@ -6,8 +6,8 @@
 
 <PageTitle>Home</PageTitle>
 
-@* <AuthorizeView>
-    <Authorized> *@
+<AuthorizeView>
+    <Authorized>
         <h6>Bienvenido</h6>
         @if (existe)
         {
@@ -106,7 +106,7 @@
             <p>@userName</p>
             <p>Si no visualiza sus datos, por favor contacte al equipo de Gestión de Gente de su localidad</p>
         }
-    @* </Authorized>
+    </Authorized>
     <NotAuthorized>
         <div class="row">
             <div class="col-11">
@@ -132,7 +132,7 @@
             </div>
         </div>
     </NotAuthorized>
- </AuthorizeView> *@
+ </AuthorizeView>
 
 @if (cargando)
 {

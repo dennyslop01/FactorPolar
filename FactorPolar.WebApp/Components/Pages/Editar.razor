@@ -177,7 +177,26 @@
                                         </div>
                                         <div class="mb-3">
                                     <strong><label class="form-label">RIF:(*)</label></strong>
-                                            <InputText class="form-control" @bind-Value="entidadActual.RifInstitucion" maxlength="15" />
+                                            @* <InputText class="form-control" @bind-Value="entidadActual.RifInstitucion" maxlength="15" /> *@
+                                            <InputText class="form-control"
+                                                       Value="@entidadActual.RifInstitucion"
+                                                       ValueChanged="@((string value) => OnNombreChangedRif(value))"
+                                                       ValueExpression="@(() => entidadActual.RifInstitucion)"
+                                                       maxlength="200"
+                                                       list="institucionesList2"
+                                                       placeholder="Escriba para buscar..." />
+
+                                            <datalist id="institucionesList2">
+                                                @if (instituciones != null)
+                                                {
+                                                    @foreach (var item in instituciones)
+                                                    {
+                                                        @* value es lo que se escribirá en el input; 
+                                                                    el texto interno (label) ayuda al usuario a identificarlo *@
+                                                        <option value="@item.Rif">Institución: @item.Nombre</option>
+                                                    }
+                                                }
+                                            </datalist>
                                             <ValidationMessage For="@(() => entidadActual.RifInstitucion)" />
                                         </div>
                                         <div class="mb-3">
@@ -560,6 +579,21 @@
         {
             // Si existe, asignamos el RIF automáticamente
             entidadActual.RifInstitucion = institucionEncontrada.Rif;
+        }
+    }
+
+    private void OnNombreChangedRif(string nuevoRif)
+    {
+        entidadActual.RifInstitucion = nuevoRif;
+
+        // Buscamos si el nombre ingresado existe en nuestra lista de instituciones
+        var institucionEncontrada = instituciones?.FirstOrDefault(i =>
+            i.Rif.Equals(nuevoRif, StringComparison.OrdinalIgnoreCase));
+
+        if (institucionEncontrada != null)
+        {
+            // Si existe, asignamos el RIF automáticamente
+            entidadActual.NombreInstitucion = institucionEncontrada.Nombre;
         }
     }
 }
