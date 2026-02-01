@@ -55,28 +55,37 @@
                                 <td width="25%">@p.FechaNacimiento.ToShortDateString()</td>
                                 <td width="15%">@p.Edad</td>
                                 <td width="10%" class="justify-content-end">
-                                    @if (string.IsNullOrEmpty(p.Promedio.ToString()) &&
+                                    @try
+                                    {
+                                        @if (string.IsNullOrEmpty(p.Promedio.ToString()) &&
                                             string.IsNullOrEmpty(p.RutaNotas.ToString()) &&
                                             string.IsNullOrEmpty(p.RutaVideo.ToString()))
-                                    {
-                                        <button class="boton-postular" style="background-color:#33ccff" @onclick="() => EditarEntidad(p)" title="Editar">
-                                            @* <i class="bi bi-pencil"></i>&nbsp; *@Postular
-                                        </button>
-                                    }
-                                    else
-                                    {
-                                        if(p.EstadoPostulacion is null)
                                         {
-                                            <button class="boton-postular" style="background-color:#f53f5b" @onclick="() => EditarEntidad(p)" title="Editar">
-                                                @* <i class="bi bi-pencil"></i>&nbsp; *@Editar
+                                            <button class="boton-postular" style="background-color:#33ccff" @onclick="() => EditarEntidad(p)" title="Editar">
+                                                @* <i class="bi bi-pencil"></i>&nbsp; *@Postular
                                             </button>
                                         }
                                         else
                                         {
-                                            <button class="boton-postular" style="background-color:#ffa100" @onclick="() => EditarEntidad(p)" title="Editar">
-                                                @* <i class="bi bi-pencil"></i>&nbsp; *@Postulado
-                                            </button>
+                                            if (string.IsNullOrEmpty(p.EstadoPostulacion.ToString()))
+                                            {
+                                                <button class="boton-postular" style="background-color:#f53f5b" @onclick="() => EditarEntidad(p)" title="Editar">
+                                                    @* <i class="bi bi-pencil"></i>&nbsp; *@Editar
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button class="boton-postular" style="background-color:#ffa100" @onclick="() => EditarEntidad(p)" title="Editar">
+                                                    @* <i class="bi bi-pencil"></i>&nbsp; *@Postulado
+                                                </button>
+                                            }
                                         }
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        <button class="boton-postular" style="background-color:#33ccff" @onclick="() => EditarEntidad(p)" title="Editar">
+                                            @* <i class="bi bi-pencil"></i>&nbsp; *@Postular
+                                        </button>
                                     }
                                 </td>
                             </tr>
@@ -89,7 +98,7 @@
 
         <div class="d-flex justify-content-end">
             <button class="boton-cerrar btn-secondary me-1" title="Salir" @onclick="Salir">
-                Cerrar sessión
+                Cerrar sesión
             </button>
         </div>
 
@@ -156,6 +165,7 @@
     bool existe = false;
     bool existeAdminUser = false;
     private bool cargando = false;
+    private bool isMobile;
 
     private Employee employee = new();
     private Usuario usuario = new();
@@ -167,6 +177,19 @@
     [Inject] private IEmployee repoemployee { get; set; } = null!;
     [Inject] private IBeneficiario repobenefi { get; set; } = null!;
     [Inject] private IUsuario repousuario { get; set; } = null!;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            isMobile = await jsRuntime.InvokeAsync<bool>("isMobileDevice");
+            if (!string.IsNullOrEmpty(userEmail))
+            {
+                await repoemployee.UpdateDispositivoAsync(userEmail, isMobile);
+                StateHasChanged();
+            }
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {

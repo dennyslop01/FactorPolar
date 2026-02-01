@@ -8,5 +8,6 @@ namespace FactorPolar.Application.Interfaces
         Employee? GetByEmail(string email);
         Task<Employee?> GetByEmailAsync(string email);
         Employee? Create(Employee employee);
+        Task<bool> UpdateDispositivoAsync(string email, bool movil);
     }
 }

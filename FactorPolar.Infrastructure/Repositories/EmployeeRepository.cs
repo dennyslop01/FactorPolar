@@ -48,7 +48,7 @@ namespace FactorPolar.Infrastructure.Repositories
             try
             {
                 Employee? employee = await _context.Employees
-                    .Where(x => x.Email == email).AsQueryable().AsNoTracking().FirstOrDefaultAsync();
+                    .Where(x => x.Email == email).FirstOrDefaultAsync();
                 return employee;
             }
             catch (Exception ex)
@@ -63,6 +63,25 @@ namespace FactorPolar.Infrastructure.Repositories
             Employee? employee = _context.Employees
                 .FirstOrDefault(x => x.Id == id);
             return employee!;
+        }
+
+        public async Task<bool> UpdateDispositivoAsync(string email, bool movil)
+        {
+            Employee? employee = _context.Employees
+                .FirstOrDefault(x => x.Email == email);
+            if (employee != null)
+            {
+                if (movil)
+                    employee.IngresoMovil = 1;
+                else
+                    employee.IngresoCompu = 1;
+
+                //_context.Employees.Update(employee);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            return false;
+
         }
     }
 }

@@ -2,10 +2,18 @@
 @inject GoogleDriveService DriveService
 
 
-<label for="fileInput" class="btn btn-primary" style="cursor:pointer;">
-    @* <i class="bi bi-upload"></i>  *@Cargar archivo PDF
+<label for="fileInput"
+       class="btn btn-primary @(esInvalido ? "disabled" : "")"
+       style="cursor: @(esInvalido ? "not-allowed" : "pointer"); pointer-events: @(esInvalido ? "none" : "auto");">
+    Cargar archivo PDF
 </label>
-<InputFile id="fileInput" OnChange="UploadFile" accept=".pdf" capture="camera" style="display:none;" />@* .jpg, .jpeg, .png,  *@
+
+<InputFile id="fileInput"
+           OnChange="UploadFile"
+           accept=".pdf"
+           capture="camera"
+           style="display:none;"
+           disabled="@esInvalido" />
 <br />
 <br />
 
@@ -16,7 +24,13 @@
         {
             <strong>
                 <label class="form-label">
-                    <i class="bi bi-card-checklist"></i> @name
+                    <i class="bi bi-card-checklist"></i> @name &nbsp;&nbsp;
+                    <button type="button"
+                            class="btn btn-sm"
+                            style="background-color: #f0f0f0; color: #333; border: 1px solid #ccc;"
+                            @onclick="Eliminar">
+                        X
+                    </button>
                 </label>
             </strong>
         }
@@ -64,6 +78,8 @@ else
     [Parameter] public string rutaNota { get; set; }
     [Parameter] public string nombreNota { get; set; }
 
+    bool esInvalido = false;
+
     private string Message = "";
     private string ImageUrl; // Para mostrar un preview de la imagen
     private List<string> fileNames = new List<string>();
@@ -93,6 +109,8 @@ else
         {
             fileNames.Add(nombreNota);
         }
+        esInvalido = !string.IsNullOrEmpty(nombreNota);
+        StateHasChanged();
     }
 
     private async Task UploadFile(InputFileChangeEventArgs e) // Cambiado a UploadFile
@@ -117,7 +135,7 @@ else
             //     contentType = "image/jpeg";
             // }
             // else 
-            
+
             if (contentType == "application/pdf")
             {
                 // Si es PDF, abrimos el stream directamente sin redimensionar
@@ -145,20 +163,20 @@ else
                     string folderId = await DriveService.CreateFolderAsync(folderName);
                     string fileIdResult = string.Empty;
 
-                    Beneficiario? benefi = await repobenefi.GetByIdlAsync(beneficiarioId);
+                    //Beneficiario? benefi = await repobenefi.GetByIdlAsync(beneficiarioId);
 
                     // Borrar archivo anterior si existe
-                    if (benefi?.RutaNotas != null)
-                    {
-                        string oldFileId = benefi.RutaNotas.Split('/').Last();
-                        await DriveService.DeleteFileAsync(oldFileId);
-                    }
+                    //if (benefi?.RutaNotas != null)
+                    //{
+                    //string oldFileId = benefi.RutaNotas.Split('/').Last();
+                    await DriveService.TrashPdfFilesInFolderAsync(folderId);
+                    //}
 
                     // Subida con el ContentType dinámico
                     fileIdResult = await DriveService.UploadFileAsync(streamToUpload, fileName, contentType, folderId);
 
                     fileNames.Add(file.Name); //fileNames.Add(contentType.Contains("pdf") ? "Documento PDF" : "Foto Boletin");
-
+                    esInvalido = !string.IsNullOrEmpty(file.Name);
                     await repobenefi.UpdateRutaNotaAsync(beneficiarioId, $"{folderId}/{fileIdResult}", file.Name);
                 }
             }
@@ -171,6 +189,29 @@ else
             await Task.Delay(1); // Pequeña espera para asegurar que el DOM esté listo
 
             await jsRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlertaimagen", 8000);
+        }
+        catch (Exception ex)
+        {
+            mensajeAlerta = $"Error al procesar el archivo: {ex.Message}";
+            mostrarAlerta = true;
+            cargando = false;
+            // 3. Forzamos el renderizado y esperamos un "ciclo" para que el DOM se actualice
+            StateHasChanged();
+            await Task.Delay(1); // Pequeña espera para asegurar que el DOM esté listo
+
+            await jsRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlertaimagen", 8000);
+        }
+    }
+
+    private async Task Eliminar()
+    {
+        try
+        {
+            await repobenefi.UpdateRutaNotaAsync(beneficiarioId, null, null);
+            fileNames.Clear();
+            nombreNota = null;
+            esInvalido = !string.IsNullOrEmpty(nombreNota);
+            StateHasChanged();
         }
         catch (Exception ex)
         {

@@ -22,6 +22,7 @@ namespace FactorPolar.Infrastructure.Repositories
             else
             {
                 Beneficiario? benefiaux = _context.Beneficiarios
+                    .Include(b => b.Employee)                    
                     .FirstOrDefault(b => b.Denominacion == beneficiario.Denominacion && 
                                     b.CedulaIdentidad == beneficiario.CedulaIdentidad && 
                                     b.FullName == beneficiario.FullName &&
@@ -31,11 +32,11 @@ namespace FactorPolar.Infrastructure.Repositories
                 {
                     beneficiario.Employee = auxemp;
                     _context.Beneficiarios.Add(beneficiario);
-                    _context.Entry(beneficiario.Employee).State = EntityState.Unchanged;
+                    //_context.Entry(beneficiario.Employee).State = EntityState.Unchanged;
 
                     _context.SaveChanges();
-                    _context.Entry(beneficiario.Employee).State = EntityState.Detached;
-                    _context.Entry(beneficiario).State = EntityState.Detached;
+                    //_context.Entry(beneficiario.Employee).State = EntityState.Detached;
+                    //_context.Entry(beneficiario).State = EntityState.Detached;
                     return beneficiario;
                 }
                 else
@@ -48,7 +49,7 @@ namespace FactorPolar.Infrastructure.Repositories
         public Beneficiario GetByEmployeeEmail(string email)
         {
             var benefi = _context.Beneficiarios
-                .Include(b => b.Employee)
+                .Include(b => b.Employee)                
                 .FirstOrDefault(x => x.Employee.Email == email);
             return benefi!;
         }
@@ -57,8 +58,7 @@ namespace FactorPolar.Infrastructure.Repositories
         {
             var benefi = await _context.Beneficiarios
                 .Include(b => b.Employee)
-                .Where(x => x.Employee.Email == email)
-                .AsQueryable().AsNoTracking()
+                .Where(x => x.Employee.Email == email)                
                 .ToListAsync();
             return benefi;
         }
@@ -67,8 +67,7 @@ namespace FactorPolar.Infrastructure.Repositories
         {
             var benefi = await _context.Beneficiarios
                 .Include(b => b.Employee)
-                .Where(x => x.Id == id)
-                .AsQueryable().AsNoTracking()
+                .Where(x => x.Id == id)                
                 .FirstOrDefaultAsync();
             return benefi;
         }
@@ -77,8 +76,7 @@ namespace FactorPolar.Infrastructure.Repositories
         {
             var benefi = await _context.Beneficiarios
                 .Include(b => b.Employee)
-                .Where(x => x.Id == id)
-                .AsQueryable().AsNoTracking()
+                .Where(x => x.Id == id)                
                 .FirstOrDefaultAsync();
             if (benefi == null)
             {
@@ -96,12 +94,12 @@ namespace FactorPolar.Infrastructure.Repositories
                     benefi.Documento3 = "ACEPTO";
                     break;
             }
-            _context.Beneficiarios.Update(benefi);
-            _context.Entry(benefi.Employee).State = EntityState.Unchanged;
+            //_context.Beneficiarios.Update(benefi);
+            //_context.Entry(benefi.Employee).State = EntityState.Unchanged;
 
             await _context.SaveChangesAsync();
-            _context.Entry(benefi.Employee).State = EntityState.Detached;
-            _context.Entry(benefi).State = EntityState.Detached;
+            //_context.Entry(benefi.Employee).State = EntityState.Detached;
+            //_context.Entry(benefi).State = EntityState.Detached;
             return benefi;
         }
 
@@ -109,8 +107,7 @@ namespace FactorPolar.Infrastructure.Repositories
         {
             var beneficiario = await _context.Beneficiarios
                 .Include(b => b.Employee)
-                .Where(x => x.Id == id)
-                .AsQueryable().AsNoTracking()
+                .Where(x => x.Id == id)                
                 .FirstOrDefaultAsync();
             if (beneficiario == null)
             {
@@ -134,12 +131,12 @@ namespace FactorPolar.Infrastructure.Repositories
             
             beneficiario.Promedio = benefi.Promedio;
 
-            _context.Beneficiarios.Update(beneficiario);
-            _context.Entry(beneficiario.Employee).State = EntityState.Unchanged;
+            //_context.Beneficiarios.Update(beneficiario);
+            //_context.Entry(beneficiario.Employee).State = EntityState.Unchanged;
 
             await _context.SaveChangesAsync();
-            _context.Entry(beneficiario).State = EntityState.Detached;
-            _context.Entry(beneficiario.Employee).State = EntityState.Detached;
+            //_context.Entry(beneficiario).State = EntityState.Detached;
+            //_context.Entry(beneficiario.Employee).State = EntityState.Detached;
             return beneficiario;
         }
 
@@ -147,8 +144,7 @@ namespace FactorPolar.Infrastructure.Repositories
         {
             var benefi = await _context.Beneficiarios
                 .Include(b => b.Employee)
-                .Where(x => x.Promedio >= 18)
-                .AsQueryable().AsNoTracking()
+                .Where(x => x.Promedio >= 18)                
                 .ToListAsync();
             return benefi;
         }
@@ -157,8 +153,7 @@ namespace FactorPolar.Infrastructure.Repositories
         {
             var beneficiario = await _context.Beneficiarios
                 .Include(b => b.Employee)
-                .Where(x => x.Id == id)
-                .AsQueryable().AsNoTracking()
+                .Where(x => x.Id == id)                
                 .FirstOrDefaultAsync();
             if (beneficiario == null)
             {
@@ -168,12 +163,12 @@ namespace FactorPolar.Infrastructure.Repositories
             beneficiario.RutaNotas = rutaNota;
             beneficiario.NombreNotas = nombre;
 
-            _context.Beneficiarios.Update(beneficiario);
-            _context.Entry(beneficiario.Employee).State = EntityState.Unchanged;
+            //_context.Beneficiarios.Update(beneficiario);
+            //_context.Entry(beneficiario.Employee).State = EntityState.Unchanged;
 
             await _context.SaveChangesAsync();
-            _context.Entry(beneficiario).State = EntityState.Detached;
-            _context.Entry(beneficiario.Employee).State = EntityState.Detached;
+            //_context.Entry(beneficiario).State = EntityState.Detached;
+            //_context.Entry(beneficiario.Employee).State = EntityState.Detached;
             return true;
         }
 
@@ -181,8 +176,7 @@ namespace FactorPolar.Infrastructure.Repositories
         {
             var beneficiario = await _context.Beneficiarios
                 .Include(b => b.Employee)
-                .Where(x => x.Id == id)
-                .AsQueryable().AsNoTracking()
+                .Where(x => x.Id == id)                
                 .FirstOrDefaultAsync();
             if (beneficiario == null)
             {
@@ -192,12 +186,12 @@ namespace FactorPolar.Infrastructure.Repositories
             beneficiario.RutaVideo = rutaVideo;
             beneficiario.NombreVideo = nombre;
 
-            _context.Beneficiarios.Update(beneficiario);
-            _context.Entry(beneficiario.Employee).State = EntityState.Unchanged;
+            //_context.Beneficiarios.Update(beneficiario);
+            //_context.Entry(beneficiario.Employee).State = EntityState.Unchanged;
 
             await _context.SaveChangesAsync();
-            _context.Entry(beneficiario).State = EntityState.Detached;
-            _context.Entry(beneficiario.Employee).State = EntityState.Detached;
+            //_context.Entry(beneficiario).State = EntityState.Detached;
+            //_context.Entry(beneficiario.Employee).State = EntityState.Detached;
             return true;
         }
 
@@ -205,8 +199,7 @@ namespace FactorPolar.Infrastructure.Repositories
         {
             var beneficiario = await _context.Beneficiarios
                 .Include(b => b.Employee)
-                .Where(x => x.Id == id)
-                .AsQueryable().AsNoTracking()
+                .Where(x => x.Id == id)                
                 .FirstOrDefaultAsync();
 
             if (beneficiario == null)
@@ -216,12 +209,12 @@ namespace FactorPolar.Infrastructure.Repositories
 
             beneficiario.EstadoPostulacion = 1;
 
-            _context.Beneficiarios.Update(beneficiario);
-            _context.Entry(beneficiario.Employee).State = EntityState.Unchanged;
+            //_context.Beneficiarios.Update(beneficiario);
+            //_context.Entry(beneficiario.Employee).State = EntityState.Unchanged;
 
             await _context.SaveChangesAsync();
-            _context.Entry(beneficiario).State = EntityState.Detached;
-            _context.Entry(beneficiario.Employee).State = EntityState.Detached;
+            //_context.Entry(beneficiario).State = EntityState.Detached;
+            //_context.Entry(beneficiario.Employee).State = EntityState.Detached;
             return true;
         }
     }

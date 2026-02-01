@@ -267,5 +267,99 @@ namespace FactorPolar.Infrastructure.Services
 
             return request.ResponseBody?.Id ?? "ErrorID";
         }
+
+        public async Task TrashPdfFilesInFolderAsync(string folderId)
+        {
+            try
+            {
+                var service = GetService();
+                string pageToken = null;
+
+                do
+                {
+                    // 1. Configurar la búsqueda de archivos PDF dentro de la carpeta específica
+                    var listRequest = service.Files.List();
+                    listRequest.Q = $"'{folderId}' in parents and mimeType = 'application/pdf' and trashed = false";
+                    listRequest.Spaces = "drive";
+                    listRequest.Fields = "nextPageToken, files(id, name)";
+                    listRequest.PageToken = pageToken;
+
+                    // Habilitar soporte para Shared Drives (Unidades Compartidas)
+                    listRequest.SupportsAllDrives = true;
+                    listRequest.IncludeItemsFromAllDrives = true;
+
+                    // 2. Ejecutar la búsqueda
+                    var result = await listRequest.ExecuteAsync();
+                    var files = result.Files;
+
+                    if (files != null && files.Count > 0)
+                    {
+                        foreach (var file in files)
+                        {
+                            // 3. Preparar la actualización para marcar como "Trashed"
+                            var fileMetadata = new Google.Apis.Drive.v3.Data.File() { Trashed = true };
+                            var updateRequest = service.Files.Update(fileMetadata, file.Id);
+                            updateRequest.SupportsAllDrives = true;
+
+                            await updateRequest.ExecuteAsync();
+                            Console.WriteLine($"Enviado a papelera: {file.Name} ({file.Id})");
+                        }
+                    }
+
+                    // Actualizar el token para la siguiente página de resultados
+                    pageToken = result.NextPageToken;
+
+                } while (pageToken != null);
+
+                Console.WriteLine("Proceso de limpieza completado.");
+            }
+            catch (Exception ex)
+            {
+                // Documentación oficial sobre errores: https://developers.google.com
+                Console.WriteLine($"Error al procesar la carpeta: {ex.Message}");
+            }
+        }
+
+        public async Task TrashVideoFilesInFolderAsync(string folderId)
+        {
+            try
+            {
+                var service = GetService();
+                string pageToken = null;
+
+                do
+                {
+                    var listRequest = service.Files.List();
+                    // Cambiamos el filtro para que busque cualquier tipo de archivo de video
+                    listRequest.Q = $"'{folderId}' in parents and mimeType contains 'video/' and trashed = false";
+                    listRequest.Fields = "nextPageToken, files(id, name)";
+                    listRequest.PageToken = pageToken;
+                    listRequest.SupportsAllDrives = true;
+                    listRequest.IncludeItemsFromAllDrives = true;
+
+                    var result = await listRequest.ExecuteAsync();
+
+                    if (result.Files != null && result.Files.Count > 0)
+                    {
+                        foreach (var file in result.Files)
+                        {
+                            var fileMetadata = new Google.Apis.Drive.v3.Data.File() { Trashed = true };
+                            var updateRequest = service.Files.Update(fileMetadata, file.Id);
+                            updateRequest.SupportsAllDrives = true;
+
+                            await updateRequest.ExecuteAsync();
+                            Console.WriteLine($"Video enviado a papelera: {file.Name}");
+                        }
+                    }
+                    pageToken = result.NextPageToken;
+
+                } while (pageToken != null);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error eliminando videos: {ex.Message}");
+            }
+        }
+
     }
 }

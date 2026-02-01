@@ -14,6 +14,9 @@ namespace FactorPolar.Domain.Entities
         public string? DescipcionTipo { get; set; } //F
         public DateTime CreateDate { get; set; }
         public DateTime UpdateDate { get; set; }
+        public int? IngresoMovil { get; set; }
+        public int? IngresoCompu { get; set; }
+
     }
 
     public class Beneficiario

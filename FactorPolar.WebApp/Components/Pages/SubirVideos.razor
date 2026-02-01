@@ -1,10 +1,17 @@
 ﻿@rendermode InteractiveServer
 @inject GoogleDriveService DriveService
 
-<label for="fileVideo" class="btn btn-primary" style="cursor:pointer;">
+<label for="fileVideo"
+       class="btn btn-primary @(esInvalido ? "disabled" : "")"
+       style="cursor: @(esInvalido ? "not-allowed" : "pointer"); pointer-events: @(esInvalido ? "none" : "auto");">
     @* <i class="bi bi-upload"></i> *@ Cargar .MP4
 </label>
-<InputFile id="fileVideo" OnChange="UploadFileVideo" accept="video/*" style="display:none;" />
+<InputFile id="fileVideo" 
+    OnChange="UploadFileVideo" 
+    accept="video/*" 
+    style="display:none;"
+    disabled="@esInvalido" />
+
 <br />
 <br />
 <div>
@@ -22,7 +29,13 @@
         {
             <strong>
                 <label class="form-label">
-                    <i class="bi bi-camera-video"></i> @name
+                    <i class="bi bi-camera-video"></i> @name &nbsp;&nbsp;
+                    <button type="button"
+                            class="btn btn-sm"
+                            style="background-color: #f0f0f0; color: #333; border: 1px solid #ccc;"
+                            @onclick="Eliminar">
+                        X
+                    </button>
                 </label>
             </strong>
         }
@@ -87,6 +100,8 @@ else
     [Parameter] public string rutaVideo { get; set; }
     [Parameter] public string nombreVideo { get; set; }
 
+    bool esInvalido = false;
+
     private string Message = "";
     private string ImageUrl; // Para mostrar un preview de la imagen
     private List<string> fileNames = new List<string>();
@@ -125,6 +140,8 @@ else
         {
             fileNames.Add(nombreVideo);
         }
+        esInvalido = !string.IsNullOrEmpty(nombreVideo);
+        StateHasChanged();
     }
 
     private async Task UploadFileVideo(InputFileChangeEventArgs e) // Cambiado a UploadFileVideo
@@ -193,14 +210,14 @@ else
                 folderId = await DriveService.CreateFolderAsync(folderName);
                 string fileIdResult = string.Empty;
 
-                Beneficiario? benefi = await repobenefi.GetByIdlAsync(beneficiarioId);
+                //Beneficiario? benefi = await repobenefi.GetByIdlAsync(beneficiarioId);
 
                 // Borrar archivo anterior si existe
-                if (benefi?.RutaVideo != null)
-                {
-                    string oldFileId = benefi.RutaVideo.Split('/').Last();
-                    await DriveService.DeleteFileAsync(oldFileId);
-                }
+                //if (benefi?.RutaVideo != null)
+                //{
+                //string oldFileId = benefi.RutaVideo.Split('/').Last();
+                await DriveService.TrashVideoFilesInFolderAsync(folderId);
+                //}
                 await jsRuntime.InvokeVoidAsync("uploadFunctions.uploadFile", "fileVideo", objRef, folderId);
 
                 // Subida con el ContentType dinámico
@@ -269,9 +286,11 @@ else
         {
             Beneficiario? benefi = await repobenefi.GetByIdlAsync(beneficiarioId);
             fileNames.Add(fileName);
+            esInvalido = !string.IsNullOrEmpty(fileName);
 
             await repobenefi.UpdateRutaVideoAsync(beneficiarioId, $"{folderId}/{fileId}", fileName);
-        }        
+            StateHasChanged();
+        }
         catch (Exception ex)
         {
             throw new Exception($"Error al actualizar datos: {ex.Message}");
@@ -288,6 +307,29 @@ else
     }
 
     public void Dispose() => objRef?.Dispose();
+
+    private async Task Eliminar()
+    {
+        try
+        {
+            await repobenefi.UpdateRutaVideoAsync(beneficiarioId, null, null);
+            fileNames.Clear();
+            nombreVideo = null;
+            esInvalido = !string.IsNullOrEmpty(nombreVideo);
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            mensajeAlerta = $"Error al procesar el archivo: {ex.Message}";
+            mostrarAlerta = true;
+            cargando = false;
+            // 3. Forzamos el renderizado y esperamos un "ciclo" para que el DOM se actualice
+            StateHasChanged();
+            await Task.Delay(1); // Pequeña espera para asegurar que el DOM esté listo
+
+            await jsRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlertaimagen", 8000);
+        }
+    }
 }
 
 <style>
