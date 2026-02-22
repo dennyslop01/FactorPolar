@@ -32,11 +32,11 @@ namespace FactorPolar.Infrastructure.Repositories
                 {
                     beneficiario.Employee = auxemp;
                     _context.Beneficiarios.Add(beneficiario);
-                    //_context.Entry(beneficiario.Employee).State = EntityState.Unchanged;
+                    _context.Entry(beneficiario.Employee).State = EntityState.Unchanged;
 
                     _context.SaveChanges();
-                    //_context.Entry(beneficiario.Employee).State = EntityState.Detached;
-                    //_context.Entry(beneficiario).State = EntityState.Detached;
+                    _context.Entry(beneficiario.Employee).State = EntityState.Detached;
+                    _context.Entry(beneficiario).State = EntityState.Detached;
                     return beneficiario;
                 }
                 else
@@ -144,7 +144,7 @@ namespace FactorPolar.Infrastructure.Repositories
         {
             var benefi = await _context.Beneficiarios
                 .Include(b => b.Employee)
-                .Where(x => x.Promedio >= 18)                
+                .Where(x => x.Promedio >= 18 && x.EstadoPostulacion == 1)                
                 .ToListAsync();
             return benefi;
         }

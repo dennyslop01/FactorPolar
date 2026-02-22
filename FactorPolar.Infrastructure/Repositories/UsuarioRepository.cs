@@ -17,8 +17,8 @@ namespace FactorPolar.Infrastructure.Repositories
         {
             try
             {
-                Usuario? usuario = _context.Usuarios
-                    .Where(x => x.Email == email).FirstOrDefault();
+                Usuario? usuario = await _context.Usuarios
+                    .Where(x => x.Email == email).FirstOrDefaultAsync();
                 return usuario;
             }
             catch (Exception ex)

@@ -58,10 +58,12 @@ builder.Services.Configure<Saml2Configuration>(options =>
     // A. Configuración SP (Nosotros)
     // En ITfoxtec, 'Issuer' es NUESTRO EntityID
     options.Issuer = "FactorPolar.Webapp"; //options.Issuer = spConfig["EntityId"].Trim();
+    //options.Issuer = "FactorPolar.Webapp.Des"; //options.Issuer = spConfig["EntityId"].Trim();
 
     // B. Configuración IdP (Polar / Azure)
     // 'AllowedIssuer' es el EntityID de ELLOS
     options.AllowedAudienceUris.Add("FactorPolar.Webapp"); //options.AllowedIssuer = idpConfig["EntityId"].Trim();
+    //options.AllowedAudienceUris.Add("FactorPolar.Webapp.Des"); //options.AllowedIssuer = idpConfig["EntityId"].Trim();
 
     options.SingleSignOnDestination = new Uri(idpConfig["SingleSignOnDestination"]);
     options.SingleLogoutDestination = new Uri(idpConfig["SingleLogoutDestination"]);

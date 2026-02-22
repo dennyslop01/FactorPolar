@@ -142,7 +142,13 @@ namespace FactorPolar.CargaEmpleados
                         beneficiario.NombreInstitucion = sheetRead.Cell("AE" + i).GetString().Trim();
                         beneficiario.RifInstitucion = sheetRead.Cell("AF" + i).GetString().Trim();
                         beneficiario.NivelEducativo = sheetRead.Cell("AG" + i).GetString().Trim();
-                        beneficiario.GradoEducativo = sheetRead.Cell("AH" + i).GetString().Trim();
+                        
+                        string grado = sheetRead.Cell("AH" + i).GetString().Trim();
+                        if(grado.Length > 9)
+                        {
+                            grado = grado.Substring(0, 9);
+                        }
+                        beneficiario.GradoEducativo = grado;
                         beneficiario.CreateDate = DateTime.Now;
                         beneficiario.UpdateDate = DateTime.Now;
 
