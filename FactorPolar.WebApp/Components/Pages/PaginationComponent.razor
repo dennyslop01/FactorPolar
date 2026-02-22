@@ -25,7 +25,9 @@
             </select>
 
             <!-- Previous Page Button -->
-            <button @onclick="PreviousPage" disabled="@IsPreviousDisabled"><i class="bi bi-chevron-double-left"></i></button>
+            <button @onclick="PreviousPage" disabled="@IsPreviousDisabled">
+                <i class="bi bi-chevron-double-left"></i>
+            </button>
 
             <!-- Page Number Buttons -->
             @foreach (var pageNumber in Enumerable.Range(1, TotalPages))
@@ -36,28 +38,39 @@
             }
 
             <!-- Next Page Button -->
-            <button @onclick="NextPage" disabled="@IsNextDisabled"><i class="bi bi-chevron-double-right"></i></button>
+            <button @onclick="NextPage" disabled="@IsNextDisabled">
+                <i class="bi bi-chevron-double-right"></i>
+            </button>
+
+            <!-- Info de Registros -->
+            <span class="registration-info">
+                Mostrando @RecordStart al @RecordEnd de @TotalItems registros
+            </span>
         </div>
     </div>
 </div>
 
 @code {
-    [Parameter]
-    public IEnumerable<TItem> Items { get; set; }
-
+    [Parameter] public IEnumerable<TItem> Items { get; set; } = Enumerable.Empty<TItem>();
     [Parameter] public int DefaultPageSize { get; set; } = 10;
     [Parameter] public RenderFragment ChildContentHeader { get; set; }
-    [Parameter]
-    public RenderFragment<TItem>
-    ChildContentRow
-    { get; set; }
+    [Parameter] public RenderFragment<TItem> ChildContentRow { get; set; }
 
     private int PageSize { get; set; }
-    private List<TItem>
-    PaginatedData => Items.Skip((CurrentPage - 1) * PageSize).Take(PageSize).ToList();
     private int CurrentPage { get; set; } = 1;
-
     private readonly int[] PageSizes = new[] { 5, 10, 20, 50 };
+
+    // Lógica de datos paginados
+    private List<TItem> PaginatedData => Items?
+        .Skip((CurrentPage - 1) * PageSize)
+        .Take(PageSize)
+        .ToList() ?? new List<TItem>();
+
+    // Propiedades de conteo
+    private int TotalItems => Items?.Count() ?? 0;
+    private int TotalPages => TotalItems > 0 ? (int)Math.Ceiling(TotalItems / (double)PageSize) : 1;
+    private int RecordStart => TotalItems == 0 ? 0 : (CurrentPage - 1) * PageSize + 1;
+    private int RecordEnd => Math.Min(CurrentPage * PageSize, TotalItems);
 
     protected override void OnInitialized()
     {
@@ -66,18 +79,12 @@
 
     private void NextPage()
     {
-        if (CurrentPage < TotalPages)
-        {
-            CurrentPage++;
-        }
+        if (CurrentPage < TotalPages) CurrentPage++;
     }
 
     private void PreviousPage()
     {
-        if (CurrentPage > 1)
-        {
-            CurrentPage--;
-        }
+        if (CurrentPage > 1) CurrentPage--;
     }
 
     private void GoToPage(int pageNumber)
@@ -85,11 +92,10 @@
         CurrentPage = pageNumber;
     }
 
-    private int TotalPages => (int)Math.Ceiling(Items.Count() / (double)PageSize);
-
     private bool IsPreviousDisabled => CurrentPage == 1;
-    private bool IsNextDisabled => CurrentPage == TotalPages;
+    private bool IsNextDisabled => CurrentPage >= TotalPages;
 }
+
 <style>
     .pagination-controls {
         display: flex;
@@ -98,44 +104,50 @@
         margin-top: 20px;
     }
 
-        .pagination-controls button {
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
-            color: #007bff;
-            padding: 5px 10px;
-            margin: 0 5px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
+    .pagination-controls button {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        color: #007bff;
+        padding: 5px 10px;
+        margin: 0 5px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
 
-            .pagination-controls button:hover {
-                background-color: #007bff;
-                color: white;
-            }
+    .pagination-controls button:hover {
+        background-color: #007bff;
+        color: white;
+    }
 
-            .pagination-controls button.active {
-                background-color: #007bff;
-                color: white;
-                font-weight: bold;
-            }
+    .pagination-controls button.active {
+        background-color: #007bff;
+        color: white;
+        font-weight: bold;
+    }
 
-            .pagination-controls button:disabled {
-                background-color: #e9ecef;
-                color: #6c757d;
-                cursor: not-allowed;
-                border-color: #ced4da;
-            }
+    .pagination-controls button:disabled {
+        background-color: #e9ecef;
+        color: #6c757d;
+        cursor: not-allowed;
+        border-color: #ced4da;
+    }
 
-        .pagination-controls select {
-            margin-right: 15px;
-            padding: 5px;
-            border-radius: 4px;
-            border: 1px solid #dee2e6;
-        }
+    .pagination-controls select {
+        margin-right: 15px;
+        padding: 5px;
+        border-radius: 4px;
+        border: 1px solid #dee2e6;
+    }
 
-        .pagination-controls label {
-            margin-right: 5px;
-            font-weight: bold;
-        }
+    .pagination-controls label {
+        margin-right: 5px;
+        font-weight: bold;
+    }
+
+    .registration-info {
+        margin-left: 15px;
+        color: #6c757d;
+        font-style: italic;
+    }
 </style>

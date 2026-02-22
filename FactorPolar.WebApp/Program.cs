@@ -18,10 +18,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-builder.Services.AddDbContext<FactorDbContext>(options =>
-{
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConn"));
-});
+builder.Services.AddDbContextFactory<FactorDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConn")));
+
 
 builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
 builder.Services.Configure<IGoogleDrive>(builder.Configuration.GetSection("GoogleDrive"));

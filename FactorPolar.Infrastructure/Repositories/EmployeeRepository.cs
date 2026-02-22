@@ -10,11 +10,14 @@ using System.Threading.Tasks;
 
 namespace FactorPolar.Infrastructure.Repositories
 {
-    public class EmployeeRepository(FactorDbContext context) : IEmployee
+    public class EmployeeRepository(IDbContextFactory<FactorDbContext> contextFactory) : IEmployee
     {
-        private readonly FactorDbContext _context = context;
+        private readonly IDbContextFactory<FactorDbContext> _contextFactory = contextFactory;
+
         public Employee Create(Employee employee)
         {
+            using var _context = _contextFactory.CreateDbContext();
+            
             Employee? aux = GetByEmail(employee.Email);
             if (aux == null)
             {
@@ -32,6 +35,8 @@ namespace FactorPolar.Infrastructure.Repositories
         {
             try
             {
+                using var _context = _contextFactory.CreateDbContext();
+
                 Employee? employee = _context.Employees
                     .Where(x => x.Email == email).FirstOrDefault();
                 return employee;
@@ -47,6 +52,8 @@ namespace FactorPolar.Infrastructure.Repositories
         {
             try
             {
+                using var _context = _contextFactory.CreateDbContext();
+
                 Employee? employee = await _context.Employees
                     .Where(x => x.Email == email).FirstOrDefaultAsync();
                 return employee;
@@ -60,6 +67,8 @@ namespace FactorPolar.Infrastructure.Repositories
 
         public Employee? GetById(int id)
         {
+            using var _context = _contextFactory.CreateDbContext();
+
             Employee? employee = _context.Employees
                 .FirstOrDefault(x => x.Id == id);
             return employee!;
@@ -67,6 +76,8 @@ namespace FactorPolar.Infrastructure.Repositories
 
         public async Task<bool> UpdateDispositivoAsync(string email, bool movil)
         {
+            using var _context = _contextFactory.CreateDbContext();
+
             Employee? employee = _context.Employees
                 .FirstOrDefault(x => x.Email == email);
             if (employee != null)

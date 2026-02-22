@@ -6,12 +6,15 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace FactorPolar.Infrastructure.Repositories
 {
-    public class BeneficiarioRepository(FactorDbContext context) : IBeneficiario
+    public class BeneficiarioRepository(IDbContextFactory<FactorDbContext> contextFactory) : IBeneficiario
     {
-        private readonly FactorDbContext _context = context;
+        private readonly IDbContextFactory<FactorDbContext> _contextFactory = contextFactory;
+
         public Beneficiario Create(Beneficiario beneficiario, string email)
         {
-            EmployeeRepository employeeRepository = new(_context);
+            using var _context = _contextFactory.CreateDbContext();
+
+            EmployeeRepository employeeRepository = new(_contextFactory);
 
             Employee? auxemp = employeeRepository.GetByEmail(email);
             if (auxemp == null)
@@ -48,6 +51,8 @@ namespace FactorPolar.Infrastructure.Repositories
 
         public Beneficiario GetByEmployeeEmail(string email)
         {
+            using var _context = _contextFactory.CreateDbContext();
+
             var benefi = _context.Beneficiarios
                 .Include(b => b.Employee)                
                 .FirstOrDefault(x => x.Employee.Email == email);
@@ -56,6 +61,8 @@ namespace FactorPolar.Infrastructure.Repositories
 
         public async Task<List<Beneficiario?>> GetByEmployeeEmailAsync(string email)
         {
+            using var _context = _contextFactory.CreateDbContext();
+            
             var benefi = await _context.Beneficiarios
                 .Include(b => b.Employee)
                 .Where(x => x.Employee.Email == email)                
@@ -65,6 +72,8 @@ namespace FactorPolar.Infrastructure.Repositories
 
         public async Task<Beneficiario?> GetByIdlAsync(int id)
         {
+            using var _context = _contextFactory.CreateDbContext();
+            
             var benefi = await _context.Beneficiarios
                 .Include(b => b.Employee)
                 .Where(x => x.Id == id)                
@@ -74,6 +83,8 @@ namespace FactorPolar.Infrastructure.Repositories
 
         public async Task<Beneficiario?> UpdateAsync(int id, int opcion)
         {
+            using var _context = _contextFactory.CreateDbContext();
+            
             var benefi = await _context.Beneficiarios
                 .Include(b => b.Employee)
                 .Where(x => x.Id == id)                
@@ -105,6 +116,8 @@ namespace FactorPolar.Infrastructure.Repositories
 
         public async Task<Beneficiario?> UpdateAcademicDataAsync(int id, BenefiModel benefi)
         {
+            using var _context = _contextFactory.CreateDbContext();
+            
             var beneficiario = await _context.Beneficiarios
                 .Include(b => b.Employee)
                 .Where(x => x.Id == id)                
@@ -142,6 +155,8 @@ namespace FactorPolar.Infrastructure.Repositories
 
         public async Task<List<Beneficiario?>> GetByParticipantesAsync()
         {
+            using var _context = _contextFactory.CreateDbContext();
+            
             var benefi = await _context.Beneficiarios
                 .Include(b => b.Employee)
                 .Where(x => x.Promedio >= 18 && x.EstadoPostulacion == 1)                
@@ -151,6 +166,8 @@ namespace FactorPolar.Infrastructure.Repositories
 
         public async Task<bool> UpdateRutaNotaAsync(int id, string rutaNota, string nombre)
         {
+            using var _context = _contextFactory.CreateDbContext();
+            
             var beneficiario = await _context.Beneficiarios
                 .Include(b => b.Employee)
                 .Where(x => x.Id == id)                
@@ -174,6 +191,8 @@ namespace FactorPolar.Infrastructure.Repositories
 
         public async Task<bool> UpdateRutaVideoAsync(int id, string rutaVideo, string nombre)
         {
+            using var _context = _contextFactory.CreateDbContext();
+            
             var beneficiario = await _context.Beneficiarios
                 .Include(b => b.Employee)
                 .Where(x => x.Id == id)                
@@ -197,6 +216,8 @@ namespace FactorPolar.Infrastructure.Repositories
 
         public async Task<bool> UpdateEstadoPostulacionAsync(int id)
         {
+            using var _context = _contextFactory.CreateDbContext();
+            
             var beneficiario = await _context.Beneficiarios
                 .Include(b => b.Employee)
                 .Where(x => x.Id == id)                

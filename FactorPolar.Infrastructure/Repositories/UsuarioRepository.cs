@@ -10,21 +10,28 @@ using System.Threading.Tasks;
 
 namespace FactorPolar.Infrastructure.Repositories
 {
-    public class UsuarioRepository(FactorDbContext context) : IUsuario
+    // Cambiamos el constructor para recibir la fábrica
+    public class UsuarioRepository(IDbContextFactory<FactorDbContext> contextFactory) : IUsuario
     {
-        private readonly FactorDbContext _context = context;
+        private readonly IDbContextFactory<FactorDbContext> _contextFactory = contextFactory;
+
         public async Task<Usuario?> GetByEmailAsync(string email)
         {
+            // Creamos una instancia local para esta operación específica
+            using var context = _contextFactory.CreateDbContext();
+
             try
             {
-                Usuario? usuario = await _context.Usuarios
-                    .Where(x => x.Email == email).FirstOrDefaultAsync();
+                Usuario? usuario = await context.Usuarios
+                    .Where(x => x.Email == email)
+                    .FirstOrDefaultAsync();
                 return usuario;
             }
             catch (Exception ex)
             {
+                // Es recomendable usar un Logger en lugar de Console.WriteLine
                 Console.WriteLine($"Error al obtener el empleado por email: {ex.Message}");
-                throw new Exception(ex.Message);
+                throw;
             }
         }
     }
