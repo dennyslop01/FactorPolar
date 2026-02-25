@@ -20,9 +20,13 @@ else
 @if (!existeError)
 {
     <div class="d-flex justify-content-center">
-        <button type="button" class="boton-postular" style="background-color:#33ccff" @onclick="Aceptar">
-            Aceptar
-        </button>&nbsp;&nbsp;&nbsp;&nbsp;
+        @if (cargacompleta)
+        {
+            <button type="button" class="boton-postular" style="background-color:#33ccff" @onclick="Aceptar">
+                Aceptar
+            </button>
+        }
+        &nbsp; &nbsp; &nbsp; &nbsp;
         <button type="button" class="btn boton-postular btn-secondary me-2" @onclick="Rechazar">
             Rechazar
         </button>
@@ -59,13 +63,13 @@ else
     public string Id { get; set; }
     private bool existeError = false;
     private bool cargando = false;
-
+    private bool cargacompleta = false;
     private bool mostrarAlerta = false;
     private string mensajeAlerta = string.Empty;
     private Employee beneficiario = new();
     private string pdfBase64String;
     private string GetAssetPathWithHash() => "Documentos\\TyC Factor Polar.wdhxwnve93.pdf";
-    private string? userEmail = "temporal.dennys.lopez@empresaspolar.com";
+    private string? userEmail = string.Empty;
 
     [Inject] private IEmployee repository { get; set; } = null!;
 
@@ -110,8 +114,11 @@ else
         try
         {
             var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-            var user = authState.User;
-            userEmail = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+            if (authState.User.Identity.IsAuthenticated)
+            {
+                var user = authState.User;
+                userEmail = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+            }
         }
         catch (Exception ex)
         {
@@ -143,15 +150,18 @@ else
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-
-
         if (firstRender && !string.IsNullOrEmpty(pdfBase64String))
         {
             if (beneficiario != null)
             {
-                if (beneficiario.Email != userEmail)
+                if (beneficiario.Email.ToLower() != userEmail.ToLower())
                 {
-                    NavManager.NavigateTo($"/");
+                    mensajeAlerta = $"Datos invalidos {beneficiario.Email} -- {userEmail}";
+                    mostrarAlerta = true;
+                }
+                else
+                {
+                    cargacompleta = true;
                 }
             }
             else
