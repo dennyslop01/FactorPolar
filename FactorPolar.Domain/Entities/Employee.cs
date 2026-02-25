@@ -16,6 +16,7 @@ namespace FactorPolar.Domain.Entities
         public DateTime UpdateDate { get; set; }
         public int? IngresoMovil { get; set; }
         public int? IngresoCompu { get; set; }
+        public DateTime? FechaAceptarTC { get; set; }
 
     }
 

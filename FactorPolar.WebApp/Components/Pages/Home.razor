@@ -6,8 +6,8 @@
 
 <PageTitle>Home</PageTitle>
 
-@* <AuthorizeView>
-    <Authorized> *@
+<AuthorizeView>
+    <Authorized>
         <h6>Bienvenido</h6>
         @if (existe)
         {
@@ -124,7 +124,7 @@
             <p>@userName</p>
             <p>Si no visualiza sus datos, por favor contacte al equipo de Gestión de Gente de su localidad</p>
         }
-    @* </Authorized>
+    </Authorized>
     <NotAuthorized>
         <div class="row">
             <div class="col-11">
@@ -150,7 +150,7 @@
             </div>
         </div>
     </NotAuthorized>
- </AuthorizeView> *@
+ </AuthorizeView>
 
 @if (cargando)
 {
@@ -197,6 +197,15 @@
                 await repoemployee.UpdateDispositivoAsync(userEmail, isMobile);
                 StateHasChanged();
             }
+
+            if(employee != null)
+            {
+                if (employee.FechaAceptarTC == null)
+                {
+                    if (employee.Id != 0)
+                        NavManager.NavigateTo($"/documento2/{employee.Id}");
+                }                
+            }
         }
     }
 
@@ -231,16 +240,19 @@
             employee = await repoemployee.GetByEmailAsync(userEmail);
             if (employee != null)
             {
-                existe = true;
-                employeeName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(employee.FullName.ToLower());
+                if (employee.FechaAceptarTC != null)
+                {
+                    existe = true;
+                    employeeName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(employee.FullName.ToLower());
 
-                string[] cadena = employeeName.Split(',');
-                if(cadena.Length > 1)
-                    employeeName = $"{cadena[1]}, {cadena[0]}";
+                    string[] cadena = employeeName.Split(',');
+                    if (cadena.Length > 1)
+                        employeeName = $"{cadena[1]}, {cadena[0]}";
 
-                employeeNumber = employee.EmployeeNumber.ToString();
+                    employeeNumber = employee.EmployeeNumber.ToString();
 
-                beneficiario = await repobenefi.GetByEmployeeEmailAsync(employee.Email);
+                    beneficiario = await repobenefi.GetByEmployeeEmailAsync(employee.Email);
+                }
             }
         }
         await Task.CompletedTask;

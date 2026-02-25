@@ -74,6 +74,32 @@ namespace FactorPolar.Infrastructure.Repositories
             return employee!;
         }
 
+        public async Task<Employee?> GetByIdAsync(int id)
+        {
+            using var _context = _contextFactory.CreateDbContext();
+
+            Employee? employee = await _context.Employees
+                .Where(x => x.Id == id).FirstOrDefaultAsync();
+            return employee;
+        }
+
+        public async Task<bool> UpdateAceptarTCAsync(int id)
+        {
+            using var _context = _contextFactory.CreateDbContext();
+
+            Employee? employee = _context.Employees
+                .FirstOrDefault(x => x.Id == id);
+            if (employee != null)
+            {
+                employee.FechaAceptarTC = DateTime.Now;
+
+                //_context.Employees.Update(employee);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            return false;
+        }
+
         public async Task<bool> UpdateDispositivoAsync(string email, bool movil)
         {
             using var _context = _contextFactory.CreateDbContext();
@@ -92,7 +118,6 @@ namespace FactorPolar.Infrastructure.Repositories
                 return true;
             }
             return false;
-
         }
     }
 }

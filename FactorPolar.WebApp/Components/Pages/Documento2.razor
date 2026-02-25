@@ -1,11 +1,10 @@
 ﻿@page "/documento2/{Id}"
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @rendermode InteractiveServer
 
-<h5>Documento 2</h5>
+<h5>Términos y Condiciones</h5>
 
-<p>@datosbenefi</p>
-
-<p>Lea detenidamente el documento hata el final y escriba la palabra "Acepto" para acepyar terminos y condiciones</p>
+<p>Lea detenidamente el documento hata el final para aceptar términos y condiciones</p>
 
 @if (!string.IsNullOrEmpty(pdfBase64String))
 {
@@ -18,28 +17,38 @@ else
 <br />
 <br />
 
-<EditForm Model="@entidadActual" OnValidSubmit="GuardarDatos">
-    <DataAnnotationsValidator />
-
+@if (!existeError)
+{
     <div class="d-flex justify-content-center">
-        <div class="mb-3">
-            <label class="form-label">Escriba la palabra "Acepto"</label>
-            <InputText class="form-control" @bind-Value="entidadActual.Acepto" maxlength="10" style="width: 90%;" />
-            <ValidationMessage For="@(() => entidadActual.Acepto)" />
-        </div>
-    </div>
-    <div class="d-flex justify-content-center">
-        <button type="submit" class="btn btn-success me-2">
-            <i class="bi bi-save"></i> Guardar
+        <button type="button" class="boton-postular" style="background-color:#33ccff" @onclick="Aceptar">
+            Aceptar
+        </button>&nbsp;&nbsp;&nbsp;&nbsp;
+        <button type="button" class="btn boton-postular btn-secondary me-2" @onclick="Rechazar">
+            Rechazar
         </button>
     </div>
-
-</EditForm>
+}
 @if (mostrarAlerta)
 {
     <div id="divAlerta" class="alert alert-success alert-dismissible fade show toast-container" role="alert">
         @mensajeAlerta
         <button type="button" class="btn-close" @onclick="() => mostrarAlerta = false"></button>
+    </div>
+}
+@if (cargando)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5); align-content:center">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="modal-cargando text-lg-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 }
 <br />
@@ -48,22 +57,17 @@ else
 @code {
     [Parameter]
     public string Id { get; set; }
+    private bool existeError = false;
+    private bool cargando = false;
 
-    public class DocumentoModel
-    {
-        [Required(ErrorMessage = "Debe completar el campo.")]
-        public string Acepto { get; set; } = string.Empty;
-    }
-
-    string datosbenefi = string.Empty;
-    private Beneficiario? beneficiario = new();
-    private string? mensajeAlerta;
     private bool mostrarAlerta = false;
-    private DocumentoModel entidadActual = new();
+    private string mensajeAlerta = string.Empty;
+    private Employee beneficiario = new();
     private string pdfBase64String;
-    private string GetAssetPathWithHash() => "Documentos\\Documento2.wdhxwnve93.pdf";
+    private string GetAssetPathWithHash() => "Documentos\\TyC Factor Polar.wdhxwnve93.pdf";
+    private string? userEmail = "temporal.dennys.lopez@empresaspolar.com";
 
-    [Inject] private IBeneficiario repobenefi { get; set; } = null!;
+    [Inject] private IEmployee repository { get; set; } = null!;
 
     private async Task LoadAndConvertPdfToBase64Async()
     {
@@ -102,55 +106,81 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        cargando = true;
         try
         {
-            beneficiario = await repobenefi.GetByIdlAsync(int.Parse(Id));
-            if (beneficiario != null)
-            {
-                datosbenefi = $"{beneficiario.CedulaIdentidad} - {beneficiario.FullName} - {beneficiario.Edad} años";
-                await LoadAndConvertPdfToBase64Async();
-            }
-            entidadActual = new DocumentoModel();
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            userEmail = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
         }
         catch (Exception ex)
         {
-            datosbenefi = $"Error al cargar datos del beneficiario: {ex.Message}";
+            // Manejo de errores (opcional)
+            Console.WriteLine($"Error al cargar datos del usuario: {ex.Message}");
         }
+
+        try
+        {
+            beneficiario = await repository.GetByIdAsync(int.Parse(Id));
+            if (beneficiario != null)
+            {
+                await LoadAndConvertPdfToBase64Async();
+            }
+            else
+            {
+                mensajeAlerta = "Beneficiario no encontrado.";
+                mostrarAlerta = true;
+                existeError = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            mensajeAlerta = $"Error al cargar datos del beneficiario: {ex.Message}";
+            existeError = true;
+        }
+        cargando = false;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+
+
         if (firstRender && !string.IsNullOrEmpty(pdfBase64String))
         {
+            if (beneficiario != null)
+            {
+                if (beneficiario.Email != userEmail)
+                {
+                    NavManager.NavigateTo($"/");
+                }
+            }
+            else
+            {
+                NavManager.NavigateTo($"/");
+            }
             await jsRuntime.InvokeVoidAsync("loadPdfFromBase64", pdfBase64String);
+            StateHasChanged();
         }
     }
 
-    private async Task GuardarDatos()
+    private async Task Aceptar()
     {
-        if (string.IsNullOrEmpty(entidadActual.Acepto) || entidadActual.Acepto.ToLower() != "acepto")
+        try
         {
-            mensajeAlerta = "Debe escribir la palabra Acepto";
+            await repository.UpdateAceptarTCAsync(int.Parse(Id));
+            NavManager.NavigateTo($"/");
+        }
+        catch (Exception ex)
+        {
+            mensajeAlerta = $"Error al guardar los datos: {ex.Message}";
             mostrarAlerta = true;
-            //await JSRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlerta", 8000);
         }
-        else
-        {
-            try
-            {
-                await repobenefi.UpdateAsync(int.Parse(Id), 2);
-                mensajeAlerta = "Datos guardados correctamente.";
-                mostrarAlerta = true;
-                //await JSRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlerta", 8000);
-                NavManager.NavigateTo($"/documento3/{Id}");
-            }
-            catch (Exception ex)
-            {
-                mensajeAlerta = $"Error al guardar los datos: {ex.Message}";
-                mostrarAlerta = true;
-                //await JSRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlerta", 8000);
-            }
-        }
+    }
+
+    private Task Rechazar()
+    {
+        NavManager.NavigateTo($"/Saml2/Logout");
+        return Task.CompletedTask;
     }
 }
 

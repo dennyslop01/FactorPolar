@@ -17,15 +17,10 @@
     <Content Remove="Components\Pages\Authorize.razor" />
     <Content Remove="Components\Pages\Connect.razor" />
     <Content Remove="Components\Pages\Counter.razor" />
+    <Content Remove="Components\Pages\Documento3.razor" />
     <Content Remove="Components\Pages\Login.razor" />
     <Content Remove="Components\Pages\Ver-pdf-seguro.razor" />
     <Content Remove="Components\Pages\Weather.razor" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="wwwroot\Documentos\Documento1.pdf">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
   <ItemGroup>
@@ -39,15 +34,6 @@
   <ItemGroup>
     <ProjectReference Include="..\FactorPolar.Domain\FactorPolar.Domain.csproj" />
     <ProjectReference Include="..\FactorPolar.Infrastructure\FactorPolar.Infrastructure.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Update="wwwroot\Documentos\Documento2.pdf">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Update="wwwroot\Documentos\Documento3.pdf">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
 
   <ItemGroup>
