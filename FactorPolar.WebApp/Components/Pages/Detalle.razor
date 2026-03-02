@@ -1,122 +1,115 @@
 ﻿@page "/detalle/{Id}"
 @using System.Globalization
 @inject GoogleDriveService DriveService
-@inject AuthenticationStateProvider AuthenticationStateProvider
-
+@inject IJSRuntime jsRuntime
 @rendermode InteractiveServer
 
-<h5>Detalle Participante</h5>
-
-@if (beneficiario != null)
-{
-    <p>@datosbenefi</p>
-
-    <strong>Datos Académicos</strong>
-    <hr>
-    <div class="row">
-        <div class="col-3">
-            <strong><label class="form-label">Tipo de Institución:</label></strong>
+<div class="container mt-4 pb-5">
+    <!-- CABECERA PRINCIPAL -->
+    <div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-white shadow-sm rounded-3">
+        <div>
+            <h6 class="text-muted mb-0">Detalle del Participante</h6>
+            <h6 class="fw-bold text-primary mb-0">@datosbenefi</h6>
         </div>
-        <div class="col-8">
-            <label class="form-label">@((beneficiario.TipoInstitucionAux != null) ? beneficiario.TipoInstitucionAux : beneficiario?.TipoInstitucion)</label>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-3">
-            <strong><label class="form-label">Institución Educativa:</label></strong>
-        </div>
-        <div class="col-8">
-            <label class="form-label">@((beneficiario.NombreInstitucionAux != null) ? beneficiario.NombreInstitucionAux : beneficiario?.NombreInstitucion)</label>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-3">
-            <strong><label class="form-label">RIF:</label></strong>
-        </div>
-        <div class="col-8">
-            <label class="form-label">@((beneficiario.RifInstitucionAux != null) ? beneficiario.RifInstitucionAux : beneficiario?.RifInstitucion)</label>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-3">
-            <strong><label class="form-label">Nivel Educativo:</label></strong>
-        </div>
-        <div class="col-8">
-            <label class="form-label">@((beneficiario.NivelEducativoAux != null) ? beneficiario.NivelEducativoAux : beneficiario?.NivelEducativo)</label>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-3">
-            <strong><label class="form-label">Nivel Académico:</label></strong>
-        </div>
-        <div class="col-8">
-            <label class="form-label">@((beneficiario.GradoEducativoAux != null) ? beneficiario.GradoEducativoAux : beneficiario?.GradoEducativo)</label>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-3">
-            <strong><label class="form-label">Promedio de Notas:</label></strong>
-        </div>
-        <div class="col-8">
-            <label class="form-label">
-                @if (beneficiario?.NivelEducativo == "PRIMARIA")
-                {
-                    if (beneficiario.Promedio != null)
-                    {
-                        @notaprimaria
-                    }
-                }
-                else
-                {
-                    @beneficiario?.Promedio
-                }
-            </label>
-        </div>
-    </div>
-    <br />
-    <br />
-    <div class="d-flex justify-content-start">
-        <button class="boton-postular me-1" style="background-color:#dfdf00" title="Regresar" @onclick="Regresar">
-            <i class="bi bi-chevron-double-left"></i>&nbsp;Regresar
+        <button class="btn btn-outline-secondary rounded-pill px-4" @onclick="Regresar">
+            <i class="bi bi-arrow-left-circle me-2"></i>Regresar
         </button>
     </div>
-    <br />
-    <br />
-    <div class="row justify-content-start">
-        <div class="col-10">
-            <strong><label class="form-label">Constancia de notas:</label></strong>
+    @if (beneficiario != null)
+    {
+        <div class="row g-4">
+            <!-- COLUMNA IZQUIERDA: DATOS ACADÉMICOS -->
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-primary text-white py-3">
+                        <h6 class="mb-0"><i class="bi bi-mortarboard-fill me-2"></i>Información Académica</h6>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="mb-4">
+                            <label class="text-muted small fw-bold text-uppercase d-block">Tipo de Institución</label>
+                            <span>@(beneficiario.TipoInstitucionAux ?? beneficiario.TipoInstitucion)</span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="text-muted small fw-bold text-uppercase d-block">Institución Educativa</label>
+                            <span>@(beneficiario.NombreInstitucionAux ?? beneficiario.NombreInstitucion)</span>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-6">
+                                <label class="text-muted small fw-bold text-uppercase d-block">RIF</label>
+                                <span>@(beneficiario.RifInstitucionAux ?? beneficiario.RifInstitucion)</span>
+                            </div>
+                            <div class="col-6">
+                                <label class="text-muted small fw-bold text-uppercase d-block">Promedio</label>
+                                <span class="badge bg-success fs-6 rounded-pill px-3">
+                                    @(beneficiario?.NivelEducativo == "PRIMARIA" ? (beneficiario.Promedio != null ? notaprimaria : "-") : beneficiario?.Promedio)
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="text-muted small fw-bold text-uppercase d-block">Nivel Educativo</label>
+                            <span>@(beneficiario.NivelEducativoAux ?? beneficiario.NivelEducativo)</span>
+                        </div>
+
+                        <div class="mb-0">
+                            <label class="text-muted small fw-bold text-uppercase d-block">Nivel Académico</label>
+                            <span>
+                                @if (beneficiario?.NivelEducativo == "PRIMARIA")
+                                {
+                                    if (beneficiario.Promedio != null)
+                                    {
+                                        @notaprimaria
+                                    }
+                                }
+                                else
+                                {
+                                    @beneficiario?.Promedio
+                                }
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- COLUMNA DERECHA: DOCUMENTOS Y MULTIMEDIA -->
+            <div class="col-lg-8">
+                <!-- Tarjeta PDF -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+                        <h6 class="mb-0 fw-bold text-secondary"><i class="bi bi-file-earmark-pdf-fill me-2 text-danger"></i>Constancia de Notas</h6>
+                    </div>
+                    <div class="card-body p-0 bg-light">
+                        <iframe id="pdfFrame" style="width:100%; height:450px; border:none;" frameborder="0"></iframe>
+                    </div>
+                </div>
+
+                <!-- Tarjeta Video -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white py-3 border-bottom">
+                        <h6 class="mb-0 fw-bold text-secondary"><i class="bi bi-play-btn-fill me-2 text-warning"></i>Video del Talento</h6>
+                    </div>
+                    <div class="card-body p-0 bg-dark rounded-bottom overflow-hidden">
+                        @if (!string.IsNullOrEmpty(videoSrc))
+                        {
+                            <video width="100%" height="450" controls style="outline: none;">
+                                <source src="@videoSrc" type="video/mp4">
+                                Tu navegador no soporta la reproducción de videos.
+                            </video>
+                        }
+                        else
+                        {
+                            <div class="p-5 text-center text-white opacity-50">
+                                <i class="bi bi-camera-video-off fs-1"></i>
+                                <p class="mt-2">Cargando video o no disponible...</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="col-6">
-            <iframe id="pdfFrame" style="width:100%; height:500px;" frameborder="0"></iframe>
-        </div>
-    </div>
-    <hr />
-    <div class="row">
-        <div class="col-10">
-            <strong><label class="form-label"></label></strong>
-        </div>
-        <div class="col-10">
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-10">
-            <strong><label class="form-label">Video del Talento:</label></strong>
-            <br />
-            <br />
-            @* </div>
-        <div class="col-6"> *@
-            @if (!string.IsNullOrEmpty(videoSrc))
-            {
-                <video width="100%" height="500px" controls style="border-radius: 8px; outline: none;">
-                    <source src="@videoSrc" type="video/mp4">
-                    Tu navegador no soporta la reproducción de videos.
-                </video>
-            }
-        </div>
-    </div>
-    <br />
-    <br />
-}
+    }
+</div>
 <br />
 
 @if (mostrarAlerta)
@@ -230,7 +223,7 @@
     {
         try
         {
-            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var authState = await authStateProvider.GetAuthenticationStateAsync();
             if (!authState.User.Identity.IsAuthenticated)
                 NavManager.NavigateTo($"/");
         }
@@ -287,6 +280,24 @@
 </script>
 
 <style>
+    body {
+        background-color: #f0f2f5;
+    }
+
+    .card {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .card-header {
+        font-size: 0.95rem;
+    }
+
+    label {
+        letter-spacing: 0.5px;
+        margin-bottom: 2px;
+    }
+
     /* Estilo por defecto */
     #imagenZoom {
         transition: transform 0.3s ease;

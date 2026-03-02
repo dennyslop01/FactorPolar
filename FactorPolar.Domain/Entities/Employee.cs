@@ -51,7 +51,5 @@ namespace FactorPolar.Domain.Entities
         public string? NombreNotas { get; set; }
         public string? NombreVideo { get; set; }
         public int? EstadoPostulacion { get; set; }
-        public int? NotasCumple { get; set; }
-        public int? VideoCumple { get; set; }
     }
 }

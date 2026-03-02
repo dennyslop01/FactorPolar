@@ -1,163 +1,99 @@
 ﻿@using System.Globalization
 @rendermode InteractiveServer
 
-<h6>Grupos de Talentos</h6>
+<div class="container-fluid mt-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3">
+            <div class="d-flex align-items-center">
+                <div class="bg-primary p-2 rounded-3 me-3">
+                    <i class="bi bi-people-fill text-white fs-4"></i>
+                </div>
+                <h6 class="mb-0 fw-bold text-secondary">Grupos de Talentos</h6>
+            </div>
+        </div>
 
-<div class="row align-content-center">
-    <div class="col-12">
-        <ul class="nav nav-tabs" id="myTab" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="grupo1-tab" data-bs-toggle="tab" data-bs-target="#grupo1" type="button" role="tab" aria-controls="grupo1" aria-selected="true">Grupo 1: Edad ≥ 6 años, ≤ 8 años</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="grupo2-tab" data-bs-toggle="tab" data-bs-target="#grupo2" type="button" role="tab" aria-controls="grupo2" aria-selected="false">Grupo 2: Edad ≥ 9 años, ≤ 11 años</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="grupo3-tab" data-bs-toggle="tab" data-bs-target="#grupo3" type="button" role="tab" aria-controls="grupo3" aria-selected="false">Grupo 3: Edad ≥ 12 años, ≤ 14 años</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="grupo4-tab" data-bs-toggle="tab" data-bs-target="#grupo4" type="button" role="tab" aria-controls="grupo4" aria-selected="false">Grupo 4: Edad ≥ 15 años, ≤ 17 años</button>
-            </li>
-        </ul>
-        <div class="tab-content" id="myTabContent">
-            <div class="tab-pane fade show active" id="grupo1" role="tabpanel" aria-labelledby="grupo1-tab">
-                <div class="row align-content-center">
-                    <div class="col-lg-12">
-                        <PaginationComponent TItem="Beneficiario" Items="List1" DefaultPageSize="10">
-                            <ChildContentHeader>
-                                <tr>
-                                    <th width="10%">#</th>
-                                    <th width="15%">No. Pers</th>
-                                    <th width="40">Nombre</th>
-                                    <th width="25%">Fecha Nacimiento</th>
-                                    <th width="15%">Edad</th>
-                                    <th width="10%"> </th>
-                                </tr>
-                            </ChildContentHeader>
-                            <ChildContentRow Context="p">
-                                <tr>
-                                    <td width="10%">@p.Id</td>
-                                    <td width="15%">@p.Employee.EmployeeNumber</td>
-                                    <td width="40%">@CultureInfo.CurrentCulture.TextInfo.ToTitleCase(p.FullName.ToLower())</td>
-                                    <td width="25%">@p.FechaNacimiento.ToShortDateString()</td>
-                                    <td width="15%">@p.Edad</td>
-                                    <td width="10%" class="justify-content-end">
-                                        <button class="boton-postular" style="background-color:#dfdf00" @onclick="() => VerDetalle(p)" title="Ver Detalle">
-                                            <i class="bi bi-eye"></i>&nbsp;Detalle
-                                        </button>
-                                    </td>
-                                </tr>
-                            </ChildContentRow>
-                        </PaginationComponent>
+        <div class="card-body">
+            <!-- Navegación de Pestañas Estilizada -->
+            <ul class="nav nav-pills nav-fill mb-4 bg-light p-2 rounded-pill" id="talentTabs" role="tablist">
+                @foreach (var grupo in GruposConfig)
+                {
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link rounded-pill @(grupo.Id == 1 ? "active" : "")"
+                                id="tab-@grupo.Id" data-bs-toggle="tab" data-bs-target="#panel-@grupo.Id"
+                                type="button" role="tab">
+                            <span class="fw-semibold">@grupo.Nombre</span>
+                            <small class="d-block opacity-75">@grupo.Rango</small>
+                        </button>
+                    </li>
+                }
+            </ul>
+
+            <!-- Contenido de las Pestañas -->
+            <div class="tab-content" id="talentTabsContent">
+                @for (int i = 1; i <= 4; i++)
+                {
+                    var currentList = GetListById(i);
+                    <div class="tab-pane fade @(i == 1 ? "show active" : "")" id="panel-@i" role="tabpanel">
+                        <div class="table-responsive">
+                            <PaginationComponent TItem="Beneficiario" Items="currentList" DefaultPageSize="10">
+                                <ChildContentHeader>
+                                    <tr class="table-light">
+                                        <th class="border-0 text-uppercase small fw-bold">#</th>
+                                        <th class="border-0 text-uppercase small fw-bold">No. Pers</th>
+                                        <th class="border-0 text-uppercase small fw-bold">Nombre</th>
+                                        <th class="border-0 text-uppercase small fw-bold">Fecha Nacimiento</th>
+                                        <th class="border-0 text-uppercase small fw-bold text-center">Edad</th>
+                                        <th class="border-0 text-end">Acciones</th>
+                                    </tr>
+                                </ChildContentHeader>
+                                <ChildContentRow Context="p">
+                                    <tr class="align-middle">
+                                        <td><span class="text-muted">@p.Id</span></td>
+                                        <td class="fw-bold text-primary">@p.Employee.EmployeeNumber</td>
+                                        <td>@CultureInfo.CurrentCulture.TextInfo.ToTitleCase(p.FullName.ToLower())</td>
+                                        <td>@p.FechaNacimiento.ToShortDateString()</td>
+                                        <td class="text-center">
+                                            <span class="badge bg-info-subtle text-info border border-info-subtle px-3 py-2 rounded-pill">
+                                                @p.Edad años
+                                            </span>
+                                        </td>
+                                        <td class="text-end">
+                                            <button class="btn btn-outline-warning btn-sm border-2 fw-bold px-3 rounded-pill"
+                                                    @onclick="() => VerDetalle(p)">
+                                                <i class="bi bi-search me-1"></i> Detalle
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </ChildContentRow>
+                            </PaginationComponent>
+                        </div>
                     </div>
-                </div>
-                <br />
-            </div>
-            <div class="tab-pane fade" id="grupo2" role="tabpanel" aria-labelledby="grupo2-tab">
-                <div class="row align-content-center">
-                    <div class="col-lg-12">
-                        <PaginationComponent TItem="Beneficiario" Items="List2" DefaultPageSize="10">
-                            <ChildContentHeader>
-                                <tr>
-                                    <th width="10%">#</th>
-                                    <th width="15%">No. Pers</th>
-                                    <th width="40">Nombre</th>
-                                    <th width="25%">Fecha Nacimiento</th>
-                                    <th width="15%">Edad</th>
-                                    <th width="10%"> </th>
-                                </tr>
-                            </ChildContentHeader>
-                            <ChildContentRow Context="p">
-                                <tr>
-                                    <td width="10%">@p.Id</td>
-                                    <td width="15%">@p.Employee.EmployeeNumber</td>
-                                    <td width="40%">@CultureInfo.CurrentCulture.TextInfo.ToTitleCase(p.FullName.ToLower())</td>
-                                    <td width="25%">@p.FechaNacimiento.ToShortDateString()</td>
-                                    <td width="15%">@p.Edad</td>
-                                    <td width="10%" class="justify-content-end">
-                                        <button class="boton-postular" style="background-color:#dfdf00" @onclick="() => VerDetalle(p)" title="Ver Detalle">
-                                            <i class="bi bi-eye"></i>&nbsp;Detalle
-                                        </button>
-                                    </td>
-                                </tr>
-                            </ChildContentRow>
-                        </PaginationComponent>
-                    </div>
-                </div>
-                <br />
-            </div>
-            <div class="tab-pane fade" id="grupo3" role="tabpanel" aria-labelledby="grupo3-tab">
-                <div class="row align-content-center">
-                    <div class="col-lg-12">
-                        <PaginationComponent TItem="Beneficiario" Items="List3" DefaultPageSize="10">
-                            <ChildContentHeader>
-                                <tr>
-                                    <th width="10%">#</th>
-                                    <th width="15%">No. Pers</th>
-                                    <th width="40">Nombre</th>
-                                    <th width="25%">Fecha de Nacimiento</th>
-                                    <th width="15%">Edad</th>
-                                    <th width="10%"> </th>
-                                </tr>
-                            </ChildContentHeader>
-                            <ChildContentRow Context="p">
-                                <tr>
-                                    <td width="10%">@p.Id</td>
-                                    <td width="15%">@p.Employee.EmployeeNumber</td>
-                                    <td width="40%">@CultureInfo.CurrentCulture.TextInfo.ToTitleCase(p.FullName.ToLower())</td>
-                                    <td width="25%">@p.FechaNacimiento.ToShortDateString()</td>
-                                    <td width="15%">@p.Edad</td>
-                                    <td width="10%" class="justify-content-end">
-                                        <button class="boton-postular" style="background-color:#dfdf00" @onclick="() => VerDetalle(p)" title="Ver Detalle">
-                                            <i class="bi bi-eye"></i>&nbsp;Detalle
-                                        </button>
-                                    </td>
-                                </tr>
-                            </ChildContentRow>
-                        </PaginationComponent>
-                    </div>
-                </div>
-                <br />
-            </div>
-            <div class="tab-pane fade" id="grupo4" role="tabpanel" aria-labelledby="grupo4-tab">
-                <div class="row align-content-center">
-                    <div class="col-lg-12">
-                        <PaginationComponent TItem="Beneficiario" Items="List4" DefaultPageSize="10">
-                            <ChildContentHeader>
-                                <tr>
-                                    <th width="10%">#</th>
-                                    <th width="15%">No. Pers</th>
-                                    <th width="40">Nombre</th>
-                                    <th width="25%">Fecha Nacimiento</th>
-                                    <th width="15%">Edad</th>
-                                    <th width="10%"> </th>
-                                </tr>
-                            </ChildContentHeader>
-                            <ChildContentRow Context="p">
-                                <tr>
-                                    <td width="10%">@p.Id</td>
-                                    <td width="15%">@p.Employee.EmployeeNumber</td>
-                                    <td width="40%">@CultureInfo.CurrentCulture.TextInfo.ToTitleCase(p.FullName.ToLower())</td>
-                                    <td width="25%">@p.FechaNacimiento.ToShortDateString()</td>
-                                    <td width="15%">@p.Edad</td>
-                                    <td width="10%" class="justify-content-end">
-                                        <button class="boton-postular" style="background-color:#dfdf00" @onclick="() => VerDetalle(p)" title="Ver Detalle">
-                                            <i class="bi bi-eye"></i>&nbsp;Detalle
-                                        </button>
-                                    </td>
-                                </tr>
-                            </ChildContentRow>
-                        </PaginationComponent>
-                    </div>
-                </div>
-                <br />
+                }
             </div>
         </div>
     </div>
-    <div class="col-12">
-        <strong><label class="form-label">Total Registrados: @Listgral.Count</label></strong>        
-    </div>
 </div>
+
+<style>
+    /* Personalización para que las pestañas se vean más modernas */
+    .nav-pills .nav-link {
+        color: #6c757d;
+        transition: all 0.3s ease;
+    }
+
+        .nav-pills .nav-link.active {
+            background-color: #0d6efd !important;
+            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.25);
+        }
+
+    .table-responsive {
+        min-height: 400px;
+    }
+
+    .btn-outline-warning:hover {
+        color: #000; /* Mejor contraste */
+    }
+</style>
 
 @code{
     private List<Beneficiario> Listgral = new();
@@ -167,6 +103,26 @@
     private List<Beneficiario> List4 = new();
 
     [Inject] private IBeneficiario repobenefi { get; set; } = null!;
+
+    // Estructura para simplificar el renderizado de los tabs
+    private List<GrupoInfo> GruposConfig = new()
+    {
+        new GrupoInfo { Id = 1, Nombre = "Grupo 1", Rango = "6 a 8 años" },
+        new GrupoInfo { Id = 2, Nombre = "Grupo 2", Rango = "9 a 11 años" },
+        new GrupoInfo { Id = 3, Nombre = "Grupo 3", Rango = "12 a 14 años" },
+        new GrupoInfo { Id = 4, Nombre = "Grupo 4", Rango = "15 a 17 años" }
+    };
+
+    private List<Beneficiario> GetListById(int id) => id switch
+    {
+        1 => List1,
+        2 => List2,
+        3 => List3,
+        4 => List4,
+        _ => new List<Beneficiario>()
+    };
+
+    public class GrupoInfo { public int Id { get; set; } public string Nombre { get; set; } public string Rango { get; set; } }
 
     protected override async Task OnInitializedAsync()
     {

@@ -25,6 +25,14 @@ builder.Services.AddDbContextFactory<FactorDbContext>(options =>
 builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
 builder.Services.Configure<IGoogleDrive>(builder.Configuration.GetSection("GoogleDrive"));
 
+builder.Services.AddDistributedMemoryCache(); // Requerido para almacenar la sesión en memoria
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30); // Tiempo de expiración
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
 builder.Services.AddMudServices();
 builder.Services.AddScoped<ICredentialRepository, CredentialRepository>();
 builder.Services.AddScoped<IEmployee, EmployeeRepository>();

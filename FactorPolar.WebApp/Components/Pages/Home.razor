@@ -2,12 +2,10 @@
 @using System.Globalization
 @rendermode InteractiveServer
 
-@inject AuthenticationStateProvider AuthenticationStateProvider
-
 <PageTitle>Home</PageTitle>
 
-<AuthorizeView>
-    <Authorized>
+@* <AuthorizeView>
+    <Authorized> *@
         <h6>Bienvenido</h6>
         @if (existe)
         {
@@ -124,7 +122,7 @@
             <p>@userName</p>
             <p>Si no visualizas tus datos, por favor contacta al equipo de Gestión de Gente de tu localidad</p>
         }
-    </Authorized>
+    @* </Authorized>
     <NotAuthorized>
         <div class="row">
             <div class="col-11">
@@ -150,7 +148,7 @@
             </div>
         </div>
     </NotAuthorized>
- </AuthorizeView>
+ </AuthorizeView> *@
 
 @if (cargando)
 {
@@ -183,6 +181,8 @@
     private string? userName;
     private string? employeeName;
     private string? employeeNumber;
+    private int? userrol = 0;
+
     [Inject] private IEmployee repoemployee { get; set; } = null!;
     [Inject] private IBeneficiario repobenefi { get; set; } = null!;
     [Inject] private IUsuario repousuario { get; set; } = null!;
@@ -206,7 +206,43 @@
                         NavManager.NavigateTo($"/documento2/{employee.Id}");
                 }                
             }
+
+            try
+            {
+                await LoadAdminDataAsync();
+                var userrolaux = await SessionStorage.GetAsync<string>("UserRol");
+                if (!string.IsNullOrEmpty(userrolaux.Value))
+                {
+                    userrol = int.Parse(userrolaux.Value);
+                    StateHasChanged();
+                }
+                else
+                {
+                    if (!string.IsNullOrEmpty(userEmail))
+                    {
+                        if (usuario != null)
+                        {
+                            if (usuario.IdRol == 5)
+                                NavManager.NavigateTo($"validaruser");
+                            else
+                            {
+                                userrol = usuario.IdRol;
+                                await SessionStorage.SetAsync("UserId", usuario.Id.ToString());
+                                await SessionStorage.SetAsync("UserRol", userrol.ToString());
+                                await SessionStorage.SetAsync("UserCedula", usuario.Cedula);
+                                await SessionStorage.SetAsync("UserNombreCorto", usuario.NombreCorto);
+                                StateHasChanged();
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al obtener el rol del usuario: {ex.Message}");
+            }
         }
+        await base.OnAfterRenderAsync(firstRender);
     }
 
     protected override async Task OnInitializedAsync()
@@ -214,7 +250,7 @@
         cargando = true;
         try
         {
-            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var authState = await authStateProvider.GetAuthenticationStateAsync();
             var user = authState.User;
             userEmail = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
             string nombre = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value;
@@ -223,7 +259,6 @@
             userName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase($"{nombre}, {apellido}".ToLower());
 
             await LoadUserDataAsync();
-            await LoadAdminDataAsync();
         }
         catch (Exception ex)
         {

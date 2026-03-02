@@ -1,0 +1,152 @@
+﻿@page "/validaruser"
+@rendermode InteractiveServer
+
+<div class="container mt-4 pb-5">
+    <div class="row g-4">
+        <div class="col-lg-4">
+        </div>
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-primary text-white py-3">
+                    <h6 class="mb-0"><i class="bi bi-user-fill me-2"></i>Validar cuenta de servicio</h6>
+                </div>
+                <div class="card-body p-4">
+                    <EditForm Model="@entidadActual" OnValidSubmit="GuardarEntidad">
+                        <DataAnnotationsValidator />
+
+                        <div class="mb-4">
+                            <label class="text-muted small fw-bold text-uppercase d-block">Cédula</label>
+                            <InputText oninput="this.value = this.value.replace(/[^0-9]/g, '');" class="form-control small" maxlength="15" @bind-Value="entidadActual.Cedula" placeholder="Cedula"></InputText>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="text-muted small fw-bold text-uppercase d-block">Nombre Corto</label>
+                            <InputText class="form-control small" maxlength="100" @bind-Value="entidadActual.NombreCorto" placeholder="Nombre Corto"></InputText>
+                        </div>
+
+                        <!-- CONTENEDOR DE BOTONES -->
+                        <div class="d-flex gap-2">
+                            @if(!string.IsNullOrEmpty(userEmail))
+                            {
+                                <button type="submit" class="btn btn-outline-primary btn-sm border-2 fw-bold px-3 rounded-pill">
+                                    Aceptar
+                                </button>
+                            }
+                            <button type="button" class="btn btn-outline-secondary btn-sm border-2 fw-bold px-3 rounded-pill"
+                                    @onclick="Cancelar">
+                                Cancelar
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm border-2 fw-bold px-3 rounded-pill"
+                                    @onclick="CerrarSesion">
+                                Cerrar sesión
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@if (mostrarAlerta)
+{
+    <div id="divAlerta" class="alert alert-success alert-dismissible fade show toast-container" role="alert" style="display:none;">
+        @mensajeAlerta
+    </div>
+}
+else
+{
+    <div id="divAlerta" class="alert alert-success alert-dismissible fade show toast-container" role="alert" style="display:none;">
+    </div>
+}
+<br />
+
+@code {
+    private string? mensajeAlerta;
+    private bool mostrarAlerta = false;
+    private ValidarUsuario entidadActual = new();
+    private string? userEmail = "temporal.dennys.lopez@empresaspolar.com";
+
+    [Inject] private IUsuario repousuario { get; set; } = null!;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await jsRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlerta", 10);
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var authState = await authStateProvider.GetAuthenticationStateAsync();
+            if (!authState.User.Identity.IsAuthenticated)
+                NavManager.NavigateTo($"/");
+            else
+            {
+                var user = authState.User;
+                userEmail = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+            }
+        }
+        catch
+        {
+            NavManager.NavigateTo($"/");
+        }
+    }
+
+    private async Task GuardarEntidad()
+    {
+        try
+        {
+            bool datosValidos = false;
+
+            var usuario = await repousuario.GetByEmailAsync(userEmail);
+            if (usuario == null)
+                mensajeAlerta = "Usuario no encontrado.";
+            else
+            {
+                if (usuario.Cedula.ToLower() != entidadActual.Cedula.ToLower() || usuario.NombreCorto.ToLower() != entidadActual.NombreCorto.ToLower())
+                    mensajeAlerta = "La cédula y el nombre corto ingresados no coinciden con los registrados para este usuario.";
+                else
+                {
+                    mensajeAlerta = "Datos validados exitosamente.";
+                    datosValidos = true;
+                    await SessionStorage.SetAsync("UserId", usuario.Id.ToString());
+                    await SessionStorage.SetAsync("UserRol", usuario.IdRol.ToString());
+                    await SessionStorage.SetAsync("UserCedula", usuario.Cedula);
+                    await SessionStorage.SetAsync("UserNombreCorto", usuario.NombreCorto);
+                }
+            }
+
+            mostrarAlerta = true;
+            StateHasChanged();
+            await Task.Delay(1); // Pequeña espera para asegurar que el DOM esté listo
+
+            await jsRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlerta", 8000);
+
+            if (datosValidos)
+                NavManager.NavigateTo($"/");
+        }
+        catch (Exception ex)
+        {
+            mensajeAlerta = ex.Message;
+            mostrarAlerta = true;
+            // 3. Forzamos el renderizado y esperamos un "ciclo" para que el DOM se actualice
+            StateHasChanged();
+            await Task.Delay(1); // Pequeña espera para asegurar que el DOM esté listo
+
+            await jsRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlerta", 8000);
+        }
+    }
+
+    private void Cancelar()
+    {
+        NavManager.NavigateTo($"/");
+    }
+
+    private void CerrarSesion()
+    {
+        NavManager.NavigateTo($"/Saml2/Logout");
+    }
+}
