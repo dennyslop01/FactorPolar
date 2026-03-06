@@ -110,3 +110,8 @@ h1:focus {
         height: auto;
     }
 }
+
+.modal-dialog {
+    top: 60px; /* Un poco de margen superior */
+}
+

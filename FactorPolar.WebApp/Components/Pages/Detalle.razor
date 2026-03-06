@@ -11,9 +11,6 @@
             <h6 class="text-muted mb-0">Detalle del Participante</h6>
             <h6 class="fw-bold text-primary mb-0">@datosbenefi</h6>
         </div>
-        <button class="btn btn-outline-secondary rounded-pill px-4" @onclick="Regresar">
-            <i class="bi bi-arrow-left-circle me-2"></i>Regresar
-        </button>
     </div>
     @if (beneficiario != null)
     {
@@ -68,6 +65,17 @@
                                     @beneficiario?.Promedio
                                 }
                             </span>
+                        </div>
+                        <div class="mb-4">
+                        </div>
+
+                        <div class="mb-4">
+                            <button class="btn btn-outline-primary btn-sm rounded-pill px-4" @onclick="IniciarEvaluacion">
+                                Iniciar Evaluación
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-4" @onclick="Regresar">
+                                <i class="bi bi-arrow-left-circle me-2"></i>Regresar
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -137,31 +145,44 @@
     </div>
 }
 
-@if (mostrarModal)
+@if(inieval)
 {
-    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5); align-content:center">
-        <div class="modal-dialog modal-xxl">
-            <div class="modal-content bg-transparent border-0 text-white">
-                <div class="modal-header border-0">
-                    <button type="button" class="btn-close btn-close-white" @onclick="CerrarModal"></button>
+    <br />
+    <br />
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Criterio de entrada Fase I</h5>
+                    <button type="button" class="btn-close" @onclick="CerrarModal"></button>
                 </div>
-                <div class="modal-body p-0 text-center">
-                    @if (urlSeleccionada.Contains("preview"))
-                    {
-                        @* Para PDFs *@
-                        <iframe src="@urlSeleccionada" width="100%" height="80vh" style="border: none; border-radius: 8px;"></iframe>
-                    }
-                    else
-                    {
-                        @* Para Imágenes: ID añadido para JS y listener para cargar el zoom *@
-                        <img src="@urlSeleccionada" id="imagenZoom" class="img-fluid" style="max-height: max-content; max-width:max-content; cursor: crosshair;">
-                    }
+                <div class="modal-body">
+                    <EditForm Model="entidadActual" OnValidSubmit="GuardarIniEvaluacion">
+                        <DataAnnotationsValidator />
+
+                        <div class="mb-3">
+                            @foreach (var item in rubricainicial)
+                            {
+                                <div class="mb-4">
+                                    <label class="text-muted small fw-bold text-uppercase d-block">@item.Descripcion</label>
+                                    @* <InputText oninput="this.value = this.value.replace(/[^0-9]/g, '');" class="form-control small" maxlength="15" @bind-Value="entidadActual.Cedula" placeholder="Cedula"></InputText> *@
+                                </div>
+                            }
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-outline-primary btn-sm rounded-pill px-4" >
+                                Guardar
+                            </button>&nbsp;&nbsp;&nbsp;
+                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-4" @onclick="CerrarModal">
+                                Cancelar
+                            </button>
+                        </div>
+                    </EditForm>
                 </div>
             </div>
         </div>
     </div>
 }
-
 
 @code {
     [Parameter]
@@ -174,18 +195,20 @@
     private string? mensajeAlerta;
     private bool mostrarAlerta = false;
     private BenefiModel entidadActual = new();
-    private bool mostrarFormulario = false;
     private bool cargando = false;
     private string folderName = string.Empty;
     private string imageSrc = null;
     private string videoSrc = null;
-    private bool mostrarModal = false;
     private string urlSeleccionada = "";
 
     private string base64 = string.Empty;
     private string base64Video = string.Empty;
 
+    private bool inieval = false;
+    private List<RubricaEvaluacion> rubricainicial = new();
+
     [Inject] private IBeneficiario repobenefi { get; set; } = null!;
+    [Inject] private IRubricaEvaluacion reporubrica { get; set; } = null!;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -212,13 +235,8 @@
                 StateHasChanged();
             }
         }
-
-        // if (mostrarModal && !urlSeleccionada.Contains("preview"))
-        // {
-        //     // Cargar el script de zoom después de renderizar la imagen
-        //     await jsRuntime.InvokeVoidAsync("inicializarZoom");
-        // }
     }
+
     protected override async Task OnInitializedAsync()
     {
         try
@@ -257,13 +275,22 @@
     private void AbrirModal(string url)
     {
         urlSeleccionada = url;
-        mostrarModal = true;
-        // Opcional: Bloquear scroll del body mediante JS
     }
 
     private void CerrarModal()
     {
-        mostrarModal = false;
+        inieval = false;
+    }
+
+    private async Task IniciarEvaluacion()
+    {
+        rubricainicial = await reporubrica.GetByIdGrupoAsync(5);
+        inieval = true;
+    }
+
+    private async Task GuardarIniEvaluacion()
+    {
+        
     }
 }
 

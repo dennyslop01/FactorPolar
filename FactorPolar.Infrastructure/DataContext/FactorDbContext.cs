@@ -11,5 +11,6 @@ namespace FactorPolar.Infrastructure.DataContext
         public DbSet<Usuario> Usuarios { get; set; }
         public DbSet<GrupoEvaluacion> GruposEvaluacion { get; set; }
         public DbSet<RubricaEvaluacion> RubricasEvaluacion { get; set; }
+        public DbSet<BeneficiarioRubrica> BeneficiariosRubricas { get; set; }        
     }
 }

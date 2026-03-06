@@ -38,6 +38,9 @@ builder.Services.AddScoped<ICredentialRepository, CredentialRepository>();
 builder.Services.AddScoped<IEmployee, EmployeeRepository>();
 builder.Services.AddScoped<IBeneficiario, BeneficiarioRepository>();
 builder.Services.AddScoped<IUsuario, UsuarioRepository>();
+builder.Services.AddScoped<IGrupoEvaluacion, GrupoEvaluacionRepository>();
+builder.Services.AddScoped<IRubricaEvaluacion, RubricaEvaluacionRepository>();
+builder.Services.AddScoped<IBeneficiarioRubrica, BeneficiarioRubricaRepository>();
 builder.Services.AddScoped<GoogleDriveService>();
 
 builder.Services.AddCascadingAuthenticationState();
