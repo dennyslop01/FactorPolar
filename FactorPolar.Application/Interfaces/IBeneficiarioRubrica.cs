@@ -13,5 +13,7 @@ namespace FactorPolar.Application.Interfaces
         Task<BeneficiarioRubrica?> GetByIdlAsync(int id);
         Task<List<BeneficiarioRubrica?>> GetByIdUserlAsync(int iduser);
         Task<List<BeneficiarioRubrica?>> GetByIdUserBenefilAsync(int iduser, int idbenefi);
+        Task<List<BeneficiarioRubrica?>> GetByIdBenefiAsync(int idbenefi);
+        Task<bool> CreateAsync(int idusuario, int idrubrica, int idbenefi, int puntuacion);
     }
 }

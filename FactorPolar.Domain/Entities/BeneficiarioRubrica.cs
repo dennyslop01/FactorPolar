@@ -10,7 +10,7 @@ namespace FactorPolar.Domain.Entities
     {
         public int Id { get; set; }
         public Usuario Usuario { get; set; }
-        public RubricaEvaluacion Rubrica { get; set; }
+        public RubricaEvaluacion RubricaEvaluacion { get; set; }
         public Beneficiario Beneficiario { get; set; }
         public int Puntuacion { get; set; }
         public decimal FactorResultado { get; set; }
