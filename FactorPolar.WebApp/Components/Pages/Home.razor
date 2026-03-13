@@ -4,8 +4,8 @@
 
 <PageTitle>Home</PageTitle>
 
-@* <AuthorizeView>
-    <Authorized> *@
+<AuthorizeView>
+    <Authorized>
         <h6>Bienvenido</h6>
         @if (existe)
         {
@@ -122,7 +122,7 @@
             <p>@userName</p>
             <p>Si no visualizas tus datos, por favor contacta al equipo de Gestión de Gente de tu localidad</p>
         }
-    @* </Authorized>
+    </Authorized>
     <NotAuthorized>
         <div class="row">
             <div class="col-11">
@@ -148,7 +148,7 @@
             </div>
         </div>
     </NotAuthorized>
- </AuthorizeView> *@
+ </AuthorizeView>
 
 @if (cargando)
 {
@@ -214,6 +214,14 @@
                 if (!string.IsNullOrEmpty(userrolaux.Value))
                 {
                     userrol = int.Parse(userrolaux.Value);
+                    if(userrol == 5)
+                    {
+                        var nombrecortoaux = await SessionStorage.GetAsync<string>("UserNombreCorto");
+                        if (!string.IsNullOrEmpty(nombrecortoaux.Value))
+                        {
+                            userName += $", {nombrecortoaux.Value}";
+                        }
+                    }
                     StateHasChanged();
                 }
                 else

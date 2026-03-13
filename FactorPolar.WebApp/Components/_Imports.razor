@@ -1,6 +1,6 @@
 ﻿@using System.Net.Http
 @using System.Net.Http.Json
-@inject ProtectedSessionStorage SessionStorage
+@using Microsoft.Extensions.Configuration
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.AspNetCore.Components.Routing
@@ -21,9 +21,10 @@
 @using FactorPolar.Infrastructure.Services
 @using FactorPolar.Application.Interfaces
 @using FactorPolar.Webapp.Components.Account
-
 @using System.Timers
 
+@inject IConfiguration _configuration
+@inject ProtectedSessionStorage SessionStorage
 @inject NavigationManager NavManager
 @inject AuthenticationStateProvider authStateProvider
 

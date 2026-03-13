@@ -328,6 +328,8 @@
     private bool vervaluar = false;
     private bool vervaluarform = false;
 
+    private int LimiteEval = 0;
+
     [Inject] private IBeneficiario repobenefi { get; set; } = null!;
     [Inject] private IRubricaEvaluacion reporubrica { get; set; } = null!;
     [Inject] private IBeneficiarioRubrica reporubbenefi { get; set; } = null!;
@@ -371,7 +373,7 @@
                                 .Distinct()
                                 .Count();
 
-                            if (nrousurios < 4)
+                            if (nrousurios <= LimiteEval)
                                 sinevaluar = true;
                         }
                         else if (benefirubricauser.Count > 0)
@@ -410,6 +412,8 @@
         cargando = true;
         try
         {
+            LimiteEval = _configuration.GetValue<int>("AppSettings:LimiteEvaluaciones");
+
             editContext = new EditContext(entidadActual);
             mensajeStore = new ValidationMessageStore(editContext);
             editContext.OnFieldChanged += (s, e) => mensajeStore.Clear(e.FieldIdentifier);
