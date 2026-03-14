@@ -29,7 +29,9 @@ class Program
                 string connectionString = configuration.GetConnectionString("DefaultConn");
 
                 // Configurar DbContext usando la cadena de conexión del appsettings.json
-                services.AddDbContext<FactorDbContext>(options =>
+                //services.AddDbContext<FactorDbContext>(options =>
+                //    options.UseSqlServer(connectionString));
+                services.AddDbContextFactory<FactorDbContext>(options =>
                     options.UseSqlServer(connectionString));
 
                 // Registrar el repositorio y la clase principal

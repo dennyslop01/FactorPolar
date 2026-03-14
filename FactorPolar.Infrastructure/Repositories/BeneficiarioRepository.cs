@@ -29,7 +29,8 @@ namespace FactorPolar.Infrastructure.Repositories
                     .FirstOrDefault(b => b.Denominacion == beneficiario.Denominacion && 
                                     b.CedulaIdentidad == beneficiario.CedulaIdentidad && 
                                     b.FullName == beneficiario.FullName &&
-                                    b.Promedio > 17)!;
+                                    b.Edad == beneficiario.Edad &&
+                                    b.FechaNacimiento == beneficiario.FechaNacimiento)!;
 
                 if (benefiaux == null)
                 {

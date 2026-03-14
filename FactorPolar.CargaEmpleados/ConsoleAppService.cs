@@ -11,6 +11,7 @@ namespace FactorPolar.CargaEmpleados
     {
         private readonly IEmployee _empRepository;
         private readonly IBeneficiario _benefiRepository;
+        List<MascaraFile> mascaras = new();
 
         public ConsoleAppService(IEmployee empRepository, IBeneficiario benefiRepository) // Inyección del repositorio
         {
@@ -28,9 +29,16 @@ namespace FactorPolar.CargaEmpleados
 
                 // Obtener la ruta del directorio del ejecutable
                 string exeDir = $"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}\\empleados";
+                string exeDir2 = $"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}\\mascaras";
 
                 // Obtener todos los archivos .xlsx en ese directorio
-                string[] excelFiles = Directory.GetFiles(exeDir, "*.xlsx");
+                string[] excelFiles = Directory.GetFiles(exeDir, "*.xlsx"); 
+                string[] excelFiles2 = Directory.GetFiles(exeDir2, "*.xlsx");
+
+                foreach (string filePath in excelFiles2)
+                {
+                    ReadDataFileMascara(filePath);
+                }
 
                 foreach (string filePath in excelFiles)
                 {
@@ -62,6 +70,52 @@ namespace FactorPolar.CargaEmpleados
             return Task.CompletedTask;
         }
 
+        async Task<bool> ReadDataFileMascara(string filePath)
+        {
+            string campos = string.Empty;
+            try
+            {
+                var workRead = new XLWorkbook(filePath);
+                var sheetRead = workRead.Worksheets.Where(x => x.Name == "Hoja 1").First();
+                int vacios = 0;
+
+                for (int i = 2; i < 20000; i++)
+                {
+                    try
+                    {
+                        if (string.IsNullOrEmpty(sheetRead.Cell("A" + i).GetString().Trim())&&
+                            string.IsNullOrEmpty(sheetRead.Cell("B" + i).GetString().Trim()))
+                        {
+                            vacios++;
+                            if (vacios > 20)
+                                break;
+
+                            continue;
+                        }
+
+                        MascaraFile mascara = new MascaraFile();
+                        mascara.email = sheetRead.Cell("A" + i).GetString().Trim();
+                        mascara.mascara = sheetRead.Cell("B" + i).GetString().Trim();
+
+                        mascaras.Add(mascara);
+                    }
+                    catch (Exception ex)
+                    {
+                        campos = $"Error en fila {i} - {ex.Message}";
+                        Console.WriteLine(campos);
+                    }
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                campos = $"Error al procesar archivo - {ex.Message}";
+                Console.WriteLine(ex.Message);
+                return false;
+            }
+        }
+
         async Task<bool> ReadDataFileEmloyee(string filePath)
         {
             string rutaArchivo = $"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}\\errores\\ErroresCarga_{DateTime.Now.ToString("yyyyMMdd")}.txt";
@@ -71,16 +125,16 @@ namespace FactorPolar.CargaEmpleados
                 var workRead = new XLWorkbook(filePath);
                 var sheetRead = workRead.Worksheets.Where(x => x.Name == "Población_incumbente").First();
                 string empleadomail = string.Empty;
-                string empleadoaux = string.Empty;
+                //string empleadoaux = string.Empty;
                 int vacios = 0;
 
                 for (int i = 2; i < 20000; i++)
                 {
                     try
                     {
-                        if (string.IsNullOrEmpty(sheetRead.Cell("A" + i).GetString().Trim())&&
-                            string.IsNullOrEmpty(sheetRead.Cell("B" + i).GetString().Trim())&&
-                            string.IsNullOrEmpty(sheetRead.Cell("C" + i).GetString().Trim())&&
+                        if (string.IsNullOrEmpty(sheetRead.Cell("A" + i).GetString().Trim()) &&
+                            string.IsNullOrEmpty(sheetRead.Cell("B" + i).GetString().Trim()) &&
+                            string.IsNullOrEmpty(sheetRead.Cell("C" + i).GetString().Trim()) &&
                             string.IsNullOrEmpty(sheetRead.Cell("D" + i).GetString().Trim()))
                         {
                             vacios++;
@@ -105,29 +159,51 @@ namespace FactorPolar.CargaEmpleados
                         }
 
                         empleadomail = sheetRead.Cell("AK" + i).GetString().Trim();
-                        if (empleadomail != empleadoaux)
+                        if (!empleadomail.ToLower().Contains("empresaspolar.com"))
                         {
-                            //Employee emplo = await _userRepository.GetByEmail(empleadomail);
-                            //if (emplo != null)
-                            //    continue;
+                            var email = mascaras.Where(x => x.email.Contains(empleadomail)).Select(x => x.mascara).FirstOrDefault();
+                            if (string.IsNullOrEmpty(email))
+                            {
+                                campos = $"Error en fila {i} - Empleado: {empleadomail} - Email no valido";
+                                Console.WriteLine(campos);
+                                File.AppendAllText(rutaArchivo, campos + Environment.NewLine);
+                                continue;
+                            }
 
-                            Console.WriteLine($"Procesando empleado: {empleadomail}");
-                            empleadoaux = empleadomail;
-                            Employee employee = new Employee();
-                            employee.Email = sheetRead.Cell("AK" + i).GetString().Trim();
-                            employee.EmployeeNumber = int.Parse(sheetRead.Cell("A" + i).GetString().Trim());
-                            employee.FullName = sheetRead.Cell("B" + i).GetString().Trim();
-                            employee.Gender = sheetRead.Cell("O" + i).GetString().Trim();
-                            employee.Status = sheetRead.Cell("D" + i).GetString().Trim();
-                            employee.CodigoTipo = sheetRead.Cell("E" + i).GetString().Trim();
-                            employee.DescipcionTipo = sheetRead.Cell("F" + i).GetString().Trim();
-                            employee.CreateDate = DateTime.Now;
-                            employee.UpdateDate = DateTime.Now;
-
-                            Console.WriteLine($"Agregando empleado: {empleadomail}");
-                            _empRepository.Create(employee);
-                            Console.WriteLine($"Agregado exitosamente: {empleadomail}");
+                            if (!email.ToLower().Contains("empresaspolar.com"))
+                            {
+                                campos = $"Error en fila {i} - Empleado: {empleadomail} - Email no valido";
+                                Console.WriteLine(campos);
+                                File.AppendAllText(rutaArchivo, campos + Environment.NewLine);
+                                continue;
+                            }
+                            
+                            empleadomail = email;
                         }
+
+                        //if (empleadomail != empleadoaux)
+                        //{
+                        //Employee emplo = await _userRepository.GetByEmail(empleadomail);
+                        //if (emplo != null)
+                        //    continue;
+
+                        Console.WriteLine($"Procesando empleado: {empleadomail}");
+                        //empleadoaux = empleadomail;
+                        Employee employee = new Employee();
+                        employee.Email = empleadomail;
+                        employee.EmployeeNumber = int.Parse(sheetRead.Cell("A" + i).GetString().Trim());
+                        employee.FullName = sheetRead.Cell("B" + i).GetString().Trim();
+                        employee.Gender = sheetRead.Cell("O" + i).GetString().Trim();
+                        employee.Status = sheetRead.Cell("D" + i).GetString().Trim();
+                        employee.CodigoTipo = sheetRead.Cell("E" + i).GetString().Trim();
+                        employee.DescipcionTipo = sheetRead.Cell("F" + i).GetString().Trim();
+                        employee.CreateDate = DateTime.Now;
+                        employee.UpdateDate = DateTime.Now;
+
+                        Console.WriteLine($"Agregando empleado: {empleadomail}");
+                        _empRepository.Create(employee);
+                        Console.WriteLine($"Agregado exitosamente: {empleadomail}");
+                        //}
 
                         Console.WriteLine($"Procesando beneficiario: {sheetRead.Cell("W" + i).GetString().Trim()}");
 
@@ -142,9 +218,9 @@ namespace FactorPolar.CargaEmpleados
                         beneficiario.NombreInstitucion = sheetRead.Cell("AE" + i).GetString().Trim();
                         beneficiario.RifInstitucion = sheetRead.Cell("AF" + i).GetString().Trim();
                         beneficiario.NivelEducativo = sheetRead.Cell("AG" + i).GetString().Trim();
-                        
+
                         string grado = sheetRead.Cell("AH" + i).GetString().Trim();
-                        if(grado.Length > 9)
+                        if (grado.Length > 9)
                         {
                             grado = grado.Substring(0, 9);
                         }
