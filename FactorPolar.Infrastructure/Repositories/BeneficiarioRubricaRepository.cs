@@ -39,6 +39,7 @@ namespace FactorPolar.Infrastructure.Repositories
                 throw new Exception("Beneficiario no existe");
             }
 
+            decimal factor = 0;
             if (rubrica.GrupoEvaluacion.Id == 1 || rubrica.GrupoEvaluacion.Id == 5)
             {
                 if (puntuacion < 1 || puntuacion > 2)
@@ -51,22 +52,42 @@ namespace FactorPolar.Infrastructure.Repositories
                     {
                         puntuacion = 0;
                     }
-
-                    var benefirub = new BeneficiarioRubrica
-                    {
-                        Usuario = usuario,
-                        RubricaEvaluacion = rubrica,
-                        Beneficiario = beneficiario,
-                        Puntuacion = puntuacion,
-                        FactorResultado = puntuacion,
-                        CreateDate = DateTime.Now,
-                        UpdateDate = DateTime.Now
-                    };
-                    await _context.BeneficiariosRubricas.AddAsync(benefirub);
-                    await _context.SaveChangesAsync();
+                    factor = puntuacion;
                 }
             }
+            else
+            {
+                factor = puntuacion * rubrica.Factor;
+            }
 
+            var rubricaExist = await _context.BeneficiariosRubricas
+                .Where(x => x.RubricaEvaluacion.Id == idrubrica && x.Beneficiario.Id == idbenefi)
+                .FirstOrDefaultAsync();
+
+            if (rubricaExist == null)
+            {
+                var benefirub = new BeneficiarioRubrica
+                {
+                    Usuario = usuario,
+                    RubricaEvaluacion = rubrica,
+                    Beneficiario = beneficiario,
+                    Puntuacion = puntuacion,
+                    FactorResultado = factor,
+                    CreateDate = DateTime.Now,
+                    UpdateDate = DateTime.Now
+                };
+                await _context.BeneficiariosRubricas.AddAsync(benefirub);
+            }
+            else
+            {
+                rubricaExist.Usuario = usuario;
+                rubricaExist.RubricaEvaluacion = rubrica;
+                rubricaExist.Beneficiario = beneficiario;
+                rubricaExist.Puntuacion = puntuacion;
+                rubricaExist.FactorResultado = factor;
+                rubricaExist.UpdateDate = DateTime.Now;
+            }
+            await _context.SaveChangesAsync();
             return true;
         }
 

@@ -225,25 +225,47 @@
                 <div class="modal-body">
                     <EditForm EditContext="editContext" OnValidSubmit="GuardarCompEvaluacion">
                         <div class="mb-3">
-                            @* @foreach (var item in entidadActual)
+                            @foreach (var grupo in entidadSegunda.GroupBy(x => x.IdGrupo).Select(g => g.First()))
                             {
-                                // Creamos el identificador para este item específico
-                                var fieldId = new FieldIdentifier(item, nameof(item.Codigo));
-                                var tieneError = editContext.GetValidationMessages(fieldId).Any();
+                                <strong><h6>@grupo.DescGrupo</h6></strong>                                
+                                @foreach (var item in entidadSegunda.Where(x => x.IdGrupo == grupo.IdGrupo))
+                                {
+                                    if(grupo.IdGrupo == 1)
+                                    {  
+                                        // Creamos el identificador para este item específico
+                                        var fieldId = new FieldIdentifier(item, nameof(item.Codigo));
+                                        var tieneError = editContext.GetValidationMessages(fieldId).Any();
 
-                                <div class="mb-4">
-                                    <label class="text-muted small fw-bold text-uppercase d-block">@item.Descripcion</label>
+                                        <div class="mb-4">
+                                            <label class="text-muted small fw-bold text-uppercase d-block">@item.Descripcion</label>
 
-                                    <InputSelect @bind-Value="item.Codigo"
-                                                 class="@(tieneError ? "form-select is-invalid" : "form-select")">
-                                        <option value="">-- Seleccione uno --</option>
-                                        <option value="1">Si</option>
-                                        <option value="2">No</option>
-                                    </InputSelect>
+                                            <InputSelect @bind-Value="item.Codigo"
+                                                            class="@(tieneError ? "form-select is-invalid" : "form-select")">
+                                                <option value="-1">-- Seleccione uno --</option>
+                                                <option value="1">Si</option>
+                                                <option value="2">No</option>
+                                            </InputSelect>
 
-                                    <ValidationMessage For="@(() => item.Codigo)" />
-                                </div>
-                            } *@
+                                            <ValidationMessage For="@(() => item.Codigo)" />
+                                        </div>
+                                    }   
+                                    else
+                                    {
+                                        // Creamos el identificador para este item específico
+                                        var fieldId = new FieldIdentifier(item, nameof(item.Codigo));
+                                        var tieneError = editContext.GetValidationMessages(fieldId).Any();
+
+                                        <div class="mb-4">
+                                            <label class="text-muted small fw-bold text-uppercase d-block">@item.Descripcion</label>
+
+                                            <MudRating @bind-SelectedValue="@item.Codigo" Color="Color.Warning" FullIcon="@Icons.Material.Filled.Star" EmptyIcon="@Icons.Material.Outlined.StarBorder" />
+
+                                            <ValidationMessage For="@(() => item.Codigo)" />
+                                        </div>
+                                    }
+                                }
+                                <hr />
+                            }
                         </div>
                         <div class="d-flex justify-content-end">
                             @* <button type="submit" class="btn btn-outline-primary btn-sm rounded-pill px-4">
@@ -322,6 +344,11 @@
     private List<RubricaEvaluacion> rubricainicial = new();
     private List<BeneficiarioRubrica?> benefirubrica = new();
     private List<BeneficiarioRubrica?> benefirubricauser = new();
+
+    private List<RubricaCompuesta> entidadSegunda = new();
+    private List<RubricaEvaluacion> rubricasegunda = new();
+
+
     private bool sinevaluar = false;
     private bool rubricaevaluar = false;
     private bool compevaluar = false;
@@ -446,6 +473,8 @@
     {
         inieval = false;
         vervaluarform = false;
+        compevaluar = false;
+        StateHasChanged();
     }
 
     private async Task IniciarEvaluacion()
@@ -506,10 +535,14 @@
                     sinevaluar = false;
 
                     benefirubricauser = await reporubbenefi.GetByIdUserBenefilAsync(int.Parse(userid.Value), int.Parse(Id));
-                    int existefalse = benefirubricauser.Where(x => x.Puntuacion == 0).Count();
-                    if(existefalse == 0)
+                    int existefalse = benefirubricauser.Where(x => x.Puntuacion == 0 && x.RubricaEvaluacion.GrupoEvaluacion.Id == 5).Count();
+                    if (existefalse == 0)
                     {
                         rubricaevaluar = true;
+                    }
+                    else if (existefalse > 0)
+                    {
+                        vervaluar = true;
                     }
                     StateHasChanged();
                 }
@@ -527,8 +560,69 @@
         }
     }
 
-    private void CompletarRubrica()
+    private async Task CompletarRubrica()
     {
+        entidadSegunda = new List<RubricaCompuesta>();
+        
+        rubricasegunda = await reporubrica.GetByIdGrupoAsync(1);
+        foreach (var r in rubricasegunda)
+        {
+            var registro = new RubricaCompuesta
+            {
+                IdRubrica = r.Id,
+                Descripcion = r.Descripcion,
+                IdGrupo = r.GrupoEvaluacion.Id,
+                DescGrupo = r.GrupoEvaluacion.NombreGrupo,
+                Codigo = -1 // Esto obliga a seleccionar uno
+            };
+
+            entidadSegunda.Add(registro);
+        }
+
+        rubricasegunda = await reporubrica.GetByIdGrupoAsync(2);
+        foreach (var r in rubricasegunda)
+        {
+            var registro = new RubricaCompuesta
+            {
+                IdRubrica = r.Id,
+                Descripcion = r.Descripcion,
+                IdGrupo = r.GrupoEvaluacion.Id,
+                DescGrupo = r.GrupoEvaluacion.NombreGrupo,
+                Codigo = -1 // Esto obliga a seleccionar uno
+            };
+
+            entidadSegunda.Add(registro);
+        }
+
+
+        rubricasegunda = await reporubrica.GetByIdGrupoAsync(3);
+        foreach (var r in rubricasegunda)
+        {
+            var registro = new RubricaCompuesta
+            {
+                IdRubrica = r.Id,
+                Descripcion = r.Descripcion,
+                IdGrupo = r.GrupoEvaluacion.Id,
+                DescGrupo = r.GrupoEvaluacion.NombreGrupo,
+                Codigo = -1 // Esto obliga a seleccionar uno
+            };
+
+            entidadSegunda.Add(registro);
+        }
+
+        rubricasegunda = await reporubrica.GetByIdGrupoAsync(4);
+        foreach (var r in rubricasegunda)
+        {
+            var registro = new RubricaCompuesta
+            {
+                IdRubrica = r.Id,
+                Descripcion = r.Descripcion,
+                IdGrupo = r.GrupoEvaluacion.Id,
+                DescGrupo = r.GrupoEvaluacion.NombreGrupo,
+                Codigo = -1 // Esto obliga a seleccionar uno
+            };
+            entidadSegunda.Add(registro);
+        }
         compevaluar = true;
     }
 

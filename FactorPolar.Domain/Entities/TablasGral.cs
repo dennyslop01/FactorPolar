@@ -22,4 +22,15 @@ namespace FactorPolar.Domain.Entities
         public string Codigo { get; set; }
     }
 
+    public class RubricaCompuesta
+    {
+        public int IdRubrica { get; set; }
+        public int IdGrupo { get; set; }
+        public string DescGrupo { get; set; }
+        public string Descripcion { get; set; }
+
+        [Required(ErrorMessage = "Campo obligatorio")]
+        [Range(1, 5, ErrorMessage = "El valor debe estar entre 1 y 5")]
+        public int Codigo { get; set; }
+    }
 }

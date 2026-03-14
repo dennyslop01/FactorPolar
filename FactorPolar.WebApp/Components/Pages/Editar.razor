@@ -536,18 +536,24 @@
     {
         try
         {
-            if (string.IsNullOrEmpty(beneficiario?.Promedio.ToString()) ||
-                string.IsNullOrEmpty(beneficiario.RutaNotas) ||
-                string.IsNullOrEmpty(beneficiario.RutaVideo))
+            beneficiario = await repobenefi.GetByIdlAsync(int.Parse(Id));
+            if (beneficiario != null)
             {
-                mostrarFormulario2 = true;
-                StateHasChanged();
+                if (string.IsNullOrEmpty(beneficiario?.Promedio.ToString()) ||
+                    string.IsNullOrEmpty(beneficiario.RutaNotas) ||
+                    string.IsNullOrEmpty(beneficiario.RutaVideo))
+                {
+                    mostrarFormulario2 = true;
+                    StateHasChanged();
+                }
+                else
+                {
+                    await repobenefi.UpdateEstadoPostulacionAsync(beneficiario.Id);
+                    NavManager.NavigateTo($"/");
+                }
             }
             else
-            {
-                await repobenefi.UpdateEstadoPostulacionAsync(beneficiario.Id);
                 NavManager.NavigateTo($"/");
-            }
         }
         catch (Exception ex)
         {
