@@ -355,7 +355,7 @@
     private bool vervaluar = false;
     private bool vervaluarform = false;
 
-    private int LimiteEval = 0;
+    //private int LimiteEval = 0;
 
     [Inject] private IBeneficiario repobenefi { get; set; } = null!;
     [Inject] private IRubricaEvaluacion reporubrica { get; set; } = null!;
@@ -386,36 +386,36 @@
                     benefirubrica = await reporubbenefi.GetByIdBenefiAsync(int.Parse(Id));
 
                     var userid = await SessionStorage.GetAsync<string>("UserId");
-                    if (!string.IsNullOrEmpty(userid.Value))
-                    {
-                        benefirubricauser = await reporubbenefi.GetByIdUserBenefilAsync(int.Parse(userid.Value), int.Parse(Id));
+                    // if (!string.IsNullOrEmpty(userid.Value))
+                    // {
+                    //     benefirubricauser = await reporubbenefi.GetByIdUserBenefilAsync(int.Parse(userid.Value), int.Parse(Id));
 
-                        if (int.Parse(userrol.Value) == 1 && benefirubricauser.Count == 0)
-                            sinevaluar = true;
-                        else if (int.Parse(userrol.Value) != 1 && benefirubricauser.Count == 0)
-                        {
-                            int nrousurios = benefirubrica
-                                .Where(x => x != null)
-                                .Select(x => x!.Usuario.Id)
-                                .Distinct()
-                                .Count();
+                    //     if (int.Parse(userrol.Value) == 1 && benefirubricauser.Count == 0)
+                    //         sinevaluar = true;
+                    //     else if (int.Parse(userrol.Value) != 1 && benefirubricauser.Count == 0)
+                    //     {
+                    //         int nrousurios = benefirubrica
+                    //             .Where(x => x != null)
+                    //             .Select(x => x!.Usuario.Id)
+                    //             .Distinct()
+                    //             .Count();
 
-                            if (nrousurios <= LimiteEval)
-                                sinevaluar = true;
-                        }
-                        else if (benefirubricauser.Count > 0)
-                        {
-                            int existefalse = benefirubricauser.Where(x => x.Puntuacion == 0 && x.RubricaEvaluacion.GrupoEvaluacion.Id == 5).Count();
-                            if (existefalse == 0)
-                            {
-                                rubricaevaluar = true;
-                            }
-                            else if (existefalse > 0)
-                            {
-                                vervaluar = true;
-                            }
-                        }
-                    }
+                    //         if (nrousurios <= LimiteEval)
+                    //             sinevaluar = true;
+                    //     }
+                    //     else if (benefirubricauser.Count > 0)
+                    //     {
+                    //         int existefalse = benefirubricauser.Where(x => x.Puntuacion == 0 && x.RubricaEvaluacion.GrupoEvaluacion.Id == 5).Count();
+                    //         if (existefalse == 0)
+                    //         {
+                    //             rubricaevaluar = true;
+                    //         }
+                    //         else if (existefalse > 0)
+                    //         {
+                    //             vervaluar = true;
+                    //         }
+                    //     }
+                    // }
                 }
                 cargando = false;
                 StateHasChanged();
@@ -439,7 +439,7 @@
         cargando = true;
         try
         {
-            LimiteEval = _configuration.GetValue<int>("AppSettings:LimiteEvaluaciones");
+            //LimiteEval = _configuration.GetValue<int>("AppSettings:LimiteEvaluaciones");
 
             editContext = new EditContext(entidadActual);
             mensajeStore = new ValidationMessageStore(editContext);
