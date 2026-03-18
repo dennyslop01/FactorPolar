@@ -1,0 +1,599 @@
+﻿@page "/editar2/{Id}"
+@using System.Globalization
+@rendermode InteractiveServer
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject HttpClient Http
+
+<div class="row align-content-center">
+    <div class="col-lg-12">
+        <h5>Datos registrados</h5>
+        @if (beneficiario != null)
+        {
+            <p>@datosbenefi</p>
+
+            <strong>Datos Académicos</strong>
+            <hr>
+            <div class="row">
+                <div class="col-3">
+                    <strong><label class="form-label">Tipo de Institución:(*)</label></strong>
+                </div>
+                <div class="col-8">
+                    <label class="form-label">@((beneficiario.TipoInstitucionAux != null) ? beneficiario.TipoInstitucionAux : beneficiario?.TipoInstitucion)</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-3">
+                    <strong><label class="form-label">Institución Educativa:(*)</label></strong>
+                </div>
+                <div class="col-8">
+                    <label class="form-label">@((beneficiario.NombreInstitucionAux != null) ? beneficiario.NombreInstitucionAux : beneficiario?.NombreInstitucion)</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-3">
+                    <strong><label class="form-label">RIF:(*)</label></strong>
+                </div>
+                <div class="col-8">
+                    <label class="form-label">@((beneficiario.RifInstitucionAux != null) ? beneficiario.RifInstitucionAux : beneficiario?.RifInstitucion)</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-3">
+                    <strong><label class="form-label">Nivel Educativo:(*)</label></strong>
+                </div>
+                <div class="col-8">
+                    <label class="form-label">@((beneficiario.NivelEducativoAux != null) ? beneficiario.NivelEducativoAux : beneficiario?.NivelEducativo)</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-3">
+                    <strong><label class="form-label">Nivel Académico:(*)</label></strong>
+                </div>
+                <div class="col-8">
+                    <label class="form-label">@((beneficiario.GradoEducativoAux != null) ? beneficiario.GradoEducativoAux : beneficiario?.GradoEducativo)</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-3">
+                    <strong><label class="form-label">Promedio de Notas:(*)</label></strong>
+                </div>
+                <div class="col-8">
+                    <label class="form-label">
+                        @if (beneficiario.Promedio != null)
+                        {
+                            if (beneficiario?.NivelEducativo == "PRIMARIA")
+                            {
+                                @notaprimaria
+                            }
+                            else
+                            {
+                                @beneficiario?.Promedio
+                            }
+                        }
+                    </label>
+                </div>
+            </div>
+            <div class="d-flex justify-content-start">
+                <button class="boton-postular me-1" style="background-color:#33ccff" title="Editar" @onclick="EditarEntidad">
+                    @* <i class="bi bi-pencil"></i>&nbsp; *@Editar
+                </button>
+
+                <button class="boton-postular me-1" style="background-color:#dfdf00" title="Regresar" @onclick="Regresar">
+                    @* <i class="bi bi-chevron-double-left"></i>&nbsp; *@Regresar
+                </button>
+
+                <button class="boton-postularConf btn-secondary me-1" title="Salir" @onclick="Salir">
+                    @* <i class="bi bi-arrow-right-square"></i>&nbsp; *@Confirmar Postulación
+                </button>
+            </div>
+            <br />
+            <br />
+            <div class="row">
+                <div class="col-10">
+                    <strong><label class="form-label">Constancia de notas:</label></strong>
+                </div>
+                <div class="col-10">
+                    <SubirImagenes folderName="@folderName" beneficiarioId="@beneficiario.Id" rutaNota="@beneficiario.RutaNotas" nombreNota="@beneficiario.NombreNotas" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-10">
+                    <strong><label class="form-label">Video del Talento:</label></strong>
+                </div>
+                <div class="col-10">
+                    <SubirVideos folderName="@folderName" beneficiarioId="@beneficiario.Id" rutaVideo="@beneficiario.RutaVideo" nombreVideo="@beneficiario.NombreVideo" />
+                </div>
+            </div>
+        }
+
+
+        @if (mostrarAlerta)
+        {
+            <div id="divAlerta" class="alert alert-success alert-dismissible fade show toast-container" role="alert" style="display:none;">
+                @mensajeAlerta
+            </div>
+        }
+        else
+        {
+            <div id="divAlerta" class="alert alert-success alert-dismissible fade show toast-container" role="alert" style="display:none;">
+            </div>
+        }
+
+        <br />
+
+        @if (mostrarFormulario)
+        {
+            <br />
+            <br />
+
+            <div class="modal fade show d-block" tabindex="10" style="background: rgba(0,0,0,0.5);">
+                <div class="modal-dialog-centered modal-contenido-pequeno">
+                    <div class="modal-content">
+                        <div class="modal-header modal-contenido-pequeno">
+                            @* <h5 class="modal-title">Editar</h5> *@
+                            <button type="button" class="btn-close" @onclick="Cancelar"></button>
+                        </div>
+                        <div class="modal-body">
+                            <EditForm Model="@entidadActual" OnValidSubmit="GuardarEntidad">
+                                <DataAnnotationsValidator />
+
+                                <div class="mb-3">
+                                    <strong><label class="form-label">Beneficiario:</label></strong>
+                                    <label class="form-label">@datosbenefi</label>
+                                </div>
+                                <div class="mb-3">
+                                    <strong><label class="form-label">Tipo de Institución:(*)</label></strong>
+                                    <InputSelect class="form-select small" @bind-Value="entidadActual.TipoInstitucion">
+                                        <option value="">-- Seleccione uno --</option>
+                                        <option value="PÚBLICA">Pública</option>
+                                        <option value="PRIVADA">Privada</option>
+                                    </InputSelect>
+                                    <ValidationMessage For="@(() => entidadActual.TipoInstitucion)" />
+                                </div>
+                                <div class="mb-3">
+                                    <strong><label class="form-label">Nombre de la Institución:(*)</label></strong>
+                                    <InputText class="form-control"
+                                               Value="@entidadActual.NombreInstitucion"
+                                               ValueChanged="@((string value) => OnNombreChanged(value))"
+                                               ValueExpression="@(() => entidadActual.NombreInstitucion)"
+                                               maxlength="200"
+                                               list="institucionesList"
+                                               placeholder="Escriba para buscar..." />
+
+                                    <datalist id="institucionesList">
+                                        @if (instituciones != null)
+                                        {
+                                            @foreach (var item in instituciones)
+                                            {
+                                                @* value es lo que se escribirá en el input; 
+                                                    el texto interno (label) ayuda al usuario a identificarlo *@
+                                                <option value="@item.Nombre">RIF: @item.Rif</option>
+                                            }
+                                        }
+                                    </datalist>
+                                    <ValidationMessage For="@(() => entidadActual.NombreInstitucion)" />
+                                </div>
+                                <div class="mb-3">
+                                    <strong><label class="form-label">RIF:(*)</label></strong>
+                                    @* <InputText class="form-control" @bind-Value="entidadActual.RifInstitucion" maxlength="15" /> *@
+                                    <InputText class="form-control"
+                                               Value="@entidadActual.RifInstitucion"
+                                               ValueChanged="@((string value) => OnNombreChangedRif(value))"
+                                               ValueExpression="@(() => entidadActual.RifInstitucion)"
+                                               maxlength="200"
+                                               list="institucionesList2"
+                                               placeholder="Escriba para buscar..." />
+
+                                    <datalist id="institucionesList2">
+                                        @if (instituciones != null)
+                                        {
+                                            @foreach (var item in instituciones)
+                                            {
+                                                @* value es lo que se escribirá en el input; 
+                                                            el texto interno (label) ayuda al usuario a identificarlo *@
+                                                <option value="@item.Rif">Institución: @item.Nombre</option>
+                                            }
+                                        }
+                                    </datalist>
+                                    <ValidationMessage For="@(() => entidadActual.RifInstitucion)" />
+                                </div>
+                                <div class="mb-3">
+                                    <strong><label class="form-label">Nivel Educativo:(*)</label></strong>
+                                    @* <InputSelect class="form-select" @bind-Value="entidadActual.NivelEducativo"> *@
+                                    <InputSelect class="form-select" ValueExpression="@(() => entidadActual.NivelEducativo)" ValueChanged="@((string value) => CargarGrado(value))" Value="entidadActual.NivelEducativo">
+                                        <option value="">-- Seleccione uno --</option>
+                                        <option value="PRIMARIA">Primaria</option>
+                                        <option value="MEDIA">Media</option>
+                                    </InputSelect>
+                                    <ValidationMessage For="@(() => entidadActual.NivelEducativo)" />
+                                </div>
+                                <div class="mb-3">
+                                    <strong><label class="form-label">Grado Educativo:(*)</label></strong>
+                                    <InputSelect class="form-select" @bind-Value="entidadActual.GradoEducativo">
+                                        <option value=" ">-- Seleccione uno --</option>
+                                        @foreach (var grado in grados)
+                                        {
+                                            <option value="@grado.Grados">@grado.DesGrados</option>
+                                        }
+                                    </InputSelect>
+                                    <ValidationMessage For="@(() => entidadActual.GradoEducativo)" />
+                                </div>
+                                <div class="mb-3">
+                                    <strong><label class="form-label">Promedio de Notas:(*)</label></strong>
+                                    <InputSelect class="form-select" @bind-Value="entidadActual.Promedio">
+                                        <option value="-1">-- Seleccione uno --</option>
+                                        @foreach (var nota in optionnotas)
+                                        {
+                                            <option value="@nota.idnotas">@nota.desnotas</option>
+                                        }
+                                    </InputSelect>
+                                    <ValidationMessage For="@(() => entidadActual.Promedio)" />
+                                </div>
+                                <div class="d-flex justify-content-end">
+                                    <button type="submit" class="me-2 boton-postular" style="background-color:#b6bf00">
+                                        @* <i class="bi bi-save"></i> *@ Guardar
+                                    </button>
+                                    <button type="button" class="boton-postular btn-primary" @onclick="Cancelar">
+                                        @* <i class="bi bi-times"></i> *@ Cancelar
+                                    </button>
+                                </div>
+                            </EditForm>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+    </div>
+</div>
+
+@if (cargando)
+{
+    <div class="modal fade show d-block modal-loading-center" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+        <!-- 'modal-dialog-centered' centra el modal verticalmente -->
+        <div class="modal-dialog modal-dialog-centered">
+            <!-- Ajustamos el ancho con 'mx-auto' y eliminamos bordes/fondo si solo quieres ver el spinner -->
+            <div class="modal-content" style="background: transparent; border: none;">
+                <div class="modal-body text-center">
+                    <div class="modal-cargando">
+                        <!-- Spinner de Bootstrap -->
+                        <div class="spinner-border text-light" style="width: 3rem; height: 3rem;" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="text-light mt-2">Cargando...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+@if (mostrarFormulario2)
+{
+    <br />
+    <br />
+
+    <div class="modal fade show d-block" tabindex="10" style="background: rgba(0,0,0,0.5);">
+        <div class="modal-dialog-centered modal-contenido-pequeno">
+            <div class="modal-content">
+                <div class="modal-header modal-contenido-pequeno">
+                    @* <h5 class="modal-title">Editar</h5> *@
+                    <button type="button" class="btn-close" @onclick="Cancelar"></button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="@entidadActual" OnValidSubmit="GuardarEntidad">
+                        <DataAnnotationsValidator />
+
+                        <div class="mb-3">
+                            <strong><label class="form-label">Beneficiario:</label></strong>
+                            <label class="form-label">@datosbenefi</label>
+                        </div>
+                        <div class="mb-3">
+                            <strong><label class="form-label">No se puede completar la postulación, falta alguno de los siguientes:</label></strong>
+                            <ul>
+                                @if (string.IsNullOrEmpty(beneficiario?.Promedio.ToString()))
+                                {
+                                    <li>Promedio de Notas</li>
+                                }
+                                @if (string.IsNullOrEmpty(beneficiario.RutaNotas))
+                                {
+                                    <li>Constancia de Notas</li>
+                                }
+                                @if (string.IsNullOrEmpty(beneficiario.RutaVideo))
+                                {
+                                    <li>Video del Talento</li>
+                                }
+                            </ul>
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button type="button" class="boton-postular btn-primary" @onclick="Cancelar">
+                                @* <i class="bi bi-times"></i> *@ Cancelar
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    public class GradoAcademicoopt
+    {
+        public string Grados { get; set; }
+        public string DesGrados { get; set; }
+    }
+    private List<GradoAcademicoopt?> grados = new();
+
+    public class Notasoopt
+    {
+        public int idnotas { get; set; }
+        public string desnotas { get; set; }
+    }
+    private List<Notasoopt?> optionnotas = new();
+    private const string notaprimaria = "A";
+    public class Institucion
+    {
+        public string Nombre { get; set; } = string.Empty;
+        public string Rif { get; set; } = string.Empty;
+    }
+
+    string datosbenefi = string.Empty;
+    private Beneficiario? beneficiario = new();
+
+    private string? mensajeAlerta;
+    private bool mostrarAlerta = false;
+    private BenefiModel entidadActual = new();
+    private bool mostrarFormulario = false;
+    private bool mostrarFormulario2 = false;
+    private bool cargando = false;
+
+    private string folderName = string.Empty;
+    private List<Institucion>? instituciones;
+
+    [Inject] private IBeneficiario repobenefi { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            if (!authState.User.Identity.IsAuthenticated)
+                NavManager.NavigateTo($"/");
+        }
+        catch
+        {
+            NavManager.NavigateTo($"/");
+        }
+        cargando = true;
+        try
+        {
+            beneficiario = await repobenefi.GetByIdlAsync(int.Parse(Id));
+            if (beneficiario != null)
+            {
+                datosbenefi = CultureInfo.CurrentCulture.TextInfo.ToTitleCase($"{beneficiario.FullName}".ToLower());
+                folderName = $"{beneficiario.CedulaIdentidad.Replace(".", "")}_{beneficiario.FechaNacimiento.ToString("yyyyMMdd")}_{beneficiario.Edad.ToString()}";
+            }
+
+            var filePath = Path.Combine(Env.WebRootPath, "data", "instituciones.json");
+            var jsonString = await File.ReadAllTextAsync(filePath);
+            var opciones = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+            instituciones = JsonSerializer.Deserialize<List<Institucion>>(jsonString, opciones);
+            instituciones = instituciones?
+                .Where(c => !c.Nombre.Contains("univ", StringComparison.OrdinalIgnoreCase))
+                .OrderBy(i => i.Nombre)
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            datosbenefi = $"Error al cargar datos del beneficiario: {ex.Message}";
+        }
+        cargando = false;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await jsRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlerta", 10);
+        }
+    }
+
+    private void EditarEntidad()
+    {
+        entidadActual = new BenefiModel();
+        if (beneficiario.TipoInstitucionAux != null)
+            entidadActual.TipoInstitucion = beneficiario.TipoInstitucionAux;
+        else
+            entidadActual.TipoInstitucion = beneficiario?.TipoInstitucion ?? string.Empty;
+
+
+        if (beneficiario.NombreInstitucionAux != null)
+            entidadActual.NombreInstitucion = beneficiario.NombreInstitucionAux;
+        else
+            entidadActual.NombreInstitucion = beneficiario?.NombreInstitucion ?? string.Empty;
+
+        if (beneficiario.RifInstitucionAux != null)
+            entidadActual.RifInstitucion = beneficiario.RifInstitucionAux;
+        else
+            entidadActual.RifInstitucion = beneficiario?.RifInstitucion ?? string.Empty;
+
+        if (beneficiario.NivelEducativoAux != null)
+            entidadActual.NivelEducativo = beneficiario.NivelEducativoAux;
+        else
+            entidadActual.NivelEducativo = beneficiario?.NivelEducativo ?? string.Empty;
+
+        CargarGrado(entidadActual.NivelEducativo);
+
+        if (beneficiario.GradoEducativoAux != null)
+            entidadActual.GradoEducativo = beneficiario.GradoEducativoAux;
+        else
+            entidadActual.GradoEducativo = beneficiario?.GradoEducativo ?? string.Empty;
+
+        if (beneficiario?.Promedio != null)
+            entidadActual.Promedio = beneficiario.Promedio;
+
+        mostrarFormulario = true;
+    }
+
+    private void Cancelar()
+    {
+        mostrarFormulario = false;
+        mostrarFormulario2 = false;
+    }
+
+    private async Task GuardarEntidad()
+    {
+        try
+        {
+            beneficiario = await repobenefi.UpdateAcademicDataAsync(int.Parse(Id), entidadActual);
+            mostrarFormulario = false;
+            mensajeAlerta = "Datos guardados exitosamente.";
+            mostrarAlerta = true;
+            // 3. Forzamos el renderizado y esperamos un "ciclo" para que el DOM se actualice
+            StateHasChanged();
+            await Task.Delay(1); // Pequeña espera para asegurar que el DOM esté listo
+
+            await jsRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlerta", 8000);
+        }
+        catch (Exception ex)
+        {
+            mensajeAlerta = ex.Message;
+            mostrarAlerta = true;
+            // 3. Forzamos el renderizado y esperamos un "ciclo" para que el DOM se actualice
+            StateHasChanged();
+            await Task.Delay(1); // Pequeña espera para asegurar que el DOM esté listo
+
+            await jsRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlerta", 8000);
+        }
+    }
+
+    private void CargarGrado(string value)
+    {
+        if (value == "PRIMARIA")
+        {
+            grados = new List<GradoAcademicoopt?>
+            {
+                new GradoAcademicoopt { Grados = "1ER GRADO", DesGrados = "1er Grado"  },
+                new GradoAcademicoopt { Grados = "2DO GRADO", DesGrados = "2do Grado" },
+                new GradoAcademicoopt { Grados = "3ER GRADO", DesGrados = "3er Grado" },
+                new GradoAcademicoopt { Grados = "4TO GRADO", DesGrados = "4to Grado" },
+                new GradoAcademicoopt { Grados = "5TO GRADO", DesGrados = "5to Grado" },
+                new GradoAcademicoopt { Grados = "6TO GRADO", DesGrados = "6to Grado" }
+            };
+
+            optionnotas = new List<Notasoopt?>
+            {
+                new Notasoopt { idnotas = 20, desnotas = "A" },
+            };
+
+        }
+        else if (value == "MEDIA")
+        {
+            grados = new List<GradoAcademicoopt?>
+            {
+                new GradoAcademicoopt { Grados = "7MO GRADO", DesGrados = "7mo Grado" },
+                new GradoAcademicoopt { Grados = "8VO GRADO", DesGrados = "8vo Grado" },
+                new GradoAcademicoopt { Grados = "9NO GRADO", DesGrados = "9no Grado" },
+                new GradoAcademicoopt { Grados = "4TO AÑO", DesGrados = "4to Año" },
+                new GradoAcademicoopt { Grados = "5TO AÑO", DesGrados = "5to Año" },
+                new GradoAcademicoopt { Grados = "6TO AÑO", DesGrados = "6to Año" }
+            };
+
+            optionnotas = new List<Notasoopt?>
+            {
+                new Notasoopt { idnotas = 18, desnotas = "18" },
+                new Notasoopt { idnotas = 19, desnotas = "19" },
+                new Notasoopt { idnotas = 20, desnotas = "20" },
+            };
+        }
+        else
+        {
+            grados = new List<GradoAcademicoopt?>();
+            optionnotas = new List<Notasoopt?>();
+        }
+
+        if (entidadActual.NivelEducativo != value)
+            entidadActual.GradoEducativo = " ";
+
+        entidadActual.NivelEducativo = value;
+    }
+
+    private void Regresar()
+    {
+        NavManager.NavigateTo($"/soportebeneficiarios");
+    }
+
+    private async Task Salir()
+    {
+        try
+        {
+            beneficiario = await repobenefi.GetByIdlAsync(int.Parse(Id));
+            if (beneficiario != null)
+            {
+                if (string.IsNullOrEmpty(beneficiario?.Promedio.ToString()) ||
+                    string.IsNullOrEmpty(beneficiario.RutaNotas) ||
+                    string.IsNullOrEmpty(beneficiario.RutaVideo))
+                {
+                    mostrarFormulario2 = true;
+                    StateHasChanged();
+                }
+                else
+                {
+                    await repobenefi.UpdateEstadoPostulacionAsync(beneficiario.Id);
+                    NavManager.NavigateTo($"/");
+                }
+            }
+            else
+                NavManager.NavigateTo($"/");
+        }
+        catch (Exception ex)
+        {
+            mensajeAlerta = ex.Message;
+            mostrarAlerta = true;
+            // 3. Forzamos el renderizado y esperamos un "ciclo" para que el DOM se actualice
+            StateHasChanged();
+            await Task.Delay(1); // Pequeña espera para asegurar que el DOM esté listo
+
+            await jsRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlerta", 8000);
+        }
+    }
+
+    private void OnNombreChanged(string nuevoNombre)
+    {
+        entidadActual.NombreInstitucion = nuevoNombre;
+
+        // Buscamos si el nombre ingresado existe en nuestra lista de instituciones
+        var institucionEncontrada = instituciones?.FirstOrDefault(i =>
+            i.Nombre.Equals(nuevoNombre, StringComparison.OrdinalIgnoreCase));
+
+        if (institucionEncontrada != null)
+        {
+            // Si existe, asignamos el RIF automáticamente
+            entidadActual.RifInstitucion = institucionEncontrada.Rif;
+        }
+    }
+
+    private void OnNombreChangedRif(string nuevoRif)
+    {
+        entidadActual.RifInstitucion = nuevoRif;
+
+        // Buscamos si el nombre ingresado existe en nuestra lista de instituciones
+        var institucionEncontrada = instituciones?.FirstOrDefault(i =>
+            i.Rif.Equals(nuevoRif, StringComparison.OrdinalIgnoreCase));
+
+        if (institucionEncontrada != null)
+        {
+            // Si existe, asignamos el RIF automáticamente
+            entidadActual.NombreInstitucion = institucionEncontrada.Nombre;
+        }
+    }
+}

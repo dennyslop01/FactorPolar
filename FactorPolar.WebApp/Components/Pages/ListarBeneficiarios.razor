@@ -1,0 +1,139 @@
+﻿@using System.Globalization
+@using System.Text
+@rendermode InteractiveServer
+
+<div class="container-fluid mt-4">
+    <!-- Buscador Global por Nombre -->
+    <div class="row mb-3">
+        <div class="col-md-4 ms-auto">
+            <div class="input-group">
+                <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control"
+                       placeholder="Buscar por nombre..."
+                       @oninput="FiltrarBusqueda" />
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3">
+            <div class="d-flex align-items-center">
+                <div class="bg-primary p-2 rounded-3 me-3">
+                    <i class="bi bi-people-fill text-white fs-4"></i>
+                </div>
+                <h6 class="mb-0 fw-bold text-secondary">Beneficiarios</h6>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <!-- Contenido de las Pestañas -->
+            <div class="table-responsive">
+                <PaginationComponent TItem="Beneficiario" Items="Listgral" DefaultPageSize="10">
+                    <ChildContentHeader>
+                        <tr class="table-light">
+                            @* <th class="border-0 text-uppercase small fw-bold">#</th> *@
+                            <th class="border-0 text-uppercase small fw-bold">No. Pers</th>
+                            <th class="border-0 text-uppercase small fw-bold">Nombre del Empleado</th>
+                            <th class="border-0 text-uppercase small fw-bold">Nombre del Beneficiario</th>
+                            <th class="border-0 text-uppercase small fw-bold">Fecha Nacimiento</th>
+                            <th class="border-0 text-uppercase small fw-bold text-center">Edad</th>
+                            <th class="border-0 text-end">Acciones</th>
+                        </tr>
+                    </ChildContentHeader>
+                    <ChildContentRow Context="p">
+                        <tr class="align-middle">
+                            @* <td><span class="text-muted">@p.Id</span></td> *@
+                            <td class="fw-bold text-primary">@p.Employee.EmployeeNumber</td>
+                            <td>@CultureInfo.CurrentCulture.TextInfo.ToTitleCase(p.Employee.FullName.ToLower())</td>
+                            <td>@CultureInfo.CurrentCulture.TextInfo.ToTitleCase(p.FullName.ToLower())</td>
+                            <td>@p.FechaNacimiento.ToShortDateString()</td>
+                            <td class="text-center">
+                                <span class="badge bg-info-subtle text-info border border-info-subtle px-3 py-2 rounded-pill">
+                                    @p.Edad años
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <button class="btn btn-outline-warning btn-sm border-2 fw-bold px-3 rounded-pill"
+                                        @onclick="() => VerDetalle(p)">
+                                    <i class="bi bi-search me-1"></i> Editar
+                                </button>
+                            </td>
+                        </tr>
+                    </ChildContentRow>
+                </PaginationComponent>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Beneficiario> Listgral = new();
+    private List<Beneficiario> ListgralBuscar = new();
+    private string searchTerm = "";
+
+    [Inject] private IBeneficiario repobenefi { get; set; } = null!;
+    [Inject] private IBeneficiarioRubrica reporubbenefi { get; set; } = null!;
+
+    public class GrupoInfo { public int Id { get; set; } public string Nombre { get; set; } public string Rango { get; set; } }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            await LoadBenefiDataAsync();
+        }
+        catch (Exception ex)
+        {
+            // Manejo de errores (opcional)
+            Console.WriteLine($"Error al cargar datos del los beneficiarios: {ex.Message}");
+        }
+    }
+
+    private async Task LoadBenefiDataAsync()
+    {
+        //Listgral = await repobenefi.GetByParticipantesAsync();
+        ListgralBuscar = await repobenefi.GetAllAsync();
+        await Task.CompletedTask;
+    }
+
+    private async Task FiltrarBusqueda(ChangeEventArgs e)
+    {
+        searchTerm = e.Value?.ToString() ?? "";
+        if (string.IsNullOrEmpty(searchTerm))
+        {
+            await LoadBenefiDataAsync(); // Recargar datos completos si el término de búsqueda está vacío
+        }
+        else
+        {
+            var lowerSearchTerm = searchTerm.ToLower();
+            Listgral = ListgralBuscar.Where(b => b.FullName.ToLower().Contains(lowerSearchTerm)).ToList();
+        }
+        StateHasChanged();
+    }
+
+    private void VerDetalle(Beneficiario ben)
+    {
+        NavManager.NavigateTo($"/editar2/{ben.Id}");
+    }
+}
+
+<style>
+    /* Personalización para que las pestañas se vean más modernas */
+    .nav-pills .nav-link {
+        color: #6c757d;
+        transition: all 0.3s ease;
+    }
+
+        .nav-pills .nav-link.active {
+            background-color: #0d6efd !important;
+            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.25);
+        }
+
+    .table-responsive {
+        min-height: 400px;
+    }
+
+    .btn-outline-warning:hover {
+        color: #000; /* Mejor contraste */
+    }
+</style>

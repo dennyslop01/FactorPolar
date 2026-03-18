@@ -40,7 +40,17 @@
                             <div class="col-6">
                                 <label class="text-muted small fw-bold text-uppercase d-block">Promedio</label>
                                 <span class="badge bg-success fs-6 rounded-pill px-3">
-                                    @(beneficiario?.NivelEducativo == "PRIMARIA" ? (beneficiario.Promedio != null ? notaprimaria : "-") : beneficiario?.Promedio)
+                                    @if (beneficiario?.NivelEducativo == "PRIMARIA")
+                                    {
+                                        if (beneficiario.Promedio != null)
+                                        {
+                                            @notaprimaria
+                                        }
+                                    }
+                                    else
+                                    {
+                                        @beneficiario?.Promedio
+                                    }
                                 </span>
                             </div>
                         </div>
@@ -52,19 +62,7 @@
 
                         <div class="mb-0">
                             <label class="text-muted small fw-bold text-uppercase d-block">Nivel Académico</label>
-                            <span>
-                                @if (beneficiario?.NivelEducativo == "PRIMARIA")
-                                {
-                                    if (beneficiario.Promedio != null)
-                                    {
-                                        @notaprimaria
-                                    }
-                                }
-                                else
-                                {
-                                    @beneficiario?.Promedio
-                                }
-                            </span>
+                            <span>@(beneficiario.GradoEducativoAux ?? beneficiario.GradoEducativo)</span>
                         </div>
                         <div class="mb-4">
                         </div>

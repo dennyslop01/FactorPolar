@@ -12,12 +12,17 @@
         <!-- Contenido de la izquierda -->
         <a href="/"><MudImage Src="LogoPolar.png" Alt="Empresas Polar" /></a>
 
-        <!-- Opcional: Si quieres un título junto al logo principal -->
-        @* <MudText Typo="Typo.h4" Style="color: white; margin-left: 10px;">Tu Título</MudText> *@
-
+        @if (userrol == 1)
+        {
+            <!-- Contenido de la derecha -->
+            <MudText Typo="Typo.body1" Style="color: white; margin-right: 16px;">
+                <MudStack Row="true" Spacing="4" Class="ml-6">
+                    <MudButton Variant="Variant.Text" Style="color: white;" href="@($"soportebeneficiarios")"><i class="bi bi-bezier2 m-1"></i> Soporte Beneficiarios</MudButton>
+                </MudStack>
+            </MudText>
+        }
         <!-- El Spacer empuja todo lo que sigue hacia la derecha -->
         <MudSpacer />
-
         <!-- Contenido de la derecha -->
         <MudText Typo="Typo.body1" Style="color: white; margin-right: 16px;">
             <!-- Esto parece contener enlaces de autenticación o texto -->
@@ -40,12 +45,48 @@
 
 @code {
     bool _drawerOpen = false;
+    int userrol = 5;
+    private string? userEmail = "temporal.dennys.lopez@empresaspolar.com";
+    private Usuario usuario = new();
+    [Inject] private IUsuario repousuario { get; set; } = null!;
 
     void DrawerToggle()
     {
         _drawerOpen = !_drawerOpen;
     }
-}
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var authState = await authStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            userEmail = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+            if(!string.IsNullOrEmpty(userEmail))
+            {
+                await LoadAdminDataAsync();
+            }            
+        }
+        catch (Exception ex)
+        {
+            // Manejo de errores (opcional)
+            Console.WriteLine($"Error al cargar datos del usuario: {ex.Message}");
+        }
+    }
+
+    private async Task LoadAdminDataAsync()
+    {
+        if (!string.IsNullOrEmpty(userEmail))
+        {
+            usuario = await repousuario.GetByEmailAsync(userEmail);
+            if (usuario != null)
+            {
+                userrol = (int)usuario.IdRol;
+            }
+        }
+        await Task.CompletedTask;
+    }
+ }
 <style>
     body, .table, .input,
     .button, .icon {

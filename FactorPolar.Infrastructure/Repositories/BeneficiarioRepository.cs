@@ -239,5 +239,15 @@ namespace FactorPolar.Infrastructure.Repositories
             //_context.Entry(beneficiario.Employee).State = EntityState.Detached;
             return true;
         }
+
+        public async Task<List<Beneficiario?>> GetAllAsync()
+        {
+            using var _context = _contextFactory.CreateDbContext();
+
+            var benefi = await _context.Beneficiarios
+                .Include(b => b.Employee)
+                .ToListAsync();
+            return benefi;
+        }
     }
 }
