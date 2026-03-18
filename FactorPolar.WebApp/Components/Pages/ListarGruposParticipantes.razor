@@ -15,7 +15,7 @@
         </div>
     </div>
     
-    <div class="card shadow-sm border-0">
+    <div class="card shadow-sm border-0 h-auto"> 
         <div class="card-header bg-white py-3">
             <div class="d-flex align-items-center">
                 <div class="bg-primary p-2 rounded-3 me-3">
@@ -105,7 +105,7 @@
 </div>
 
 <div class="container-fluid mt-4">
-    <div class="card shadow-sm border-0">
+    <div class="card shadow-sm border-0 h-auto"> 
         <div class="card-header bg-white py-3">
             <div class="d-flex align-items-center">
                 <div class="bg-primary p-2 rounded-3 me-3">
@@ -119,7 +119,7 @@
             <div class="row">
                 <div class="col-4">
                     <div>
-                        <strong>Nro. de Registros:</strong> @Listgral.Count()
+                        <strong>Nro. de Registros:</strong> @ListEvalgral.Count()
                     </div>
                 </div>
                 <div class="col-4">
@@ -359,6 +359,13 @@
                     ListEval4 = ListEvalgral.Where(b => b.Edad >= 15 && b.Edad <= 17).ToList();
                 }
 
+                List1 = Listgral.Where(b => b.Edad >= 6 && b.Edad <= 8).ToList();
+                List2 = Listgral.Where(b => b.Edad >= 9 && b.Edad <= 11).ToList();
+                List3 = Listgral.Where(b => b.Edad >= 12 && b.Edad <= 14).ToList();
+                List4 = Listgral.Where(b => b.Edad >= 15 && b.Edad <= 17).ToList();
+            }
+            else
+            {
                 List1 = Listgral.Where(b => b.Edad >= 6 && b.Edad <= 8).ToList();
                 List2 = Listgral.Where(b => b.Edad >= 9 && b.Edad <= 11).ToList();
                 List3 = Listgral.Where(b => b.Edad >= 12 && b.Edad <= 14).ToList();

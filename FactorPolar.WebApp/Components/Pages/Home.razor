@@ -117,7 +117,7 @@
             <hr />
         }
         
-        @if(!existe && !existeAdminUser)
+        @if(!existe && !existeAdminUser1)
         {
             <p>@userName</p>
             @* <p>Si no visualizas tus datos, por favor contacta al equipo de Gestión de Gente de tu localidad</p> *@
@@ -176,6 +176,7 @@
 @code {
     bool existe = false;
     bool existeAdminUser = false;
+    bool existeAdminUser1 = false;
     private bool cargando = false;
     private bool isMobile;
 
@@ -226,6 +227,9 @@
                             userName += $", {nombrecortoaux.Value}";
                         }
                     }
+                    else
+                        existeAdminUser = true;
+
                     StateHasChanged();
                 }
                 else
@@ -239,6 +243,8 @@
                             else
                             {
                                 userrol = usuario.IdRol;
+                                existeAdminUser = true;
+
                                 await SessionStorage.SetAsync("UserId", usuario.Id.ToString());
                                 await SessionStorage.SetAsync("UserRol", userrol.ToString());
                                 await SessionStorage.SetAsync("UserCedula", usuario.Cedula);
@@ -313,7 +319,7 @@
             usuario = await repousuario.GetByEmailAsync(userEmail);
             if (usuario != null)
             {
-                existeAdminUser = true;
+                existeAdminUser1 = true;
             }
         }
         await Task.CompletedTask;

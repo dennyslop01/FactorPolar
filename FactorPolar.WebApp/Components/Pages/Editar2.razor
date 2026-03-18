@@ -549,11 +549,11 @@
                 else
                 {
                     await repobenefi.UpdateEstadoPostulacionAsync(beneficiario.Id);
-                    NavManager.NavigateTo($"/");
+                    NavManager.NavigateTo($"/soportebeneficiarios");
                 }
             }
             else
-                NavManager.NavigateTo($"/");
+                NavManager.NavigateTo($"/soportebeneficiarios");
         }
         catch (Exception ex)
         {

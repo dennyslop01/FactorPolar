@@ -22,9 +22,14 @@
                     <i class="bi bi-people-fill text-white fs-4"></i>
                 </div>
                 <h6 class="mb-0 fw-bold text-secondary">Beneficiarios</h6>
+
+                <!-- Añadimos ms-auto aquí para empujar el botón al final -->
+                <button class="btn btn-outline-secondary btn-sm rounded-pill px-4 ms-auto" @onclick="Regresar">
+                    <i class="bi bi-arrow-left-circle me-2"></i>Regresar
+                </button>
             </div>
         </div>
-
+        
         <div class="card-body">
             <!-- Contenido de las Pestañas -->
             <div class="table-responsive">
@@ -93,6 +98,7 @@
     {
         //Listgral = await repobenefi.GetByParticipantesAsync();
         ListgralBuscar = await repobenefi.GetAllAsync();
+        ListgralBuscar = ListgralBuscar.Where(b => b.EstadoPostulacion != 1).ToList();
         await Task.CompletedTask;
     }
 
@@ -114,6 +120,11 @@
     private void VerDetalle(Beneficiario ben)
     {
         NavManager.NavigateTo($"/editar2/{ben.Id}");
+    }
+
+    private void Regresar()
+    {
+        NavManager.NavigateTo($"/");
     }
 }
 
