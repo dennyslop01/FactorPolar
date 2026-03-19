@@ -33,4 +33,13 @@ namespace FactorPolar.Domain.Entities
         [Range(1, 5, ErrorMessage = "El valor debe estar entre 1 y 5")]
         public int Codigo { get; set; }
     }
+
+    public class RubricaCompuestaVer
+    {
+        public int IdRubrica { get; set; }
+        public int IdGrupo { get; set; }
+        public string DescGrupo { get; set; }
+        public string Descripcion { get; set; }
+        public decimal Codigo { get; set; }
+    }
 }

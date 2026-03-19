@@ -60,34 +60,48 @@
                             <span>@(beneficiario.NivelEducativoAux ?? beneficiario.NivelEducativo)</span>
                         </div>
 
-                        <div class="mb-0">
+                        <div class="mb-4">
                             <label class="text-muted small fw-bold text-uppercase d-block">Nivel Académico</label>
                             <span>@(beneficiario.GradoEducativoAux ?? beneficiario.GradoEducativo)</span>
                         </div>
+                        @if (evaluacioncerrada)
+                        {
+                            <div class="row mb-4">
+                                <label class="text-muted small fw-bold text-uppercase d-block">Puntuación Evaluación</label>
+                                <div class="col-6">
+                                    <span class="badge bg-secondary fs-6 rounded-pill px-3">@puntuacionGral</span>
+                                </div>
+                            </div>
+                        }
                         <div class="mb-4">
                         </div>
 
                         <div class="mb-4">
                             @if (sinevaluar)
                             {
-                                <button class="btn btn-outline-primary btn-sm rounded-pill px-4" @onclick="IniciarEvaluacion">
+                                <button class="btn btn-outline-primary btn-sm rounded-pill px-4 me-2 mb-3" @onclick="IniciarEvaluacion">
                                     Iniciar Evaluación
                                 </button>
                             }
                             @if (rubricaevaluar)
                             {
-                                <button class="btn btn-outline-primary btn-sm rounded-pill px-4" @onclick="CompletarRubrica">
+                                <button class="btn btn-outline-primary btn-sm rounded-pill px-4 me-2 mb-3" @onclick="CompletarRubrica">
                                     Completar Rúbrica
                                 </button>
                             }
                             @if (vervaluar)
                             {
-                                <button class="btn btn-outline-primary btn-sm rounded-pill px-4" @onclick="VerEvaluacion">
+                                <button class="btn btn-outline-primary btn-sm rounded-pill px-4 me-2 mb-3" @onclick="VerEvaluacion">
                                     Ver Evaluación
                                 </button>
                             }
-                            &nbsp; &nbsp;
-                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-4" @onclick="Regresar">
+                            @if (cerrareval)
+                            {
+                                <button class="btn btn-outline-primary btn-sm rounded-pill px-4 me-2 mb-3" @onclick="CerrarEvaluacion">
+                                    Cerrar Evaluación
+                                </button>
+                            }
+                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-4 me-2 mb-3" @onclick="Regresar">
                                 <i class="bi bi-arrow-left-circle me-2"></i>Regresar
                             </button>
                         </div>
@@ -209,7 +223,7 @@
     </div>
 }
 
-@if (compevaluar)
+@if (complevaluar)
 {
     <br />
     <br />
@@ -266,9 +280,9 @@
                             }
                         </div>
                         <div class="d-flex justify-content-end">
-                            @* <button type="submit" class="btn btn-outline-primary btn-sm rounded-pill px-4">
+                            <button type="submit" class="btn btn-outline-primary btn-sm rounded-pill px-4">
                                 Guardar
-                            </button>&nbsp;&nbsp;&nbsp; *@
+                            </button>&nbsp;&nbsp;&nbsp;
                             <button class="btn btn-outline-secondary btn-sm rounded-pill px-4" @onclick="CerrarModal">
                                 Cancelar
                             </button>
@@ -301,6 +315,24 @@
                             </div>
                         }
                     </div>
+                    @if (evaluacioncerrada)
+                    {
+                        <hr />
+                        <div class="mb-3">
+                            @foreach (var grupo in entidadSegundaver.GroupBy(x => x.IdGrupo).Select(g => g.First()))
+                            {
+                                <strong><h6>@grupo.DescGrupo</h6></strong>
+                                @foreach (var item in entidadSegundaver.Where(x => x.IdGrupo == grupo.IdGrupo))
+                                {                                   
+                                    <div class="mb-4">
+                                        <label class="text-muted small fw-bold text-uppercase d-block">@item.Descripcion</label>
+                                        <label class="text-muted small fw-bold text-uppercase d-block">@item.Codigo</label>
+                                    </div>
+                                }
+                                <hr />
+                            }
+                        </div>
+                    }
                     <div class="d-flex justify-content-end">
                         <button class="btn btn-outline-secondary btn-sm rounded-pill px-4" @onclick="CerrarModal">
                             Cerrar
@@ -339,21 +371,25 @@
     private string base64Video = string.Empty;
 
     private bool inieval = false;
+    private List<RubricaEvaluacion> rubricatodas = new();
     private List<RubricaEvaluacion> rubricainicial = new();
     private List<BeneficiarioRubrica?> benefirubrica = new();
     private List<BeneficiarioRubrica?> benefirubricauser = new();
 
     private List<RubricaCompuesta> entidadSegunda = new();
     private List<RubricaEvaluacion> rubricasegunda = new();
-
+    private List<RubricaCompuestaVer> entidadSegundaver = new();
 
     private bool sinevaluar = false;
     private bool rubricaevaluar = false;
-    private bool compevaluar = false;
+    private bool complevaluar = false;
     private bool vervaluar = false;
     private bool vervaluarform = false;
+    private bool cerrareval = false;
+    private bool evaluacioncerrada = false;
 
-    //private int LimiteEval = 0;
+    private int LimiteEval = 0;
+    private decimal puntuacionGral = 0;
 
     [Inject] private IBeneficiario repobenefi { get; set; } = null!;
     [Inject] private IRubricaEvaluacion reporubrica { get; set; } = null!;
@@ -384,36 +420,54 @@
                     benefirubrica = await reporubbenefi.GetByIdBenefiAsync(int.Parse(Id));
 
                     var userid = await SessionStorage.GetAsync<string>("UserId");
-                    // if (!string.IsNullOrEmpty(userid.Value))
-                    // {
-                    //     benefirubricauser = await reporubbenefi.GetByIdUserBenefilAsync(int.Parse(userid.Value), int.Parse(Id));
+                    if (!string.IsNullOrEmpty(userid.Value))
+                    {
+                        benefirubricauser = await reporubbenefi.GetByIdUserBenefilAsync(int.Parse(userid.Value), int.Parse(Id));
 
-                    //     if (int.Parse(userrol.Value) == 1 && benefirubricauser.Count == 0)
-                    //         sinevaluar = true;
-                    //     else if (int.Parse(userrol.Value) != 1 && benefirubricauser.Count == 0)
-                    //     {
-                    //         int nrousurios = benefirubrica
-                    //             .Where(x => x != null)
-                    //             .Select(x => x!.Usuario.Id)
-                    //             .Distinct()
-                    //             .Count();
+                        if (int.Parse(userrol.Value) == 1 && benefirubricauser.Count == 0)
+                            sinevaluar = true;
+                        else if (int.Parse(userrol.Value) != 1 && benefirubricauser.Count == 0)
+                        {
+                            int nrousurios = benefirubrica
+                                .Where(x => x != null)
+                                .Select(x => x!.Usuario.Id)
+                                .Distinct()
+                                .Count();
 
-                    //         if (nrousurios <= LimiteEval)
-                    //             sinevaluar = true;
-                    //     }
-                    //     else if (benefirubricauser.Count > 0)
-                    //     {
-                    //         int existefalse = benefirubricauser.Where(x => x.Puntuacion == 0 && x.RubricaEvaluacion.GrupoEvaluacion.Id == 5).Count();
-                    //         if (existefalse == 0)
-                    //         {
-                    //             rubricaevaluar = true;
-                    //         }
-                    //         else if (existefalse > 0)
-                    //         {
-                    //             vervaluar = true;
-                    //         }
-                    //     }
-                    // }
+                            if (nrousurios <= LimiteEval)
+                                sinevaluar = true;
+                        }
+                        else if (benefirubricauser.Count > 0)
+                        {
+                            int existefalse = benefirubricauser.Where(x => x.Puntuacion == 0 && x.RubricaEvaluacion.GrupoEvaluacion.Id == 5).Count();
+                            if (existefalse == 0)
+                            {
+                                rubricaevaluar = true;
+                                int rubricaitems = rubricatodas.Count();
+                                int rubricaevaluadas = benefirubricauser.Count();
+
+                                if (rubricaitems == rubricaevaluadas)
+                                {
+                                    int evalucioncerrada = benefirubricauser.Where(x => x.CloseDate != null).Count();
+                                    if (evalucioncerrada == rubricaitems)
+                                    {
+                                        evaluacioncerrada = true;
+                                        rubricaevaluar = false;
+                                        vervaluar = true;
+
+                                        decimal puntajeacount = 2 + (benefirubricauser.Sum(x => x.FactorResultado));
+                                        puntuacionGral = puntajeacount;
+                                    }
+                                    else
+                                        cerrareval = true;
+                                }
+                            }
+                            else if (existefalse > 0)
+                            {
+                                vervaluar = true;
+                            }
+                        }
+                    }
                 }
                 cargando = false;
                 StateHasChanged();
@@ -437,7 +491,7 @@
         cargando = true;
         try
         {
-            //LimiteEval = _configuration.GetValue<int>("AppSettings:LimiteEvaluaciones");
+            LimiteEval = _configuration.GetValue<int>("AppSettings:LimiteEvaluaciones");
 
             editContext = new EditContext(entidadActual);
             mensajeStore = new ValidationMessageStore(editContext);
@@ -449,6 +503,8 @@
                 datosbenefi = CultureInfo.CurrentCulture.TextInfo.ToTitleCase($"{beneficiario.FullName}".ToLower());
                 folderName = $"{beneficiario.CedulaIdentidad.Replace(".", "")}_{beneficiario.FechaNacimiento.ToString("yyyyMMdd")}_{beneficiario.Edad.ToString()}";
             }
+
+            rubricatodas = await reporubrica.GetAllAsync();
         }
         catch (Exception ex)
         {
@@ -471,13 +527,14 @@
     {
         inieval = false;
         vervaluarform = false;
-        compevaluar = false;
+        complevaluar = false;
         StateHasChanged();
     }
 
     private async Task IniciarEvaluacion()
     {
-        rubricainicial = await reporubrica.GetByIdGrupoAsync(5);
+        rubricainicial = rubricatodas.Where(x => x.GrupoEvaluacion.Id == 5).ToList();
+        //rubricainicial = await reporubrica.GetByIdGrupoAsync(5);
         entidadActual = new List<RubricaBasica>();
 
         foreach(var r in rubricainicial)
@@ -561,76 +618,71 @@
     private async Task CompletarRubrica()
     {
         entidadSegunda = new List<RubricaCompuesta>();
-        
-        rubricasegunda = await reporubrica.GetByIdGrupoAsync(1);
-        foreach (var r in rubricasegunda)
+        var userid = await SessionStorage.GetAsync<string>("UserId");
+        if (!string.IsNullOrEmpty(userid.Value))
         {
-            var registro = new RubricaCompuesta
-            {
-                IdRubrica = r.Id,
-                Descripcion = r.Descripcion,
-                IdGrupo = r.GrupoEvaluacion.Id,
-                DescGrupo = r.GrupoEvaluacion.NombreGrupo,
-                Codigo = -1 // Esto obliga a seleccionar uno
-            };
-
-            entidadSegunda.Add(registro);
+            benefirubricauser = await reporubbenefi.GetByIdUserBenefilAsync(int.Parse(userid.Value), int.Parse(Id));
+        }
+        else
+        {
+            mensajeAlerta = $"Error al cargar la evaluación: Usuario no identificado.";
+            mostrarAlerta = true;
+            return;
         }
 
-        rubricasegunda = await reporubrica.GetByIdGrupoAsync(2);
-        foreach (var r in rubricasegunda)
+        for (int i = 1; i <= 4; i++)
         {
-            var registro = new RubricaCompuesta
+            rubricasegunda = rubricatodas.Where(x => x.GrupoEvaluacion.Id == i).ToList();
+            //rubricasegunda = await reporubrica.GetByIdGrupoAsync(1);
+            foreach (var r in rubricasegunda)
             {
-                IdRubrica = r.Id,
-                Descripcion = r.Descripcion,
-                IdGrupo = r.GrupoEvaluacion.Id,
-                DescGrupo = r.GrupoEvaluacion.NombreGrupo,
-                Codigo = -1 // Esto obliga a seleccionar uno
-            };
+                int puntuacion = -1;
+                if (benefirubricauser.Count > 0)
+                {
+                    int existe = benefirubricauser.Where(x => x.RubricaEvaluacion.Id == r.Id).Count();
+                    if (existe > 0)
+                    {
+                        puntuacion = benefirubricauser.Where(x => x.RubricaEvaluacion.Id == r.Id).Select(x => x.Puntuacion).FirstOrDefault();
+                    }
+                }
 
-            entidadSegunda.Add(registro);
+                var registro = new RubricaCompuesta
+                    {
+                        IdRubrica = r.Id,
+                        Descripcion = r.Descripcion,
+                        IdGrupo = r.GrupoEvaluacion.Id,
+                        DescGrupo = r.GrupoEvaluacion.NombreGrupo,
+                        Codigo = ((puntuacion == 0) ? 2 : puntuacion)
+                    };
+
+                entidadSegunda.Add(registro);
+            }
         }
-
-
-        rubricasegunda = await reporubrica.GetByIdGrupoAsync(3);
-        foreach (var r in rubricasegunda)
-        {
-            var registro = new RubricaCompuesta
-            {
-                IdRubrica = r.Id,
-                Descripcion = r.Descripcion,
-                IdGrupo = r.GrupoEvaluacion.Id,
-                DescGrupo = r.GrupoEvaluacion.NombreGrupo,
-                Codigo = -1 // Esto obliga a seleccionar uno
-            };
-
-            entidadSegunda.Add(registro);
-        }
-
-        rubricasegunda = await reporubrica.GetByIdGrupoAsync(4);
-        foreach (var r in rubricasegunda)
-        {
-            var registro = new RubricaCompuesta
-            {
-                IdRubrica = r.Id,
-                Descripcion = r.Descripcion,
-                IdGrupo = r.GrupoEvaluacion.Id,
-                DescGrupo = r.GrupoEvaluacion.NombreGrupo,
-                Codigo = -1 // Esto obliga a seleccionar uno
-            };
-            entidadSegunda.Add(registro);
-        }
-        compevaluar = true;
+        complevaluar = true;
     }
 
     private async Task GuardarCompEvaluacion()
     {
         try
         {
-            // Aquí iría la lógica para guardar la evaluación completa, similar a lo que hicimos en GuardarIniEvaluacion
-            // Por ejemplo, podrías actualizar los registros existentes con nuevas puntuaciones o comentarios.
-            compevaluar = false;
+            bool hayErrores = false;
+            var userid = await SessionStorage.GetAsync<string>("UserId");
+            if (!string.IsNullOrEmpty(userid.Value))
+            {
+                foreach (var item in entidadSegunda)
+                {
+                    if (item.Codigo == -1)
+                    {
+                        hayErrores = true;
+                        continue;
+                    }
+                    await reporubbenefi.CreateAsync(int.Parse(userid.Value), item.IdRubrica, int.Parse(Id), item.Codigo);
+                }
+                complevaluar = false;
+
+                if(!hayErrores)
+                    cerrareval = true;
+            }
             StateHasChanged();
         }
         catch (Exception ex)
@@ -642,30 +694,87 @@
 
     private async Task VerEvaluacion()
     {
-        var userid = await SessionStorage.GetAsync<string>("UserId");
-        if (!string.IsNullOrEmpty(userid.Value))
+        try
         {
-            benefirubricauser = await reporubbenefi.GetByIdUserBenefilAsync(int.Parse(userid.Value), int.Parse(Id));
-            if (benefirubricauser.Count > 0)
+            var userid = await SessionStorage.GetAsync<string>("UserId");
+            if (!string.IsNullOrEmpty(userid.Value))
             {
-                rubricainicial = await reporubrica.GetByIdGrupoAsync(5);
-                entidadActual = new List<RubricaBasica>();
-
-                foreach (var r in rubricainicial)
+                benefirubricauser = await reporubbenefi.GetByIdUserBenefilAsync(int.Parse(userid.Value), int.Parse(Id));
+                if (benefirubricauser.Count > 0)
                 {
-                    decimal puntuacion = benefirubricauser.Where(x => x.RubricaEvaluacion.Id == r.Id).Select(x => x.FactorResultado).FirstOrDefault();
+                    rubricainicial = await reporubrica.GetByIdGrupoAsync(5);
+                    entidadActual = new List<RubricaBasica>();
 
-                    var registro = new RubricaBasica
+                    foreach (var r in rubricainicial)
+                    {
+                        decimal puntuacion = benefirubricauser.Where(x => x.RubricaEvaluacion.Id == r.Id).Select(x => x.FactorResultado).FirstOrDefault();
+
+                        var registro = new RubricaBasica
+                            {
+                                IdRubrica = r.Id,
+                                Descripcion = r.Descripcion,
+                                Codigo = puntuacion.ToString()
+                            };
+
+                        entidadActual.Add(registro);
+                    }
+
+                    if (evaluacioncerrada)
+                    {
+                        entidadSegundaver = new List<RubricaCompuestaVer>();
+
+                        for (int i = 1; i <= 4; i++)
                         {
-                            IdRubrica = r.Id,
-                            Descripcion = r.Descripcion,
-                            Codigo = puntuacion.ToString()
-                        };
+                            rubricasegunda = rubricatodas.Where(x => x.GrupoEvaluacion.Id == i).ToList();
+                            //rubricasegunda = await reporubrica.GetByIdGrupoAsync(1);
+                            foreach (var r in rubricasegunda)
+                            {
+                                decimal puntuacion = benefirubricauser.Where(x => x.RubricaEvaluacion.Id == r.Id).Select(x => x.FactorResultado).FirstOrDefault();
 
-                    entidadActual.Add(registro);
+                                var registro = new RubricaCompuestaVer
+                                {
+                                    IdRubrica = r.Id,
+                                    Descripcion = r.Descripcion,
+                                    IdGrupo = r.GrupoEvaluacion.Id,
+                                    DescGrupo = r.GrupoEvaluacion.NombreGrupo,
+                                    Codigo = puntuacion
+                                };
+
+                                entidadSegundaver.Add(registro);
+                            }
+                        }
+                    }
+                    vervaluarform = true;
                 }
-                vervaluarform = true;
             }
+        }
+        catch (Exception ex)
+        {
+            mensajeAlerta = $"Error al guardar al completar la evaluación: {ex.Message}";
+            mostrarAlerta = true;
+        }
+    }
+
+    private async Task CerrarEvaluacion()
+    {
+        try
+        {
+            var userid = await SessionStorage.GetAsync<string>("UserId");
+            if (!string.IsNullOrEmpty(userid.Value))
+            {
+                await reporubbenefi.CloseEvaluationAsync(int.Parse(userid.Value), int.Parse(Id));
+                benefirubricauser = await reporubbenefi.GetByIdUserBenefilAsync(int.Parse(userid.Value), int.Parse(Id));
+            }
+
+            rubricaevaluar = false;
+            cerrareval = false;
+            vervaluar = true;
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            mensajeAlerta = $"Error al guardar al completar la evaluación: {ex.Message}";
+            mostrarAlerta = true;
         }
     }
 }

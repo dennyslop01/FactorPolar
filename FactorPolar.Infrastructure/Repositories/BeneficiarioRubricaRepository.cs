@@ -15,6 +15,35 @@ namespace FactorPolar.Infrastructure.Repositories
     {
         private readonly IDbContextFactory<FactorDbContext> _contextFactory = contextFactory;
 
+        public async Task<bool> CloseEvaluationAsync(int idusuario, int idbenefi)
+        {
+            using var _context = _contextFactory.CreateDbContext();
+
+            var usuario = await _context.Usuarios.Where(x => x.Id == idusuario).FirstOrDefaultAsync();
+            if (usuario == null)
+            {
+                throw new Exception("Usuario no existe");
+            }
+
+            var beneficiario = await _context.Beneficiarios.Where(x => x.Id == idbenefi).FirstOrDefaultAsync();
+            if (beneficiario == null)
+            {
+                throw new Exception("Beneficiario no existe");
+            }
+
+            //var rubricas = await _context.BeneficiariosRubricas
+            //    .Where(x => x.Beneficiario.Id == idbenefi && x.Usuario.Id == idusuario).ToListAsync();
+
+            await _context.BeneficiariosRubricas
+                .Where(x => x.Beneficiario.Id == idbenefi && x.Usuario.Id == idusuario)
+                .ExecuteUpdateAsync(setters => setters
+                .SetProperty(b => b.CloseDate, DateTime.Now));
+
+            //await _context.SaveChangesAsync();
+
+            return true;
+        }
+
         public async Task<bool> CreateAsync(int idusuario, int idrubrica, int idbenefi, int puntuacion)
         {
             using var _context = _contextFactory.CreateDbContext();
@@ -61,7 +90,7 @@ namespace FactorPolar.Infrastructure.Repositories
             }
 
             var rubricaExist = await _context.BeneficiariosRubricas
-                .Where(x => x.RubricaEvaluacion.Id == idrubrica && x.Beneficiario.Id == idbenefi)
+                .Where(x => x.RubricaEvaluacion.Id == idrubrica && x.Beneficiario.Id == idbenefi && x.Usuario.Id == idusuario)
                 .FirstOrDefaultAsync();
 
             if (rubricaExist == null)

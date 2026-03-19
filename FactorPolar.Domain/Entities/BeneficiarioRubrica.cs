@@ -16,5 +16,9 @@ namespace FactorPolar.Domain.Entities
         public decimal FactorResultado { get; set; }
         public DateTime CreateDate { get; set; }
         public DateTime UpdateDate { get; set; }
+        public DateTime? CloseDate { get; set; }
+        public DateTime? DismissDate { get; set; }
+        public int? UsuarioDismissId { get; set; }
+
     }
 }
