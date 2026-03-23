@@ -266,6 +266,29 @@
     </div>
 }
 
+@if (evalpendiente)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Información</h5>
+                    <button type="button" class="btn-close" @onclick="Cancelar"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Tiene evaluaciones pendientes sin cerrar: @nombrePendiente</label>
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <button type="button" class="btn btn-danger" @onclick="Cancelar">
+                            <i class="bi bi-times"></i> Cancelar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
 
 @code{
     private List<Beneficiario> Listgral = new();
@@ -286,6 +309,8 @@
     private bool mostrarFormulario = false;
     private bool mostrarFormulario2 = false;
     private string searchTerm = "";
+    private bool evalpendiente = false;
+    private string nombrePendiente = string.Empty;
 
     private DatosCSV entidadActual = new();
 
@@ -357,8 +382,25 @@
                     ListEval2 = ListEvalgral.Where(b => b.Edad >= 9 && b.Edad <= 11).ToList();
                     ListEval3 = ListEvalgral.Where(b => b.Edad >= 12 && b.Edad <= 14).ToList();
                     ListEval4 = ListEvalgral.Where(b => b.Edad >= 15 && b.Edad <= 17).ToList();
-                }
 
+                    var evalp = benefirubricauser.Where(x => x.CloseDate == null &&
+                                                                    x.Puntuacion == 1 && (x.RubricaEvaluacion.Id == 30 ||
+                                                                    x.RubricaEvaluacion.Id == 31)).ToList();
+                    nombrePendiente = string.Empty;
+                    if (evalp.Count() > 0)
+                    {
+                        int idaux = 0;
+                        foreach (var item in evalp.OrderBy(x => x.Beneficiario.Id))
+                        {
+                            int puntaje = benefirubricauser.Where(y => y.Beneficiario.Id == item.Beneficiario.Id).Sum(x => x.Puntuacion);
+                            if (puntaje >= 2)
+                            {
+                                nombrePendiente = item.Beneficiario.FullName.ToString();
+                                evalpendiente = true;
+                            }
+                        }
+                    }
+                }
                 List1 = Listgral.Where(b => b.Edad >= 6 && b.Edad <= 8).ToList();
                 List2 = Listgral.Where(b => b.Edad >= 9 && b.Edad <= 11).ToList();
                 List3 = Listgral.Where(b => b.Edad >= 12 && b.Edad <= 14).ToList();
@@ -400,9 +442,36 @@
         StateHasChanged();
     }
 
-    private void VerDetalle(Beneficiario ben)
+    private async Task VerDetalle(Beneficiario ben)
     {
-        NavManager.NavigateTo($"/detalle/{ben.Id}");
+        var userid = await SessionStorage.GetAsync<string>("UserId");
+        if (!string.IsNullOrEmpty(userid.Value))
+        {
+            benefirubricauser = await reporubbenefi.GetByIdUserlAsync(int.Parse(userid.Value));
+
+            var evalp = benefirubricauser.Where(x => x.CloseDate == null &&
+                                                            x.Puntuacion == 1 && (x.RubricaEvaluacion.Id == 30 ||
+                                                            x.RubricaEvaluacion.Id == 31)).ToList();
+            nombrePendiente = string.Empty;
+            if (evalp.Count() > 0)
+            {
+                int idaux = 0;
+                foreach (var item in evalp.OrderBy(x => x.Beneficiario.Id))
+                {
+                    int puntaje = benefirubricauser.Where(y => y.Beneficiario.Id == item.Beneficiario.Id).Sum(x => x.Puntuacion);
+                    if (puntaje>=2)
+                    {
+                        if (ben.Id != item.Beneficiario.Id)
+                        {
+                            nombrePendiente = item.Beneficiario.FullName.ToString();
+                            evalpendiente = true;
+                            return;
+                        }
+                    }
+                }
+            }
+            NavManager.NavigateTo($"/detalle/{ben.Id}");
+        }
     }
 
     private async Task DescargarDatos()
@@ -483,6 +552,7 @@
     {
         mostrarFormulario = false;
         mostrarFormulario2 = false;
+        evalpendiente = false;
     }
 
     private async Task ExportarCsv(string separador, int opcion)
