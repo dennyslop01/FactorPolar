@@ -1,7 +1,6 @@
 ﻿@page "/detalle/{Id}"
 @using System.Globalization
 @inject GoogleDriveService DriveService
-@inject IJSRuntime jsRuntime
 @rendermode InteractiveServer
 
 <div class="container mt-4 pb-5">
@@ -104,6 +103,13 @@
                             <button class="btn btn-outline-secondary btn-sm rounded-pill px-4 me-2 mb-3" @onclick="Regresar">
                                 <i class="bi bi-arrow-left-circle me-2"></i>Regresar
                             </button>
+                            @if (userRolgral == 1)
+                            {
+                                <button class="btn btn-outline-warning btn-sm border-2 fw-bold px-3 rounded-pill me-2"
+                                        @onclick="VerEvaluaciones">
+                                    <i class="bi bi-search me-1"></i> Evaluaciones
+                                </button>
+                            }
                         </div>
                     </div>
                 </div>
@@ -145,6 +151,7 @@
             </div>
         </div>
     }
+
 </div>
 <br />
 
@@ -333,6 +340,7 @@
                             }
                         </div>
                     }
+
                     <div class="d-flex justify-content-end">
                         <button class="btn btn-outline-secondary btn-sm rounded-pill px-4" @onclick="CerrarModal">
                             Cerrar
@@ -390,6 +398,7 @@
 
     private int LimiteEval = 0;
     private decimal puntuacionGral = 0;
+    private int userRolgral = 0;
 
     [Inject] private IBeneficiario repobenefi { get; set; } = null!;
     [Inject] private IRubricaEvaluacion reporubrica { get; set; } = null!;
@@ -417,6 +426,7 @@
                 var userrol = await SessionStorage.GetAsync<string>("UserRol");
                 if (!string.IsNullOrEmpty(userrol.Value))
                 {
+                    userRolgral = int.Parse(userrol.Value);
                     benefirubrica = await reporubbenefi.GetByIdBenefiAsync(int.Parse(Id));
 
                     var userid = await SessionStorage.GetAsync<string>("UserId");
@@ -775,6 +785,22 @@
         {
             mensajeAlerta = $"Error al guardar al completar la evaluación: {ex.Message}";
             mostrarAlerta = true;
+        }
+    }
+
+    private async Task VerEvaluaciones()
+    {
+        var userid = await SessionStorage.GetAsync<string>("UserId");
+        if (!string.IsNullOrEmpty(userid.Value))
+        {
+            var userrol = await SessionStorage.GetAsync<string>("UserRol");
+            if (!string.IsNullOrEmpty(userrol.Value))
+            {
+                if (userrol.Value == "1")
+                {
+                    NavManager.NavigateTo($"/verevaluaciones/{Id}");
+                }
+            }
         }
     }
 }

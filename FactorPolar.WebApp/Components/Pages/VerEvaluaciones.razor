@@ -1,0 +1,92 @@
+﻿@page "/verevaluaciones/{Id}"
+@using System.Globalization
+@rendermode InteractiveServer
+
+
+<div class="container mt-4 pb-5">
+    <!-- CABECERA PRINCIPAL -->
+    <div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-white shadow-sm rounded-3">
+        <div>
+            <h6 class="text-muted mb-0">Participante</h6>
+            <h6 class="fw-bold text-primary mb-0">@datosbenefi</h6>
+        </div>
+    </div>
+    <ListarBenefiEvaluaciones Id="@Id" />
+    <br />
+    <hr />
+</div>
+
+@if (mostrarAlerta)
+{
+    <div id="divAlerta" class="alert alert-success alert-dismissible fade show toast-container" role="alert" style="display:none;">
+        @mensajeAlerta
+        <button type="button" class="btn-close" @onclick="() => mostrarAlerta = false"></button>
+    </div>
+}
+
+@if (cargando)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5); align-content:center">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="modal-cargando text-lg-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+@code
+{
+    [Parameter]
+    public string Id { get; set; }
+
+    string datosbenefi = string.Empty;
+    private string? mensajeAlerta;
+    private bool mostrarAlerta = false;
+    private bool cargando = false;
+
+    private Beneficiario? beneficiario = new();
+    private List<RubricaEvaluacion> rubricatodas = new();
+
+    [Inject] private IBeneficiario repobenefi { get; set; } = null!;
+    [Inject] private IRubricaEvaluacion reporubrica { get; set; } = null!;
+    [Inject] private IBeneficiarioRubrica reporubbenefi { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var authState = await authStateProvider.GetAuthenticationStateAsync();
+            if (!authState.User.Identity.IsAuthenticated)
+                NavManager.NavigateTo($"/");
+        }
+        catch
+        {
+            NavManager.NavigateTo($"/");
+        }
+
+        cargando = true;
+        try
+        {
+            beneficiario = await repobenefi.GetByIdlAsync(int.Parse(Id));
+            if (beneficiario != null)
+            {
+                datosbenefi = CultureInfo.CurrentCulture.TextInfo.ToTitleCase($"{beneficiario.FullName}".ToLower());
+            }
+
+            rubricatodas = await reporubrica.GetAllAsync();
+        }
+        catch (Exception ex)
+        {
+            datosbenefi = $"Error al cargar datos del beneficiario: {ex.Message}";
+        }
+        cargando = false;
+    }
+}

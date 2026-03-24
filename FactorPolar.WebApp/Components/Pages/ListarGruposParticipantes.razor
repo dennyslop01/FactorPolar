@@ -88,10 +88,17 @@
                                             </span>
                                         </td>
                                         <td class="text-end">
-                                            <button class="btn btn-outline-warning btn-sm border-2 fw-bold px-3 rounded-pill"
+                                            <button class="btn btn-outline-warning btn-sm border-2 fw-bold px-3 rounded-pill me-2"
                                                     @onclick="() => VerDetalle(p)">
                                                 <i class="bi bi-search me-1"></i> Detalle
                                             </button>
+                                            @if (userRolgral == 1)
+                                            {
+                                                <button class="btn btn-outline-warning btn-sm border-2 fw-bold px-3 rounded-pill me-2"
+                                                @onclick="() => VerEvaluaciones(p)">
+                                                    <i class="bi bi-search me-1"></i> Evaluaciones
+                                                </button>
+                                            }
                                         </td>
                                     </tr>
                                 </ChildContentRow>
@@ -174,10 +181,17 @@
                                             </span>
                                         </td>
                                         <td class="text-end">
-                                            <button class="btn btn-outline-warning btn-sm border-2 fw-bold px-3 rounded-pill"
+                                            <button class="btn btn-outline-warning btn-sm border-2 fw-bold px-3 rounded-pill me-2"
                                                     @onclick="() => VerDetalle(p)">
                                                 <i class="bi bi-search me-1"></i> Detalle
                                             </button>
+                                            @if (userRolgral == 1)
+                                            {
+                                                <button class="btn btn-outline-warning btn-sm border-2 fw-bold px-3 rounded-pill me-2"
+                                                @onclick="() => VerEvaluaciones(p)">
+                                                    <i class="bi bi-search me-1"></i> Evaluaciones
+                                                </button>
+                                            }
                                         </td>
                                     </tr>
                                 </ChildContentRow>
@@ -311,6 +325,7 @@
     private string searchTerm = "";
     private bool evalpendiente = false;
     private string nombrePendiente = string.Empty;
+    private int userRolgral = 0;
 
     private DatosCSV entidadActual = new();
 
@@ -351,6 +366,12 @@
         try
         {
             await LoadBenefiDataAsync();
+
+            var userrol = await SessionStorage.GetAsync<string>("UserRol");
+            if (!string.IsNullOrEmpty(userrol.Value))
+            {
+                userRolgral = int.Parse(userrol.Value);
+            }
         }
         catch (Exception ex)
         {
@@ -608,6 +629,22 @@
             Console.WriteLine(ex.Message);
         }
         return null;
+    }
+
+    private async Task VerEvaluaciones(Beneficiario benefi)
+    {
+        var userid = await SessionStorage.GetAsync<string>("UserId");
+        if (!string.IsNullOrEmpty(userid.Value))
+        {
+            var userrol = await SessionStorage.GetAsync<string>("UserRol");
+            if (!string.IsNullOrEmpty(userrol.Value))
+            {
+                if (userrol.Value == "1")
+                {
+                    NavManager.NavigateTo($"/verevaluaciones/{benefi.Id}");
+                }
+            }
+        }
     }
 }
 

@@ -42,4 +42,16 @@ namespace FactorPolar.Domain.Entities
         public string Descripcion { get; set; }
         public decimal Codigo { get; set; }
     }
+
+    public class RubricaCompuestaUsuario
+    {
+        public int IdUsuario { get; set; }
+        public string DescUsuario { get; set; }
+
+        public int IdRubrica { get; set; }
+        public int IdGrupo { get; set; }
+        public string DescGrupo { get; set; }
+        public string Descripcion { get; set; }
+        public decimal Codigo { get; set; }
+    }
 }
