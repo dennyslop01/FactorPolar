@@ -10,12 +10,6 @@
             <h6 class="text-muted mb-0">Participante</h6>
             <h6 class="fw-bold text-primary mb-0">@datosbenefi</h6>
         </div>
-        <div class="row mb-4">
-            <label class="text-muted small fw-bold text-uppercase d-block">Puntuje General</label>
-            <div class="col-6">
-                <span class="badge bg-secondary fs-6 rounded-pill px-3">@puntuacionGral</span>
-            </div>
-        </div>
     </div>
     <ListarBenefiEvaluaciones Id="@Id" />
     <br />
@@ -58,8 +52,6 @@
     private bool mostrarAlerta = false;
     private bool cargando = false;
 
-    private decimal puntuacionGral = 0;
-
     private Beneficiario? beneficiario = new();
     private List<BeneficiarioRubrica?> benefirubricauser = new();
 
@@ -87,14 +79,12 @@
             {
                 datosbenefi = CultureInfo.CurrentCulture.TextInfo.ToTitleCase($"{beneficiario.FullName}".ToLower());
             }
-
-            benefirubricauser = await reporubbenefi.GetByIdBenefiAsync(int.Parse(Id));
-            puntuacionGral = benefirubricauser.Sum(x => x.FactorResultado);
         }
         catch (Exception ex)
         {
             datosbenefi = $"Error al cargar datos del beneficiario: {ex.Message}";
         }
+        StateHasChanged();
         cargando = false;
     }
 }

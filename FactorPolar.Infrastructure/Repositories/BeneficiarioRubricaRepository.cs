@@ -120,6 +120,36 @@ namespace FactorPolar.Infrastructure.Repositories
             return true;
         }
 
+        public async Task<bool> DismissEvaluationAsync(int idusuario, int idbenefi)
+        {
+            using var _context = _contextFactory.CreateDbContext();
+
+            var usuario = await _context.Usuarios.Where(x => x.Id == idusuario).FirstOrDefaultAsync();
+            if (usuario == null)
+            {
+                throw new Exception("Usuario no existe");
+            }
+
+            var beneficiario = await _context.Beneficiarios.Where(x => x.Id == idbenefi).FirstOrDefaultAsync();
+            if (beneficiario == null)
+            {
+                throw new Exception("Beneficiario no existe");
+            }
+
+            //var rubricas = await _context.BeneficiariosRubricas
+            //    .Where(x => x.Beneficiario.Id == idbenefi && x.Usuario.Id == idusuario).ToListAsync();
+
+            await _context.BeneficiariosRubricas
+                .Where(x => x.Beneficiario.Id == idbenefi && x.Usuario.Id == idusuario)
+                .ExecuteUpdateAsync(setters => setters
+                .SetProperty(b => b.UsuarioDismissId, idusuario)
+                .SetProperty(b => b.DismissDate, DateTime.Now));
+
+            //await _context.SaveChangesAsync();
+
+            return true;
+        }
+
         public async Task<List<BeneficiarioRubrica?>> GetAlllAsync()
         {
             using var _context = _contextFactory.CreateDbContext();
