@@ -238,8 +238,8 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Completar Rúbrica Fase II</h5>
-                    <button type="button" class="btn-close" @onclick="CerrarModal"></button>
+                    <h5 class="modal-title">Completar evaluación del talento</h5>
+                    <button type="button" class="btn-close" @onclick="GuardarCompEvaluacion"></button>
                 </div>
                 <div class="modal-body">
                     <EditForm EditContext="editContext" OnValidSubmit="GuardarCompEvaluacion">
@@ -290,7 +290,7 @@
                             <button type="submit" class="btn btn-outline-primary btn-sm rounded-pill px-4">
                                 Guardar
                             </button>&nbsp;&nbsp;&nbsp;
-                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-4" @onclick="CerrarModal">
+                            <button class="btn btn-outline-secondary btn-sm rounded-pill px-4" @onclick="GuardarCompEvaluacion">
                                 Cancelar
                             </button>
                         </div>
@@ -309,7 +309,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Rúbrica Evaluada</h5>
+                    <h5 class="modal-title">Evaluación del talento</h5>
                     <button type="button" class="btn-close" @onclick="CerrarModal"></button>
                 </div>
                 <div class="modal-body">
@@ -779,6 +779,7 @@
             rubricaevaluar = false;
             cerrareval = false;
             vervaluar = true;
+            evaluacioncerrada = true;
             StateHasChanged();
         }
         catch (Exception ex)

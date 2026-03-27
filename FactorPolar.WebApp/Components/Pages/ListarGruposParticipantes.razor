@@ -192,6 +192,25 @@
                                                     <i class="bi bi-search me-1"></i> Evaluaciones
                                                 </button>
                                             }
+                                            @if(benefirubricauser.Where(x => x.Beneficiario.Id == p.Id && x.CloseDate == null &&
+                                                                        x.Puntuacion == 0 && (x.RubricaEvaluacion.Id == 30 ||
+                                                                        x.RubricaEvaluacion.Id == 31)).Count() >= 1)
+                                            {
+                                                <button class="btn btn-outline-danger btn-sm border-2 fw-bold px-3 rounded-pill me-2">
+                                                    <i class="bi bi-x-circle me-1"></i></button>
+                                            }
+                                            else if (benefirubricauser.Where(x => x.Beneficiario.Id == p.Id && x.CloseDate == null &&
+                                                                                x.Puntuacion == 1 && (x.RubricaEvaluacion.Id == 30 ||
+                                                                                x.RubricaEvaluacion.Id == 31)).Count() >= 2)
+                                            {
+                                                <button class="btn btn-outline-warning btn-sm border-2 fw-bold px-3 rounded-pill me-2">
+                                                    <i class="bi bi-exclamation-circle me-1"></i></button>
+                                            }
+                                            else if (benefirubricauser.Where(x => x.Beneficiario.Id == p.Id && x.CloseDate != null).Count() > 10)
+                                            {
+                                                <button class="btn btn-outline-success btn-sm border-2 fw-bold px-3 rounded-pill me-2">
+                                                    <i class="bi bi-check2-circle me-1"></i></button>
+                                            }
                                         </td>
                                     </tr>
                                 </ChildContentRow>
@@ -411,12 +430,14 @@
                     if (evalp.Count() > 0)
                     {
                         int idaux = 0;
-                        foreach (var item in evalp.OrderBy(x => x.Beneficiario.Id))
+                        foreach (var item in evalp.OrderBy(x => x.Beneficiario.Id).Distinct())
                         {
                             int puntaje = benefirubricauser.Where(y => y.Beneficiario.Id == item.Beneficiario.Id).Sum(x => x.Puntuacion);
                             if (puntaje >= 2)
                             {
-                                nombrePendiente = item.Beneficiario.FullName.ToString();
+                                if (!nombrePendiente.Contains(item.Beneficiario.FullName.ToString()))
+                                    nombrePendiente += item.Beneficiario.FullName.ToString() + ", ";
+
                                 evalpendiente = true;
                             }
                         }

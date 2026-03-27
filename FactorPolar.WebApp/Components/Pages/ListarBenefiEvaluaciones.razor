@@ -18,50 +18,51 @@
             </div>
         </div>
 
-        @foreach (var usuario in entidadSegundaver.GroupBy(x => x.IdUsuario).Select(g => g.First()))
-        {
-            <div class="card-body">
-                <div class="col-lg-5">
-                    <div class="card border-0 shadow-sm h-100">
-                        <div class="card-header bg-primary text-white py-3">
-                            <h6 class="mb-0">@usuario.DescUsuario</h6>
-                            <label>Factor Resultado: @entidadSegundaver.Where(x => x.IdUsuario == usuario.IdUsuario).Sum(y => y.Codigo)</label>
-                        </div>
-                        @foreach (var grupo in entidadSegundaver.Where(x => x.IdGrupo == 5 && x.IdUsuario == usuario.IdUsuario).GroupBy(x => x.IdGrupo).Select(g => g.First()))
-                        {
-                            <div class="mt-3">
-                                <h6>@grupo.DescGrupo</h6>
+        <div class="card-body">
+            <div class="row">
+                @foreach (var usuario in entidadSegundaver.GroupBy(x => x.IdUsuario).Select(g => g.First()))
+                {
+                    <div class="col-lg-4">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-header bg-primary text-white py-3">
+                                <h6 class="mb-0">@usuario.DescUsuario</h6>
+                                <label>Factor Resultado: @entidadSegundaver.Where(x => x.IdUsuario == usuario.IdUsuario).Sum(y => y.Codigo)</label>
                             </div>
+                            @foreach (var grupo in entidadSegundaver.Where(x => x.IdGrupo == 5 && x.IdUsuario == usuario.IdUsuario).GroupBy(x => x.IdGrupo).Select(g => g.First()))
+                            {
+                                <div class="mt-3">
+                                    <h6>@grupo.DescGrupo</h6>
+                                </div>
 
-                            @foreach (var item in entidadSegundaver.Where(x => x.IdGrupo == grupo.IdGrupo))
-                            {
-                                <div class="mb-4">
-                                    <label class="text-muted small fw-bold text-uppercase d-block">@item.Descripcion</label>
-                                    <label class="text-muted small fw-bold text-uppercase d-block">@item.Codigo</label>
-                                </div>
+                                @foreach (var item in entidadSegundaver.Where(x => x.IdGrupo == grupo.IdGrupo && x.IdUsuario == usuario.IdUsuario))
+                                {
+                                    <div class="mb-4">
+                                        <label class="text-muted small fw-bold text-uppercase d-block">@item.Descripcion</label>
+                                        <label class="text-muted small fw-bold text-uppercase d-block">@item.Codigo</label>
+                                    </div>
+                                }
+                                <hr />
                             }
-                            <hr />
-                        }
-                        @foreach (var grupo in entidadSegundaver.Where(z => z.IdGrupo != 5 && z.IdUsuario == usuario.IdUsuario).GroupBy(x => x.IdGrupo).Select(g => g.First()))
-                        {
-                            <div class="mt-3">
-                                <h6>@grupo.DescGrupo</h6>
-                            </div>
-                        
-                            @foreach (var item in entidadSegundaver.Where(x => x.IdGrupo == grupo.IdGrupo))
+                            @foreach (var grupo in entidadSegundaver.Where(z => z.IdGrupo != 5 && z.IdUsuario == usuario.IdUsuario).GroupBy(x => x.IdGrupo).Select(g => g.First()))
                             {
-                                <div class="mb-4">
-                                    <label class="text-muted small fw-bold text-uppercase d-block">@item.Descripcion</label>
-                                    <label class="text-muted small fw-bold text-uppercase d-block">@item.Codigo</label>
+                                <div class="mt-3">
+                                    <h6>@grupo.DescGrupo</h6>
                                 </div>
+
+                                @foreach (var item in entidadSegundaver.Where(x => x.IdGrupo == grupo.IdGrupo && x.IdUsuario == usuario.IdUsuario))
+                                {
+                                    <div class="mb-4">
+                                        <label class="text-muted small fw-bold text-uppercase d-block">@item.Descripcion</label>
+                                        <label class="text-muted small fw-bold text-uppercase d-block">@item.Codigo</label>
+                                    </div>
+                                }
+                                <hr />
                             }
-                            <hr />
-                        }
+                        </div>
                     </div>
-                </div>
-            </div>
-        }
-        
+                }
+            </div>                
+        </div>
     </div>
 </div>
 
@@ -86,42 +87,49 @@
             benefirubricauser = await reporubbenefi.GetByIdBenefiAsync(int.Parse(Id));
 
             entidadSegundaver = new List<RubricaCompuestaUsuario>();
+            Console.WriteLine($"Beneficirio: {int.Parse(Id)}");
 
-            for (int i = 1; i <= 5; i++)
+            foreach (var usuario in benefirubricauser.GroupBy(x => x.Usuario.Id).Select(g => g.First()))
             {
-                rubricasegunda = rubricatodas.Where(x => x.GrupoEvaluacion.Id == i).ToList();
-                foreach (var r in rubricasegunda)
+                Console.WriteLine($"Usuario: {usuario.Usuario.Id}");
+
+                for (int i = 1; i <= 5; i++)
                 {
-                    var existeEvaluacion = benefirubricauser.Where(x => x.RubricaEvaluacion.Id == r.Id && x.Beneficiario.Id == int.Parse(Id));
-                    if(existeEvaluacion == null || !existeEvaluacion.Any())
+                    rubricasegunda = rubricatodas.Where(x => x.GrupoEvaluacion.Id == i).ToList();
+                    foreach (var r in rubricasegunda)
                     {
-                        continue; // Si no hay evaluación para esta rúbrica, saltamos al siguiente
+                        Console.WriteLine($"Rubrica: {r.Id}");
+
+                        var existeEvaluacion = benefirubricauser.Where(x => x.RubricaEvaluacion.Id == r.Id && x.Beneficiario.Id == int.Parse(Id) && x.Usuario.Id == usuario.Usuario.Id);
+                        if(existeEvaluacion == null || !existeEvaluacion.Any())
+                        {
+                            continue; // Si no hay evaluación para esta rúbrica, saltamos al siguiente
+                        }
+
+                        decimal puntuacion = benefirubricauser.Where(x => x.RubricaEvaluacion.Id == r.Id && x.Usuario.Id == usuario.Usuario.Id).Select(x => x.FactorResultado).FirstOrDefault();
+                        string emailUsuario = benefirubricauser.Where(x => x.RubricaEvaluacion.Id == r.Id && x.Usuario.Id == usuario.Usuario.Id).Select(x => x.Usuario.Email).FirstOrDefault();
+                        string nombUsuario = benefirubricauser.Where(x => x.RubricaEvaluacion.Id == r.Id && x.Usuario.Id == usuario.Usuario.Id).Select(x => x.Usuario.NombreCorto).FirstOrDefault();
+
+                        if(!string.IsNullOrEmpty(nombUsuario))
+                        {
+                            emailUsuario += $" ({nombUsuario})";
+                        }
+
+                        var registro = new RubricaCompuestaUsuario
+                        {
+                            IdUsuario =  usuario.Id,
+                            DescUsuario = emailUsuario,
+                            IdRubrica = r.Id,
+                            Descripcion = r.Descripcion,
+                            IdGrupo = r.GrupoEvaluacion.Id,
+                            DescGrupo = r.GrupoEvaluacion.NombreGrupo,
+                            Codigo = puntuacion
+                        };
+
+                        entidadSegundaver.Add(registro);
                     }
-
-                    decimal puntuacion = benefirubricauser.Where(x => x.RubricaEvaluacion.Id == r.Id).Select(x => x.FactorResultado).FirstOrDefault();
-                    int idUsuario = benefirubricauser.Where(x => x.RubricaEvaluacion.Id == r.Id).Select(x => x.Usuario.Id).FirstOrDefault();
-                    string emailUsuario = benefirubricauser.Where(x => x.RubricaEvaluacion.Id == r.Id).Select(x => x.Usuario.Email).FirstOrDefault();
-                    string nombUsuario = benefirubricauser.Where(x => x.RubricaEvaluacion.Id == r.Id).Select(x => x.Usuario.NombreCorto).FirstOrDefault();
-
-                    if(!string.IsNullOrEmpty(nombUsuario))
-                    {
-                        emailUsuario += $" ({nombUsuario})";
-                    }
-
-                    var registro = new RubricaCompuestaUsuario
-                    {
-                        IdUsuario = idUsuario,
-                        DescUsuario = emailUsuario,
-                        IdRubrica = r.Id,
-                        Descripcion = r.Descripcion,
-                        IdGrupo = r.GrupoEvaluacion.Id,
-                        DescGrupo = r.GrupoEvaluacion.NombreGrupo,
-                        Codigo = puntuacion
-                    };
-
-                    entidadSegundaver.Add(registro);
                 }
-            }
+            }            
         }
         catch (Exception ex)
         {

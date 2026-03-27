@@ -10,6 +10,12 @@
             <h6 class="text-muted mb-0">Participante</h6>
             <h6 class="fw-bold text-primary mb-0">@datosbenefi</h6>
         </div>
+        <div class="row mb-4">
+            <label class="text-muted small fw-bold text-uppercase d-block">Puntuje General</label>
+            <div class="col-6">
+                <span class="badge bg-secondary fs-6 rounded-pill px-3">@puntuacionGral</span>
+            </div>
+        </div>
     </div>
     <ListarBenefiEvaluaciones Id="@Id" />
     <br />
@@ -52,11 +58,12 @@
     private bool mostrarAlerta = false;
     private bool cargando = false;
 
+    private decimal puntuacionGral = 0;
+
     private Beneficiario? beneficiario = new();
-    private List<RubricaEvaluacion> rubricatodas = new();
+    private List<BeneficiarioRubrica?> benefirubricauser = new();
 
     [Inject] private IBeneficiario repobenefi { get; set; } = null!;
-    [Inject] private IRubricaEvaluacion reporubrica { get; set; } = null!;
     [Inject] private IBeneficiarioRubrica reporubbenefi { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
@@ -81,7 +88,8 @@
                 datosbenefi = CultureInfo.CurrentCulture.TextInfo.ToTitleCase($"{beneficiario.FullName}".ToLower());
             }
 
-            rubricatodas = await reporubrica.GetAllAsync();
+            benefirubricauser = await reporubbenefi.GetByIdBenefiAsync(int.Parse(Id));
+            puntuacionGral = benefirubricauser.Sum(x => x.FactorResultado);
         }
         catch (Exception ex)
         {
