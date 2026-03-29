@@ -1,0 +1,251 @@
+﻿@using System.Globalization
+@using System.Text
+@rendermode InteractiveServer
+
+<div class="container-fluid mt-4">
+    <!-- Buscador Global por Nombre -->
+    <div class="row mb-3">
+        <div class="col-md-4 ms-auto">
+            <div class="input-group">
+                <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control"
+                       placeholder="Buscar por nombre..."
+                       @oninput="FiltrarBusqueda" />
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 h-auto">
+        <div class="card-header bg-white py-3">
+            <div class="d-flex align-items-center">
+                <div class="bg-primary p-2 rounded-3 me-3">
+                    <i class="bi bi-people-fill text-white fs-4"></i>
+                </div>
+                <h6 class="mb-0 fw-bold text-secondary">Grupos de Talentos Clasificados</h6>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <div class="row">
+                <div class="col-4">
+                    <div>
+                        <strong>Nro. de Registros:</strong> @Listgral.Count()
+                    </div>
+                </div>
+                @* @if (Listgral.Count() > 0)
+                {
+                    <div class="col-4">
+                        <button class="btn btn-outline-secondary btn-sm rounded-pill px-4" @onclick="DescargarDatos">
+                            <i class="bi bi-filetype-csv"></i> Descargar Datos
+                        </button>
+                    </div>
+                } *@
+            </div>
+            <hr />
+
+            <!-- Navegación de Pestañas Estilizada -->
+            <ul class="nav nav-pills nav-fill mb-4 bg-light p-2 rounded-pill" id="talentTabs" role="tablist">
+                @foreach (var grupo in GruposConfig)
+                {
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link rounded-pill @(grupo.Id == 1 ? "active" : "")"
+                                id="tab-@grupo.Id" data-bs-toggle="tab" data-bs-target="#panel-@grupo.Id"
+                                type="button" role="tab">
+                            <span class="fw-semibold">@grupo.Nombre</span>
+                            <small class="d-block opacity-75">@grupo.Rango</small>
+                        </button>
+                    </li>
+                }
+            </ul>
+
+            <!-- Contenido de las Pestañas -->
+            <div class="tab-content" id="talentTabsContent">
+                @for (int i = 1; i <= 4; i++)
+                {
+                    var currentList = GetListById(i);
+                    <div class="tab-pane fade @(i == 1 ? "show active" : "")" id="panel-@i" role="tabpanel">
+                        <div class="table-responsive">
+                            <PaginationComponent TItem="BeneficiarioPuntaje" Items="currentList" DefaultPageSize="10">
+                                <ChildContentHeader>
+                                    <tr class="table-light">
+                                        <th class="border-0 text-uppercase small fw-bold">No. Pers</th>
+                                        <th class="border-0 text-uppercase small fw-bold">Nombre del Beneficiario</th>
+                                        <th class="border-0 text-uppercase small fw-bold">Fecha Nacimiento</th>
+                                        <th class="border-0 text-uppercase small fw-bold text-center">Edad</th>
+                                        <th class="border-0 text-uppercase small fw-bold text-center">Puntaje</th>
+                                        <th class="border-0 text-end">Acciones</th>
+                                    </tr>
+                                </ChildContentHeader>
+                                <ChildContentRow Context="p">
+                                    <tr class="align-middle">
+                                        <td class="fw-bold text-primary">@p.Employee.EmployeeNumber</td>
+                                        <td>@CultureInfo.CurrentCulture.TextInfo.ToTitleCase(p.FullName.ToLower())</td>
+                                        <td>@p.FechaNacimiento.ToShortDateString()</td>
+                                        <td class="text-center">
+                                            <span class="badge bg-info-subtle text-info border border-info-subtle px-3 py-2 rounded-pill">
+                                                @p.Edad años
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-info-subtle text-info border border-info-subtle px-3 py-2 rounded-pill">
+                                                @p.Puntaje
+                                            </span>
+                                        </td>
+                                        <td class="text-end">
+                                            <button class="btn btn-outline-warning btn-sm border-2 fw-bold px-3 rounded-pill me-2"
+                                                    @onclick="() => VerDetalle(p)">
+                                                <i class="bi bi-search me-1"></i> Detalle
+                                            </button>
+                                            <button class="btn btn-outline-warning btn-sm border-2 fw-bold px-3 rounded-pill me-2"
+                                                        @onclick="() => VerEvaluaciones(p)">
+                                                    <i class="bi bi-search me-1"></i> Evaluaciones
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </ChildContentRow>
+                            </PaginationComponent>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<BeneficiarioPuntaje> Listgral = new();
+    private List<BeneficiarioPuntaje> ListgralBuscar = new();
+    private List<BeneficiarioPuntaje> List1 = new();
+    private List<BeneficiarioPuntaje> List2 = new();
+    private List<BeneficiarioPuntaje> List3 = new();
+    private List<BeneficiarioPuntaje> List4 = new();
+
+    private List<GrupoInfo> GruposConfig = new()
+    {
+        new GrupoInfo { Id = 1, Nombre = "Grupo 1", Rango = "6 a 8 años" },
+        new GrupoInfo { Id = 2, Nombre = "Grupo 2", Rango = "9 a 11 años" },
+        new GrupoInfo { Id = 3, Nombre = "Grupo 3", Rango = "12 a 14 años" },
+        new GrupoInfo { Id = 4, Nombre = "Grupo 4", Rango = "15 a 17 años" }
+    };
+
+    private string searchTerm = "";
+    [Inject] private IBeneficiario repobenefi { get; set; } = null!;
+    [Inject] private IBeneficiarioRubrica reporubbenefi { get; set; } = null!;
+
+
+    public class GrupoInfo { public int Id { get; set; } public string Nombre { get; set; } public string Rango { get; set; } }
+    private List<BeneficiarioPuntaje> GetListById(int id) => id switch
+    {
+        1 => List1,
+        2 => List2,
+        3 => List3,
+        4 => List4,
+        _ => new List<BeneficiarioPuntaje>()
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            await LoadBenefiDataAsync();
+        }
+        catch (Exception ex)
+        {
+            // Manejo de errores (opcional)
+            Console.WriteLine($"Error al cargar datos del los beneficiarios: {ex.Message}");
+        }
+    }
+
+    private async Task LoadBenefiDataAsync()
+    {
+        var beneficiriosEval = await reporubbenefi.GetAlllAsync();
+
+        Listgral.Clear();
+        ListgralBuscar.Clear();
+
+        foreach (var ben in beneficiriosEval.Where(x => x.DismissDate == null).GroupBy(x => x.Beneficiario.Id).Select(g => g.First()))
+        {
+            var beneficiario = await repobenefi.GetByIdlAsync(ben.Beneficiario.Id);
+            if (beneficiario != null)
+            {
+                Listgral.Add(new BeneficiarioPuntaje
+                {
+                    Id = beneficiario.Id,
+                    FullName = beneficiario.FullName,
+                    FechaNacimiento = beneficiario.FechaNacimiento,
+                    Employee = beneficiario.Employee,
+                    Edad = beneficiario.Edad,
+                    Puntaje = beneficiriosEval.Where(x => x.DismissDate == null && x.Beneficiario.Id == beneficiario.Id).Sum(x => x.FactorResultado)
+                });
+            }
+        }
+        ListgralBuscar = Listgral;
+        List1 = Listgral.Where(b => b.Edad >= 6 && b.Edad <= 8).ToList();
+        List2 = Listgral.Where(b => b.Edad >= 9 && b.Edad <= 11).ToList();
+        List3 = Listgral.Where(b => b.Edad >= 12 && b.Edad <= 14).ToList();
+        List4 = Listgral.Where(b => b.Edad >= 15 && b.Edad <= 17).ToList();
+        await Task.CompletedTask;
+    }
+
+    private async Task FiltrarBusqueda(ChangeEventArgs e)
+    {
+        searchTerm = e.Value?.ToString() ?? "";
+        if (string.IsNullOrEmpty(searchTerm))
+        {
+            await LoadBenefiDataAsync(); // Recargar datos completos si el término de búsqueda está vacío
+        }
+        else
+        {
+            var lowerSearchTerm = searchTerm.ToLower();
+            Listgral = ListgralBuscar.Where(b => b.FullName.ToLower().Contains(lowerSearchTerm)).ToList();
+        }
+        StateHasChanged();
+    }
+
+    private void VerDetalle(BeneficiarioPuntaje ben)
+    {
+        NavManager.NavigateTo($"/editar2/{ben.Id}");
+    }
+
+    private void Regresar()
+    {
+        NavManager.NavigateTo($"/");
+    }
+
+    private async Task VerEvaluaciones(BeneficiarioPuntaje benefi)
+    {
+        var userid = await SessionStorage.GetAsync<string>("UserId");
+        if (!string.IsNullOrEmpty(userid.Value))
+        {
+            var userrol = await SessionStorage.GetAsync<string>("UserRol");
+            if (!string.IsNullOrEmpty(userrol.Value))
+            {
+                if (userrol.Value == "1")
+                {
+                    NavManager.NavigateTo($"/verevaluaciones/{benefi.Id}");
+                }
+            }
+        }
+    }
+}
+
+<style>
+    /* Personalización para que las pestañas se vean más modernas */
+    .nav-pills .nav-link {
+        color: #6c757d;
+        transition: all 0.3s ease;
+    }
+
+        .nav-pills .nav-link.active {
+            background-color: #0d6efd !important;
+            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.25);
+        }
+
+    .table-responsive {
+        min-height: 400px;
+    }
+
+    .btn-outline-warning:hover {
+        color: #000; /* Mejor contraste */
+    }
+</style>

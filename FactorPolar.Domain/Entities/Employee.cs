@@ -52,4 +52,17 @@ namespace FactorPolar.Domain.Entities
         public string? NombreVideo { get; set; }
         public int? EstadoPostulacion { get; set; }
     }
+
+    public class BeneficiarioPuntaje
+    {
+        public int Id { get; set; }
+        public string? Denominacion { get; set; } 
+        public string? CedulaIdentidad { get; set; } 
+        public string? FullName { get; set; }
+        public string? Gender { get; set; }
+        public DateTime FechaNacimiento { get; set; }
+        public int Edad { get; set; }
+        public decimal? Puntaje { get; set; }
+        public Employee Employee { get; set; }
+    }
 }

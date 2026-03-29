@@ -1,0 +1,52 @@
+﻿@page "/clasificados"
+@rendermode InteractiveServer
+
+<div class="container mt-4 pb-5">
+    <!-- CABECERA PRINCIPAL -->
+    <div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-white shadow-sm rounded-3">
+        <div>
+            <h6 class="text-muted mb-0">Soporte Beneficiarios</h6>
+        </div>
+    </div>
+    <ListarBeneficiariosClasificados />
+    <br />
+    <hr />
+</div>
+
+@if (cargando)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5); align-content:center">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="modal-cargando text-lg-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+@code {
+    private bool cargando = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        cargando = true;
+        try
+        {
+            var authState = await authStateProvider.GetAuthenticationStateAsync();
+            if (!authState.User.Identity.IsAuthenticated)
+                NavManager.NavigateTo($"/");
+        }
+        catch
+        {
+            NavManager.NavigateTo($"/");
+        }
+        cargando = false;
+    }
+}
