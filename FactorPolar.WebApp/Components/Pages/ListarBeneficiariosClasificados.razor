@@ -32,87 +32,181 @@
                         <strong>Nro. de Registros:</strong> @Listgral.Count()
                     </div>
                 </div>
-                @* @if (Listgral.Count() > 0)
+                @if (Listgral.Count() > 0)
                 {
                     <div class="col-4">
                         <button class="btn btn-outline-secondary btn-sm rounded-pill px-4" @onclick="DescargarDatos">
                             <i class="bi bi-filetype-csv"></i> Descargar Datos
                         </button>
                     </div>
-                } *@
+                }
             </div>
             <hr />
+            @if(vistaGeneral)
+            {
+                <div class="table-responsive">
+                    <PaginationComponent TItem="BeneficiarioPuntaje" Items="Listgral" DefaultPageSize="10">
+                        <ChildContentHeader>
+                            <tr class="table-light">
+                                @* <th class="border-0 text-uppercase small fw-bold">#</th> *@
+                                <th class="border-0 text-uppercase small fw-bold">No. Pers</th>
+                                <th class="border-0 text-uppercase small fw-bold">Nombre del Empleado</th>
+                                <th class="border-0 text-uppercase small fw-bold">Nombre del Beneficiario</th>
+                                <th class="border-0 text-uppercase small fw-bold">Fecha Nacimiento</th>
+                                <th class="border-0 text-uppercase small fw-bold text-center">Edad</th>
+                                <th class="border-0 text-uppercase small fw-bold text-center">Puntaje</th>
+                                <th class="border-0 text-end">Acciones</th>
+                            </tr>
+                        </ChildContentHeader>
+                        <ChildContentRow Context="p">
+                            <tr class="align-middle">
+                                @* <td><span class="text-muted">@p.Id</span></td> *@
+                                <td class="fw-bold text-primary">@p.Employee.EmployeeNumber</td>
+                                <td>@CultureInfo.CurrentCulture.TextInfo.ToTitleCase(p.Employee.FullName.ToLower())</td>
+                                <td>@CultureInfo.CurrentCulture.TextInfo.ToTitleCase(p.FullName.ToLower())</td>
+                                <td>@p.FechaNacimiento.ToShortDateString()</td>
+                                <td class="text-center">
+                                    <span class="badge bg-info-subtle text-info border border-info-subtle px-4 py-2 rounded-pill">
+                                        @p.Edad años
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-info-subtle text-info border border-info-subtle px-4 py-2 rounded-pill fs-6 fw-bold">
+                                        @($"{p.Puntaje:0.00}")
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    @* <button class="btn btn-outline-warning btn-sm border-2 fw-bold px-3 rounded-pill"
+                                            @onclick="() => VerDetalle(p)">
+                                        <i class="bi bi-search me-1"></i> Editar
+                                    </button> *@
+                                    <button class="btn btn-outline-warning btn-sm border-2 fw-bold px-3 rounded-pill me-2"
+                                            @onclick="() => VerEvaluaciones(p)">
+                                        <i class="bi bi-search me-1"></i> Evaluaciones
+                                    </button>
+                                </td>
+                            </tr>
+                        </ChildContentRow>
+                    </PaginationComponent>
+                </div>
+            }
 
-            <!-- Navegación de Pestañas Estilizada -->
-            <ul class="nav nav-pills nav-fill mb-4 bg-light p-2 rounded-pill" id="talentTabs" role="tablist">
-                @foreach (var grupo in GruposConfig)
-                {
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link rounded-pill @(grupo.Id == 1 ? "active" : "")"
-                                id="tab-@grupo.Id" data-bs-toggle="tab" data-bs-target="#panel-@grupo.Id"
-                                type="button" role="tab">
-                            <span class="fw-semibold">@grupo.Nombre</span>
-                            <small class="d-block opacity-75">@grupo.Rango</small>
-                        </button>
-                    </li>
-                }
-            </ul>
+            @if(vistaGrupos)
+            {
+                <!-- Navegación de Pestañas Estilizada -->
+                <ul class="nav nav-pills nav-fill mb-4 bg-light p-2 rounded-pill" id="talentTabs" role="tablist">
+                    @foreach (var grupo in GruposConfig)
+                    {
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link rounded-pill @(grupo.Id == 1 ? "active" : "")"
+                                    id="tab-@grupo.Id" data-bs-toggle="tab" data-bs-target="#panel-@grupo.Id"
+                                    type="button" role="tab">
+                                <span class="fw-semibold">@grupo.Nombre</span>
+                                <small class="d-block opacity-75">@grupo.Rango</small>
+                            </button>
+                        </li>
+                    }
+                </ul>
 
-            <!-- Contenido de las Pestañas -->
-            <div class="tab-content" id="talentTabsContent">
-                @for (int i = 1; i <= 4; i++)
-                {
-                    var currentList = GetListById(i);
-                    <div class="tab-pane fade @(i == 1 ? "show active" : "")" id="panel-@i" role="tabpanel">
-                        <div class="table-responsive">
-                            <PaginationComponent TItem="BeneficiarioPuntaje" Items="currentList" DefaultPageSize="10">
-                                <ChildContentHeader>
-                                    <tr class="table-light">
-                                        <th class="border-0 text-uppercase small fw-bold">No. Pers</th>
-                                        <th class="border-0 text-uppercase small fw-bold">Nombre del Beneficiario</th>
-                                        <th class="border-0 text-uppercase small fw-bold">Fecha Nacimiento</th>
-                                        <th class="border-0 text-uppercase small fw-bold text-center">Edad</th>
-                                        <th class="border-0 text-uppercase small fw-bold text-center">Puntaje</th>
-                                        <th class="border-0 text-end">Acciones</th>
-                                    </tr>
-                                </ChildContentHeader>
-                                <ChildContentRow Context="p">
-                                    <tr class="align-middle">
-                                        <td class="fw-bold text-primary">@p.Employee.EmployeeNumber</td>
-                                        <td>@CultureInfo.CurrentCulture.TextInfo.ToTitleCase(p.FullName.ToLower())</td>
-                                        <td>@p.FechaNacimiento.ToShortDateString()</td>
-                                        <td class="text-center">
-                                            <span class="badge bg-info-subtle text-info border border-info-subtle px-3 py-2 rounded-pill">
-                                                @p.Edad años
-                                            </span>
-                                        </td>
-                                        <td class="text-center">
-                                            <span class="badge bg-info-subtle text-info border border-info-subtle px-3 py-2 rounded-pill">
-                                                @p.Puntaje
-                                            </span>
-                                        </td>
-                                        <td class="text-end">
-                                            <button class="btn btn-outline-warning btn-sm border-2 fw-bold px-3 rounded-pill me-2"
-                                                    @onclick="() => VerDetalle(p)">
-                                                <i class="bi bi-search me-1"></i> Detalle
-                                            </button>
-                                            <button class="btn btn-outline-warning btn-sm border-2 fw-bold px-3 rounded-pill me-2"
-                                                        @onclick="() => VerEvaluaciones(p)">
-                                                    <i class="bi bi-search me-1"></i> Evaluaciones
-                                            </button>
-                                        </td>
-                                    </tr>
-                                </ChildContentRow>
-                            </PaginationComponent>
+                <!-- Contenido de las Pestañas -->
+                <div class="tab-content" id="talentTabsContent">
+                    @for (int i = 1; i <= 4; i++)
+                    {
+                        var currentList = GetListById(i);
+                        <div class="tab-pane fade @(i == 1 ? "show active" : "")" id="panel-@i" role="tabpanel">
+                            <div class="table-responsive">
+                                <PaginationComponent TItem="BeneficiarioPuntaje" Items="currentList" DefaultPageSize="10">
+                                    <ChildContentHeader>
+                                        <tr class="table-light">
+                                            <th class="border-0 text-uppercase small fw-bold">No. Pers</th>
+                                            <th class="border-0 text-uppercase small fw-bold">Nombre del Beneficiario</th>
+                                            <th class="border-0 text-uppercase small fw-bold">Fecha Nacimiento</th>
+                                            <th class="border-0 text-uppercase small fw-bold text-center">Edad</th>
+                                            <th class="border-0 text-uppercase small fw-bold text-center">Puntaje</th>
+                                            <th class="border-0 text-end">Acciones</th>
+                                        </tr>
+                                    </ChildContentHeader>
+                                    <ChildContentRow Context="p">
+                                        <tr class="align-middle">
+                                            <td class="fw-bold text-primary">@p.Employee.EmployeeNumber</td>
+                                            <td>@CultureInfo.CurrentCulture.TextInfo.ToTitleCase(p.FullName.ToLower())</td>
+                                            <td>@p.FechaNacimiento.ToShortDateString()</td>
+                                            <td class="text-center">
+                                                <span class="badge bg-info-subtle text-info border border-info-subtle px-4 py-2 rounded-pill">
+                                                    @p.Edad años
+                                                </span>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge bg-info-subtle text-info border border-info-subtle px-4 py-2 rounded-pill fs-6 fw-bold">
+                                                    @($"{p.Puntaje:0.00}")
+                                                </span>
+                                            </td>
+                                            <td class="text-end">
+                                                @* <button class="btn btn-outline-warning btn-sm border-2 fw-bold px-3 rounded-pill me-2"
+                                                        @onclick="() => VerDetalle(p)">
+                                                    <i class="bi bi-search me-1"></i> Detalle
+                                                </button> *@
+                                                <button class="btn btn-outline-warning btn-sm border-2 fw-bold px-3 rounded-pill me-2"
+                                                            @onclick="() => VerEvaluaciones(p)">
+                                                        <i class="bi bi-search me-1"></i> Evaluaciones
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </ChildContentRow>
+                                </PaginationComponent>
+                            </div>
                         </div>
-                    </div>
-                }
-            </div>
+                    }
+                </div>
+            }
         </div>
     </div>
 </div>
 
+@if (mostrarFormulario)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Generar CSV</h5>
+                    <button type="button" class="btn-close" @onclick="Cancelar"></button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="entidadActual" OnValidSubmit="DescargarDatos">
+                        <DataAnnotationsValidator />
+
+                        <div class="mb-3">
+                            <label class="form-label">Separador:</label>
+                            <InputSelect class="form-select" @bind-Value="entidadActual.TipoSeparador">
+                                <option value="-1">-- Seleccione uno --</option>
+                                <option value="1">Coma</option>
+                                <option value="2">Punto y Coma</option>
+                                @* <option value="3">Tabulador</option> *@
+                            </InputSelect>
+                            <ValidationMessage For="@(() => entidadActual.TipoSeparador)" />
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn boton-primario me-2">
+                                <i class="bi bi-save"></i> Generar
+                            </button>
+                            <button type="button" class="btn btn-danger" @onclick="Cancelar">
+                                <i class="bi bi-times"></i> Cancelar
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
+    private bool vistaGrupos = false;
+    private bool vistaGeneral = false;
+    private bool mostrarFormulario = false;
+    private DatosCSV entidadActual = new();
+
     private List<BeneficiarioPuntaje> Listgral = new();
     private List<BeneficiarioPuntaje> ListgralBuscar = new();
     private List<BeneficiarioPuntaje> List1 = new();
@@ -158,6 +252,13 @@
 
     private async Task LoadBenefiDataAsync()
     {
+        int LimiteEvaluaciones = _configuration.GetValue<int>("AppSettings:LimiteEvaluaciones");
+        int TotalSeleccionados = _configuration.GetValue<int>("AppSettings:TotalSeleccionados");
+        int TotalSelectGrupo1 = _configuration.GetValue<int>("AppSettings:TotalSelectGrupo1");
+        int TotalSelectGrupo2 = _configuration.GetValue<int>("AppSettings:TotalSelectGrupo2");
+        int TotalSelectGrupo3 = _configuration.GetValue<int>("AppSettings:TotalSelectGrupo3");
+        int TotalSelectGrupo4 = _configuration.GetValue<int>("AppSettings:TotalSelectGrupo4");
+
         var beneficiriosEval = await reporubbenefi.GetAlllAsync();
 
         Listgral.Clear();
@@ -175,15 +276,49 @@
                     FechaNacimiento = beneficiario.FechaNacimiento,
                     Employee = beneficiario.Employee,
                     Edad = beneficiario.Edad,
-                    Puntaje = beneficiriosEval.Where(x => x.DismissDate == null && x.Beneficiario.Id == beneficiario.Id).Sum(x => x.FactorResultado)
+                    Puntaje = (beneficiriosEval.Where(x => x.DismissDate == null && 
+                                                        x.Beneficiario.Id == beneficiario.Id)
+                                                .Sum(x => x.FactorResultado) / LimiteEvaluaciones)
                 });
             }
         }
-        ListgralBuscar = Listgral;
-        List1 = Listgral.Where(b => b.Edad >= 6 && b.Edad <= 8).ToList();
-        List2 = Listgral.Where(b => b.Edad >= 9 && b.Edad <= 11).ToList();
-        List3 = Listgral.Where(b => b.Edad >= 12 && b.Edad <= 14).ToList();
-        List4 = Listgral.Where(b => b.Edad >= 15 && b.Edad <= 17).ToList();
+
+        if (TotalSelectGrupo1 > 0)
+        {
+            List1 = Listgral.Where(b => b.Edad >= 6 && b.Edad <= 8).OrderByDescending(x=> x.Puntaje).ToList();
+            var puntajeCorte = List1.ElementAtOrDefault(TotalSelectGrupo1 - 1)?.Puntaje ?? 0;
+            List1 = List1.Where(x => x.Puntaje >= puntajeCorte).ToList();
+
+            List2 = Listgral.Where(b => b.Edad >= 9 && b.Edad <= 11).OrderByDescending(x => x.Puntaje).ToList();
+            puntajeCorte = List2.ElementAtOrDefault(TotalSelectGrupo2 - 1)?.Puntaje ?? 0;
+            List2 = List2.Where(x => x.Puntaje >= puntajeCorte).ToList();
+
+            List3 = Listgral.Where(b => b.Edad >= 12 && b.Edad <= 14).OrderByDescending(x => x.Puntaje).ToList();
+            puntajeCorte = List3.ElementAtOrDefault(TotalSelectGrupo3 - 1)?.Puntaje ?? 0;
+            List3 = List3.Where(x => x.Puntaje >= puntajeCorte).ToList();
+
+            List4 = Listgral.Where(b => b.Edad >= 15 && b.Edad <= 17).OrderByDescending(x => x.Puntaje).ToList();
+            puntajeCorte = List4.ElementAtOrDefault(TotalSelectGrupo4 - 1)?.Puntaje ?? 0;
+            List4 = List4.Where(x => x.Puntaje >= puntajeCorte).ToList();
+
+            Listgral.Clear();
+            Listgral.AddRange(List1);
+            Listgral.AddRange(List2);
+            Listgral.AddRange(List3);
+            Listgral.AddRange(List4);
+
+            ListgralBuscar = Listgral;
+            vistaGrupos = true;
+        }
+        else
+        {
+            Listgral = Listgral.OrderByDescending(x => x.Puntaje).ToList();
+            var puntajeCorte = Listgral.ElementAtOrDefault(TotalSeleccionados - 1)?.Puntaje ?? 0;
+            Listgral = Listgral.Where(x => x.Puntaje >= puntajeCorte).ToList();
+
+            ListgralBuscar = Listgral;
+            vistaGeneral = true;
+        }
         await Task.CompletedTask;
     }
 
@@ -198,6 +333,14 @@
         {
             var lowerSearchTerm = searchTerm.ToLower();
             Listgral = ListgralBuscar.Where(b => b.FullName.ToLower().Contains(lowerSearchTerm)).ToList();
+
+            if(vistaGrupos)
+            {
+                List1 = Listgral.Where(b => b.Edad >= 6 && b.Edad <= 8).ToList();
+                List2 = Listgral.Where(b => b.Edad >= 9 && b.Edad <= 11).ToList();
+                List3 = Listgral.Where(b => b.Edad >= 12 && b.Edad <= 14).ToList();
+                List4 = Listgral.Where(b => b.Edad >= 15 && b.Edad <= 17).ToList();
+            }
         }
         StateHasChanged();
     }
@@ -226,6 +369,93 @@
                 }
             }
         }
+    }
+
+    private async Task DescargarDatos()
+    {
+        try
+        {
+            if (mostrarFormulario == false)
+            {
+                entidadActual = new DatosCSV();
+                entidadActual.TipoSeparador = -1;
+                mostrarFormulario = true;
+            }
+            else
+            {
+                string separador = string.Empty;
+
+                switch (entidadActual.TipoSeparador)
+                {
+                    case 1:
+                        separador = ",";
+                        break;
+                    case 2:
+                        separador = ";";
+                        break;
+                    case 3:
+                        separador = @"\t";
+                        break;
+                }
+
+                await ExportarCsv(separador, 1);
+                mostrarFormulario = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+    }
+
+    private void Cancelar()
+    {
+        mostrarFormulario = false;
+    }
+
+    private async Task ExportarCsv(string separador, int opcion)
+    {
+        try
+        {
+            var csvString = GenerarCsv(separador, opcion); // Implementa esta función para formatear los datos
+            await jsRuntime.InvokeVoidAsync("downloadFileFromStream", ((opcion == 1) ? $"ListaClasificados.csv" : $"ListaClasificados.csv"), csvString);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+    }
+
+    private string GenerarCsv(string separador, int opcion)
+    {
+        try
+        {
+            // Lógica para construir la cadena CSV
+            var sb = new StringBuilder();
+
+            int i = 0;
+            string encabezado = string.Empty;
+            encabezado += $"No. Pers{separador}Nombre del Beneficiario{separador}Fecha Nacimiento{separador}Edad{separador}Puntaje";
+
+            sb.AppendLine(encabezado); // Encabezados
+
+            string linea = string.Empty;
+
+            if (opcion == 1)
+            {
+                foreach (var p in Listgral)
+                {
+                    linea = $"{p.Employee.EmployeeNumber}{separador}{CultureInfo.CurrentCulture.TextInfo.ToTitleCase(p.FullName.ToLower())}{separador}{p.FechaNacimiento.ToShortDateString()}{separador}{p.Edad.ToString()}{separador}{p.Puntaje:0.00}";
+                    sb.AppendLine(linea); //Lineas
+                }
+            }
+            return sb.ToString();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+        return null;
     }
 }
 

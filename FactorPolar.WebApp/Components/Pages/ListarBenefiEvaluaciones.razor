@@ -214,8 +214,9 @@
         }
     }
 
-    private void Regresar()
+    private async Task Regresar()
     {
-        NavManager.NavigateTo($"/");
+        //NavManager.NavigateTo($"/");
+        await jsRuntime.InvokeVoidAsync("history.back");
     }
 }
