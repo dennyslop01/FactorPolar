@@ -225,6 +225,18 @@ namespace FactorPolar.Infrastructure.Services
             return base64;
         }
 
+        public async Task<Stream> GetFileStreamAsync(string fileId)
+        {
+            var service = GetService();
+            var request = service.Files.Get(fileId);
+
+            var stream = new MemoryStream();
+            await request.DownloadAsync(stream);
+            stream.Position = 0; // Importante para que el lector empiece desde el inicio
+
+            return stream;
+        }
+
         // Agregamos el parámetro 'progressReporter' al método
         public async Task<string> UploadLargeFileAsync(Stream fileStream, string fileName, string contentType, string? folderId = null, IProgress<long>? progressReporter = null)
         {

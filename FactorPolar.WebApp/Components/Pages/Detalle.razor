@@ -132,10 +132,17 @@
                         <h6 class="mb-0 fw-bold text-secondary"><i class="bi bi-play-btn-fill me-2 text-warning"></i>Video del Talento</h6>
                     </div>
                     <div class="card-body p-0 bg-dark rounded-bottom overflow-hidden">
-                        @if (!string.IsNullOrEmpty(videoSrc))
+                        @if (!string.IsNullOrEmpty(fileIdVideo))
                         {
-                            <video width="100%" height="450" controls style="outline: none;">
+                            @*  <video width="100%" height="450" controls style="outline: none;">
                                 <source src="@videoSrc" type="video/mp4">
+                                Tu navegador no soporta la reproducción de videos.
+                            </video> *@
+
+                            var videoUrl = $"/api/video/{fileIdVideo}";
+
+                            <video width="100%" height="450" controls preload="metadata" style="outline: none;">
+                                <source src="@videoUrl" type="video/mp4">
                                 Tu navegador no soporta la reproducción de videos.
                             </video>
                         }
@@ -400,6 +407,8 @@
     private decimal puntuacionGral = 0;
     private int userRolgral = 0;
 
+    private string fileIdVideo = string.Empty;
+
     [Inject] private IBeneficiario repobenefi { get; set; } = null!;
     [Inject] private IRubricaEvaluacion reporubrica { get; set; } = null!;
     [Inject] private IBeneficiarioRubrica reporubbenefi { get; set; } = null!;
@@ -418,10 +427,12 @@
                 base64 = await DriveService.GetFileAsync(fileId);
                 await jsRuntime.InvokeVoidAsync("loadPdfFromBase64", base64);
 
-                fileId = string.Empty;
-                fileId = beneficiario.RutaVideo.Split('/').Last();
-                base64Video = await DriveService.GetFileAsync(fileId);
-                videoSrc = $"data:video/mp4;base64,{base64Video}";
+                //fileId = string.Empty;
+                //fileId = beneficiario.RutaVideo.Split('/').Last();
+                
+                //fileIdVideo = fileId;
+                //base64Video = await DriveService.GetFileAsync(fileId);
+                //videoSrc = $"data:video/mp4;base64,{base64Video}";
 
                 var userrol = await SessionStorage.GetAsync<string>("UserRol");
                 if (!string.IsNullOrEmpty(userrol.Value))
@@ -512,6 +523,8 @@
             {
                 datosbenefi = CultureInfo.CurrentCulture.TextInfo.ToTitleCase($"{beneficiario.FullName}".ToLower());
                 folderName = $"{beneficiario.CedulaIdentidad.Replace(".", "")}_{beneficiario.FechaNacimiento.ToString("yyyyMMdd")}_{beneficiario.Edad.ToString()}";
+            
+                fileIdVideo = beneficiario.RutaVideo.Split('/').Last();
             }
 
             rubricatodas = await reporubrica.GetAllAsync();
