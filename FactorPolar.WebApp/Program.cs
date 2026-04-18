@@ -49,13 +49,17 @@ builder.Services.AddHttpClient();
 builder.Services.AddServerSideBlazor()
     .AddHubOptions(options =>
     {
-        // Tiempo entre pings automáticos para mantener la conexión viva
-        options.KeepAliveInterval = TimeSpan.FromSeconds(90);
-        // Límite de tamaño de mensaje (vital para evitar cierres por archivos grandes)
-        options.MaximumReceiveMessageSize = 512 * 1024 * 1024; // 512 MB
-        // Aumentar Timeout es obligatorio para redes móviles 4G/3G
-        options.ClientTimeoutInterval = TimeSpan.FromMinutes(20);
-        options.HandshakeTimeout = TimeSpan.FromMinutes(10);
+        //// Tiempo entre pings automáticos para mantener la conexión viva
+        //options.KeepAliveInterval = TimeSpan.FromSeconds(90);
+        //// Límite de tamaño de mensaje (vital para evitar cierres por archivos grandes)
+        //options.MaximumReceiveMessageSize = 512 * 1024 * 1024; // 512 MB
+        //// Aumentar Timeout es obligatorio para redes móviles 4G/3G
+        //options.ClientTimeoutInterval = TimeSpan.FromMinutes(20);
+        //options.HandshakeTimeout = TimeSpan.FromMinutes(10);
+        options.KeepAliveInterval = TimeSpan.FromSeconds(10);
+        options.ClientTimeoutInterval = TimeSpan.FromSeconds(30);
+        options.HandshakeTimeout = TimeSpan.FromSeconds(15);
+        options.MaximumReceiveMessageSize = 512 * 1024 * 1024;
     });
 
 

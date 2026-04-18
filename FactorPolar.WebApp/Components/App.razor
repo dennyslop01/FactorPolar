@@ -39,7 +39,7 @@
             </div>
         </div>
     </div>
-    <script src="_framework/blazor.web.js"></script>
+    <script src="_framework/blazor.web.js" autostart="false"></script>
     <script src="@Assets["lib/pdfjs/build/pdf.js"]"></script>
     <script src="@Assets["js/pdfViewer.js"]"></script>
     <script src="@Assets["js/camera.js"]"></script>
@@ -48,8 +48,12 @@
         Blazor.start({
             configureSignalR: function (builder) {
                 // Aumenta el tiempo que el cliente espera al servidor (en milisegundos)
-                builder.withServerTimeout(90000); // 60 segundos
-                builder.withKeepAliveInterval(90000); // 30 segundos
+                // builder.withServerTimeout(90000); // 60 segundos
+                // builder.withKeepAliveInterval(90000); // 30 segundos
+                // El cliente espera 30 segundos máximo        
+                builder.withServerTimeout(30000);        
+                // El pulso debe enviarse cada 10 segundos (10000 ms) para engañar al firewall        
+                builder.withKeepAliveInterval(10000); 
             }
         });
     </script>

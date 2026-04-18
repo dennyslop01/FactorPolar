@@ -109,7 +109,7 @@
             </button>
         </div>
 
-        @if(existeAdminUser)
+        @if (existeAdminUser || existeUser)
         {
             <strong><label class="form-label">@userName</label></strong>
             <ListarGruposParticipantes />
@@ -175,6 +175,7 @@
 
 @code {
     bool existe = false;
+    bool existeUser = false;
     bool existeAdminUser = false;
     bool existeAdminUser1 = false;
     private bool cargando = false;
@@ -226,6 +227,7 @@
                         {
                             userName += $", {nombrecortoaux.Value}";
                         }
+                        existeUser = true;
                     }
                     else
                         existeAdminUser = true;
