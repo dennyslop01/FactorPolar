@@ -65,4 +65,18 @@ namespace FactorPolar.Domain.Entities
         public decimal? Puntaje { get; set; }
         public Employee Employee { get; set; }
     }
+
+    public class BeneficiarioEnVivo
+    {
+        public int Id { get; set; }
+        public string? CedulaIdentidad { get; set; }
+        public string? FullName { get; set; }
+        public string? Gender { get; set; }
+        public DateTime FechaNacimiento { get; set; }
+        public int Edad { get; set; }
+        public decimal? Puntaje { get; set; }
+        public string? Categoria { get; set; }
+        public int Estado { get; set; }
+        public Employee Employee { get; set; }
+    }
 }

@@ -5,38 +5,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FactorPolar.Infrastructure.Repositories
 {
-    public class BeneficiarioRubricaRepository(IDbContextFactory<FactorDbContext> contextFactory) : IBeneficiarioRubrica
+    public class BeneficiarioRubricaEnVivoRepository(IDbContextFactory<FactorDbContext> contextFactory) : IBeneficiarioRubricaEnVivo
     {
         private readonly IDbContextFactory<FactorDbContext> _contextFactory = contextFactory;
-
-        public async Task<bool> CloseEvaluationAsync(int idusuario, int idbenefi)
-        {
-            using var _context = _contextFactory.CreateDbContext();
-
-            var usuario = await _context.Usuarios.Where(x => x.Id == idusuario).FirstOrDefaultAsync();
-            if (usuario == null)
-            {
-                throw new Exception("Usuario no existe");
-            }
-
-            var beneficiario = await _context.Beneficiarios.Where(x => x.Id == idbenefi).FirstOrDefaultAsync();
-            if (beneficiario == null)
-            {
-                throw new Exception("Beneficiario no existe");
-            }
-
-            //var rubricas = await _context.BeneficiariosRubricas
-            //    .Where(x => x.Beneficiario.Id == idbenefi && x.Usuario.Id == idusuario).ToListAsync();
-
-            await _context.BeneficiariosRubricas
-                .Where(x => x.Beneficiario.Id == idbenefi && x.Usuario.Id == idusuario)
-                .ExecuteUpdateAsync(setters => setters
-                .SetProperty(b => b.CloseDate, DateTime.Now));
-
-            //await _context.SaveChangesAsync();
-
-            return true;
-        }
 
         public async Task<bool> CreateAsync(int idusuario, int idrubrica, int idbenefi, int puntuacion)
         {
@@ -83,13 +54,13 @@ namespace FactorPolar.Infrastructure.Repositories
                 factor = puntuacion * rubrica.Factor;
             }
 
-            var rubricaExist = await _context.BeneficiariosRubricas
+            var rubricaExist = await _context.BeneficiariosRubricasEnVivo
                 .Where(x => x.RubricaEvaluacion.Id == idrubrica && x.Beneficiario.Id == idbenefi && x.Usuario.Id == idusuario)
                 .FirstOrDefaultAsync();
 
             if (rubricaExist == null)
             {
-                var benefirub = new BeneficiarioRubrica
+                var benefirub = new BeneficiarioRubricaEnVivo
                 {
                     Usuario = usuario,
                     RubricaEvaluacion = rubrica,
@@ -99,7 +70,7 @@ namespace FactorPolar.Infrastructure.Repositories
                     CreateDate = DateTime.Now,
                     UpdateDate = DateTime.Now
                 };
-                await _context.BeneficiariosRubricas.AddAsync(benefirub);
+                await _context.BeneficiariosRubricasEnVivo.AddAsync(benefirub);
             }
             else
             {
@@ -114,41 +85,11 @@ namespace FactorPolar.Infrastructure.Repositories
             return true;
         }
 
-        public async Task<bool> DismissEvaluationAsync(int idusuario, int idbenefi)
+        public async Task<List<BeneficiarioRubricaEnVivo?>> GetAlllAsync()
         {
             using var _context = _contextFactory.CreateDbContext();
 
-            var usuario = await _context.Usuarios.Where(x => x.Id == idusuario).FirstOrDefaultAsync();
-            if (usuario == null)
-            {
-                throw new Exception("Usuario no existe");
-            }
-
-            var beneficiario = await _context.Beneficiarios.Where(x => x.Id == idbenefi).FirstOrDefaultAsync();
-            if (beneficiario == null)
-            {
-                throw new Exception("Beneficiario no existe");
-            }
-
-            //var rubricas = await _context.BeneficiariosRubricas
-            //    .Where(x => x.Beneficiario.Id == idbenefi && x.Usuario.Id == idusuario).ToListAsync();
-
-            await _context.BeneficiariosRubricas
-                .Where(x => x.Beneficiario.Id == idbenefi && x.Usuario.Id == idusuario)
-                .ExecuteUpdateAsync(setters => setters
-                .SetProperty(b => b.UsuarioDismissId, idusuario)
-                .SetProperty(b => b.DismissDate, DateTime.Now));
-
-            //await _context.SaveChangesAsync();
-
-            return true;
-        }
-
-        public async Task<List<BeneficiarioRubrica?>> GetAlllAsync()
-        {
-            using var _context = _contextFactory.CreateDbContext();
-
-            var benefirub = await _context.BeneficiariosRubricas
+            var benefirub = await _context.BeneficiariosRubricasEnVivo
                 .Include(b => b.Usuario)
                 .Include(b => b.RubricaEvaluacion)
                 .Include(b => b.RubricaEvaluacion.GrupoEvaluacion)
@@ -158,11 +99,11 @@ namespace FactorPolar.Infrastructure.Repositories
             return benefirub;
         }
 
-        public async Task<List<BeneficiarioRubrica?>> GetByIdBenefiAsync(int idbenefi)
+        public async Task<List<BeneficiarioRubricaEnVivo?>> GetByIdBenefiAsync(int idbenefi)
         {
             using var _context = _contextFactory.CreateDbContext();
 
-            var benefirub = await _context.BeneficiariosRubricas
+            var benefirub = await _context.BeneficiariosRubricasEnVivo
                 .Include(b => b.Usuario)
                 .Include(b => b.RubricaEvaluacion)
                 .Include(b => b.RubricaEvaluacion.GrupoEvaluacion)
@@ -173,11 +114,11 @@ namespace FactorPolar.Infrastructure.Repositories
             return benefirub;
         }
 
-        public async Task<BeneficiarioRubrica?> GetByIdlAsync(int id)
+        public async Task<BeneficiarioRubricaEnVivo?> GetByIdlAsync(int id)
         {
             using var _context = _contextFactory.CreateDbContext();
 
-            var benefirub = await _context.BeneficiariosRubricas
+            var benefirub = await _context.BeneficiariosRubricasEnVivo
                 .Include(b => b.Usuario)
                 .Include(b => b.RubricaEvaluacion)
                 .Include(b => b.RubricaEvaluacion.GrupoEvaluacion)
@@ -188,11 +129,11 @@ namespace FactorPolar.Infrastructure.Repositories
             return benefirub;
         }
 
-        public async Task<List<BeneficiarioRubrica?>> GetByIdUserBenefilAsync(int iduser, int idbenefi)
+        public async Task<List<BeneficiarioRubricaEnVivo?>> GetByIdUserBenefilAsync(int iduser, int idbenefi)
         {
             using var _context = _contextFactory.CreateDbContext();
 
-            var benefirub = await _context.BeneficiariosRubricas
+            var benefirub = await _context.BeneficiariosRubricasEnVivo
                 .Include(b => b.Usuario)
                 .Include(b => b.RubricaEvaluacion)
                 .Include(b => b.RubricaEvaluacion.GrupoEvaluacion)
@@ -203,11 +144,11 @@ namespace FactorPolar.Infrastructure.Repositories
             return benefirub;
         }
 
-        public async Task<List<BeneficiarioRubrica?>> GetByIdUserlAsync(int iduser)
+        public async Task<List<BeneficiarioRubricaEnVivo?>> GetByIdUserlAsync(int iduser)
         {
             using var _context = _contextFactory.CreateDbContext();
 
-            var benefirub = await _context.BeneficiariosRubricas
+            var benefirub = await _context.BeneficiariosRubricasEnVivo
                 .Include(b => b.Usuario)
                 .Include(b => b.RubricaEvaluacion)
                 .Include(b => b.RubricaEvaluacion.GrupoEvaluacion)

@@ -429,7 +429,7 @@
 
                 //fileId = string.Empty;
                 //fileId = beneficiario.RutaVideo.Split('/').Last();
-                
+
                 //fileIdVideo = fileId;
                 //base64Video = await DriveService.GetFileAsync(fileId);
                 //videoSrc = $"data:video/mp4;base64,{base64Video}";
@@ -522,8 +522,8 @@
             if (beneficiario != null)
             {
                 datosbenefi = CultureInfo.CurrentCulture.TextInfo.ToTitleCase($"{beneficiario.FullName}".ToLower());
-                folderName = $"{beneficiario.CedulaIdentidad.Replace(".", "")}_{beneficiario.FechaNacimiento.ToString("yyyyMMdd")}_{beneficiario.Edad.ToString()}";
-            
+                folderName = $"{beneficiario.Id}_{beneficiario.FechaNacimiento.ToString("yyyyMMdd")}_{beneficiario.Edad.ToString()}";
+
                 fileIdVideo = beneficiario.RutaVideo.Split('/').Last();
             }
 

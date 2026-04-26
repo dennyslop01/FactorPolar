@@ -41,6 +41,8 @@ builder.Services.AddScoped<IUsuario, UsuarioRepository>();
 builder.Services.AddScoped<IGrupoEvaluacion, GrupoEvaluacionRepository>();
 builder.Services.AddScoped<IRubricaEvaluacion, RubricaEvaluacionRepository>();
 builder.Services.AddScoped<IBeneficiarioRubrica, BeneficiarioRubricaRepository>();
+builder.Services.AddScoped<IBeneficiarioClasificado, BeneficiarioClasificadoRepository>();
+builder.Services.AddScoped<IBeneficiarioRubricaEnVivo, BeneficiarioRubricaEnVivoRepository>();
 builder.Services.AddScoped<GoogleDriveService>();
 
 builder.Services.AddCascadingAuthenticationState();

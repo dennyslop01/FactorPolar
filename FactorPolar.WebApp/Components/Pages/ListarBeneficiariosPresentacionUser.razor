@@ -1,0 +1,315 @@
+﻿@using System.Globalization
+@rendermode InteractiveServer
+
+<div class="container mt-4 pb-5">
+    <!-- CABECERA PRINCIPAL -->
+    <div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-white shadow-sm rounded-3">
+        <div>
+            <h6 class="text-muted mb-0">Evaluación En Vivo Participante</h6>
+            <h6 class="fw-bold text-primary mb-0">@datosbenefi</h6>
+        </div>
+    </div>
+    @if (beneficiario != null)
+    {
+        <div class="row g-4">
+            <!-- COLUMNA IZQUIERDA: DATOS ACADÉMICOS -->
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-primary text-white py-3">
+                        <h6 class="mb-0"><i class="bi bi-mortarboard-fill me-2"></i>Información Académica</h6>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="mb-4">
+                            <label class="text-muted small fw-bold text-uppercase d-block">Tipo de Institución</label>
+                            <span>@(beneficiario.TipoInstitucionAux ?? beneficiario.TipoInstitucion)</span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="text-muted small fw-bold text-uppercase d-block">Institución Educativa</label>
+                            <span>@(beneficiario.NombreInstitucionAux ?? beneficiario.NombreInstitucion)</span>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-6">
+                                <label class="text-muted small fw-bold text-uppercase d-block">RIF</label>
+                                <span>@(beneficiario.RifInstitucionAux ?? beneficiario.RifInstitucion)</span>
+                            </div>
+                            <div class="col-6">
+                                <label class="text-muted small fw-bold text-uppercase d-block">Promedio</label>
+                                <span class="badge bg-success fs-6 rounded-pill px-3">
+                                    @if (beneficiario?.NivelEducativo == "PRIMARIA")
+                                    {
+                                        if (beneficiario.Promedio != null)
+                                        {
+                                            @notaprimaria
+                                        }
+                                    }
+                                    else
+                                    {
+                                        @beneficiario?.Promedio
+                                    }
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="text-muted small fw-bold text-uppercase d-block">Nivel Educativo</label>
+                            <span>@(beneficiario.NivelEducativoAux ?? beneficiario.NivelEducativo)</span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="text-muted small fw-bold text-uppercase d-block">Nivel Académico</label>
+                            <span>@(beneficiario.GradoEducativoAux ?? beneficiario.GradoEducativo)</span>
+                        </div>
+                        <div class="mb-4">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- COLUMNA DERECHA: DOCUMENTOS Y MULTIMEDIA -->
+            <div class="col-lg-8">
+                <!-- Tarjeta PDF -->
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-primary text-white py-3">
+                        <h6 class="mb-0"><i class="bi bi-mortarboard-fill me-2"></i>Rubrica a Evaluar</h6>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="mb-4">
+                            <EditForm EditContext="editContext" OnValidSubmit="GuardarIniEvaluacion">
+                                <div class="mb-3">
+                                    @foreach (var grupo in entidadActual.GroupBy(x => x.IdGrupo).Select(g => g.First()))
+                                    {
+                                        <strong><h6>@grupo.DescGrupo</h6></strong>
+                                        @foreach (var item in entidadActual.Where(x => x.IdGrupo == grupo.IdGrupo))
+                                        {
+                                            // Creamos el identificador para este item específico
+                                            var fieldId = new FieldIdentifier(item, nameof(item.Codigo));
+                                            var tieneError = editContext.GetValidationMessages(fieldId).Any();
+
+                                            <div class="mb-4">
+                                                <label class="text-muted small fw-bold text-uppercase d-block">@item.Descripcion</label>
+
+                                                <MudRating @bind-SelectedValue="@item.Codigo" Color="Color.Warning" FullIcon="@Icons.Material.Filled.Star" EmptyIcon="@Icons.Material.Outlined.StarBorder" />
+
+                                                <ValidationMessage For="@(() => item.Codigo)" />
+                                            </div>
+                                        }
+                                        <hr />
+                                    }
+                                </div>
+                                <div class="d-flex justify-content-center">
+                                    <button type="submit" class="btn btn-outline-primary btn-sm rounded-pill px-4">
+                                        Guardar
+                                    </button>
+                                </div>
+                            </EditForm>
+                       </div>                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+</div>
+<br />
+
+@if (mostrarAlerta)
+{
+    <div id="divAlerta" class="alert alert-success alert-dismissible fade show toast-container" role="alert" style="display:none;">
+        @mensajeAlerta
+        <button type="button" class="btn-close" @onclick="() => mostrarAlerta = false"></button>
+    </div>
+}
+
+@if (cargando)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5); align-content:center">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="modal-cargando text-lg-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    string datosbenefi = string.Empty;
+    private Beneficiario? beneficiario = new();
+    private const string notaprimaria = "A";
+
+    private string? mensajeAlerta;
+    private bool mostrarAlerta = false;
+
+    private List<RubricaCompuesta> entidadActual = new();
+    private EditContext? editContext;
+    private ValidationMessageStore? mensajeStore;
+
+    private bool cargando = false;
+
+    private List<RubricaEvaluacion> rubricatodas = new();
+    private List<RubricaEvaluacion> rubricainicial = new();
+    private List<BeneficiarioRubrica?> benefirubrica = new();
+    private List<BeneficiarioRubrica?> benefirubricauser = new();
+    private int userRolgral = 0;
+
+    [Inject] private IBeneficiario repobenefi { get; set; } = null!;
+    [Inject] private IRubricaEvaluacion reporubrica { get; set; } = null!;
+    [Inject] private IBeneficiarioRubrica reporubbenefi { get; set; } = null!;
+    [Inject] private IBeneficiarioClasificado reporubbeneficla { get; set; } = null!;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            cargando = true;
+            StateHasChanged();
+            await jsRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlerta", 10);
+
+            cargando = false;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var authState = await authStateProvider.GetAuthenticationStateAsync();
+            if (!authState.User.Identity.IsAuthenticated)
+                NavManager.NavigateTo($"/");
+        }
+        catch
+        {
+            NavManager.NavigateTo($"/");
+        }
+
+        cargando = true;
+        try
+        {
+            editContext = new EditContext(entidadActual);
+            mensajeStore = new ValidationMessageStore(editContext);
+            editContext.OnFieldChanged += (s, e) => mensajeStore.Clear(e.FieldIdentifier);
+
+            await LoadBenefiDataAsync();
+            if (beneficiario != null)
+            {
+                datosbenefi = CultureInfo.CurrentCulture.TextInfo.ToTitleCase($"{beneficiario.FullName}".ToLower());
+            }
+            rubricatodas = await reporubrica.GetAllAsync();
+
+            await CompletarRubrica();
+        }
+        catch (Exception ex)
+        {
+            datosbenefi = $"Error al cargar datos del beneficiario: {ex.Message}";
+        }
+        cargando = false;
+    }
+
+    private async Task LoadBenefiDataAsync()
+    {
+        var beneficiriosEval = await reporubbeneficla.GetAlllAsync();
+        var existeactiva = beneficiriosEval.Where(x => x.Estado == 1).ToList();
+        if (existeactiva.Count() > 0)
+        {
+            foreach (var ben in existeactiva)
+            {
+                beneficiario = await repobenefi.GetByIdlAsync(ben.Beneficiario.Id);
+            }
+        }
+        await Task.CompletedTask;
+    }
+
+    private async Task GuardarIniEvaluacion()
+    {
+        try
+        {
+            mensajeStore?.Clear(); // Limpiar errores previos
+
+            bool hayErrores = false;
+
+            foreach (var item in entidadActual)
+            {
+                if (item.Codigo == 0)
+                {
+                    // Asociamos el error específicamente a la propiedad Codigo de ESTE item
+                    var fieldIdentifier = new FieldIdentifier(item, nameof(item.Codigo));
+                    mensajeStore?.Add(fieldIdentifier, "Este campo es obligatorio.");
+                    hayErrores = true;
+                }
+            }
+
+            if (hayErrores)
+            {
+                editContext?.NotifyValidationStateChanged(); // Esto "refresca" la UI y muestra los mensajes
+                return;
+            }
+
+            var userid = await SessionStorage.GetAsync<string>("UserId");
+            if (!string.IsNullOrEmpty(userid.Value))
+            {
+                try
+                {
+                    foreach (var item in entidadActual)
+                    {
+                        await reporubbenefi.CreateAsync(int.Parse(userid.Value), item.IdRubrica, beneficiario.Id, item.Codigo);
+                    }
+
+                    benefirubricauser = await reporubbenefi.GetByIdUserBenefilAsync(int.Parse(userid.Value), beneficiario.Id);
+                    int existefalse = benefirubricauser.Where(x => x.Puntuacion == 0 && x.RubricaEvaluacion.GrupoEvaluacion.Id == 5).Count();
+                    StateHasChanged();
+                }
+                catch (Exception ex)
+                {
+                    mensajeAlerta = $"Error al guardar la evaluación: {ex.Message}";
+                    mostrarAlerta = true;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            mensajeAlerta = $"Error al guardar la evaluación: {ex.Message}";
+            mostrarAlerta = true;
+        }
+    }
+
+    private async Task CompletarRubrica()
+    {
+        entidadActual = new List<RubricaCompuesta>();
+        var userid = await SessionStorage.GetAsync<string>("UserId");
+        if (!string.IsNullOrEmpty(userid.Value))
+        {
+            benefirubricauser = await reporubbenefi.GetByIdUserBenefilAsync(int.Parse(userid.Value), beneficiario.Id);
+        }
+        else
+        {
+            mensajeAlerta = $"Error al cargar la evaluación: Usuario no identificado.";
+            mostrarAlerta = true;
+            return;
+        }
+
+        for (int i = 6; i <= 8; i++)
+        {
+            rubricainicial = rubricatodas.Where(x => x.GrupoEvaluacion.Id == i).ToList();
+
+            foreach (var r in rubricainicial)
+            {
+                var registro = new RubricaCompuesta
+                {
+                    IdRubrica = r.Id,
+                    Descripcion = r.Descripcion,
+                    IdGrupo = r.GrupoEvaluacion.Id,
+                    DescGrupo = r.GrupoEvaluacion.NombreGrupo,
+                    Codigo = 0
+                };
+
+                entidadActual.Add(registro);
+            }
+        }
+    }
+}

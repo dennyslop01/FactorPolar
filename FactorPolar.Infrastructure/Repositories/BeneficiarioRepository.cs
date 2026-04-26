@@ -2,7 +2,6 @@
 using FactorPolar.Domain.Entities;
 using FactorPolar.Infrastructure.DataContext;
 using Microsoft.EntityFrameworkCore;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace FactorPolar.Infrastructure.Repositories
 {

@@ -1,0 +1,345 @@
+﻿@using System.Globalization
+@using System.Text
+@rendermode InteractiveServer
+
+<div class="container-fluid mt-4">
+    <!-- Buscador Global por Nombre -->
+    <div class="row mb-3">
+        <div class="col-md-4 ms-auto">
+            <div class="input-group">
+                <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control"
+                       placeholder="Buscar por nombre..."
+                       @oninput="FiltrarBusqueda" />
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 h-auto">
+        <div class="card-header bg-white py-3">
+            <div class="d-flex align-items-center">
+                <div class="bg-primary p-2 rounded-3 me-3">
+                    <i class="bi bi-people-fill text-white fs-4"></i>
+                </div>
+                <h6 class="mb-0 fw-bold text-secondary">Ranking Final</h6>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <div class="row">
+                <div class="col-4">
+                    <div>
+                        <strong>Nro. de Registros:</strong> @Listgral.Count()
+                    </div>
+                </div>
+                @if (Listgral.Count() > 0)
+                {
+                    <div class="col-4">
+                        <button class="btn btn-outline-secondary btn-sm rounded-pill px-4" @onclick="DescargarDatos">
+                            <i class="bi bi-filetype-csv"></i> Descargar Datos
+                        </button>
+                    </div>
+                }
+            </div>
+            <hr />
+            @if (vistaGeneral)
+            {
+                <div class="table-responsive">
+                    <PaginationComponent TItem="BeneficiarioPuntaje" Items="Listgral" DefaultPageSize="10">
+                        <ChildContentHeader>
+                            <tr class="table-light">
+                                @* <th class="border-0 text-uppercase small fw-bold">#</th> *@
+                                <th class="border-0 text-uppercase small fw-bold">No. Pers</th>
+                                <th class="border-0 text-uppercase small fw-bold">Nombre del Empleado</th>
+                                <th class="border-0 text-uppercase small fw-bold">Nombre del Beneficiario</th>
+                                <th class="border-0 text-uppercase small fw-bold">Fecha Nacimiento</th>
+                                <th class="border-0 text-uppercase small fw-bold text-center">Edad</th>
+                                <th class="border-0 text-uppercase small fw-bold text-center">Puntaje</th>
+                                <th class="border-0 text-end">Acciones</th>
+                            </tr>
+                        </ChildContentHeader>
+                        <ChildContentRow Context="p">
+                            <tr class="align-middle">
+                                @* <td><span class="text-muted">@p.Id</span></td> *@
+                                <td class="fw-bold text-primary">@p.Employee.EmployeeNumber</td>
+                                <td>@CultureInfo.CurrentCulture.TextInfo.ToTitleCase(p.Employee.FullName.ToLower())</td>
+                                <td>@CultureInfo.CurrentCulture.TextInfo.ToTitleCase(p.FullName.ToLower())</td>
+                                <td>@p.FechaNacimiento.ToShortDateString()</td>
+                                <td class="text-center">
+                                    <span class="badge bg-info-subtle text-info border border-info-subtle px-4 py-2 rounded-pill">
+                                        @p.Edad años
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-info-subtle text-info border border-info-subtle px-4 py-2 rounded-pill fs-6 fw-bold">
+                                        @($"{p.Puntaje:0.00}")
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    @* <button class="btn btn-outline-warning btn-sm border-2 fw-bold px-3 rounded-pill"
+                                            @onclick="() => VerDetalle(p)">
+                                        <i class="bi bi-search me-1"></i> Editar
+                                    </button> *@
+                                    <button class="btn btn-outline-warning btn-sm border-2 fw-bold px-3 rounded-pill me-2"
+                                            @onclick="() => VerEvaluaciones(p)">
+                                        <i class="bi bi-search me-1"></i> Evaluaciones
+                                    </button>
+                                </td>
+                            </tr>
+                        </ChildContentRow>
+                    </PaginationComponent>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@if (mostrarFormulario)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Generar CSV</h5>
+                    <button type="button" class="btn-close" @onclick="Cancelar"></button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="entidadActual" OnValidSubmit="DescargarDatos">
+                        <DataAnnotationsValidator />
+
+                        <div class="mb-3">
+                            <label class="form-label">Separador:</label>
+                            <InputSelect class="form-select" @bind-Value="entidadActual.TipoSeparador">
+                                <option value="-1">-- Seleccione uno --</option>
+                                <option value="1">Coma</option>
+                                <option value="2">Punto y Coma</option>
+                                @* <option value="3">Tabulador</option> *@
+                            </InputSelect>
+                            <ValidationMessage For="@(() => entidadActual.TipoSeparador)" />
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn boton-primario me-2">
+                                <i class="bi bi-save"></i> Generar
+                            </button>
+                            <button type="button" class="btn btn-danger" @onclick="Cancelar">
+                                <i class="bi bi-times"></i> Cancelar
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private bool vistaGeneral = false;
+    private bool mostrarFormulario = false;
+    private DatosCSV entidadActual = new();
+
+    private List<BeneficiarioPuntaje> Listgral = new();
+    private List<BeneficiarioPuntaje> ListgralBuscar = new();
+
+    private string searchTerm = "";
+    [Inject] private IBeneficiario repobenefi { get; set; } = null!;
+    [Inject] private IBeneficiarioRubricaEnVivo reporubbenefi { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            await LoadBenefiDataAsync();
+        }
+        catch (Exception ex)
+        {
+            // Manejo de errores (opcional)
+            Console.WriteLine($"Error al cargar datos del los beneficiarios: {ex.Message}");
+        }
+    }
+
+    private async Task LoadBenefiDataAsync()
+    {
+        var TotalSeleccionados = 20;
+        var beneficiriosEval = await reporubbenefi.GetAlllAsync();
+
+        int LimiteEvaluaciones = beneficiriosEval.GroupBy(x => x.Usuario.Id).Count();
+
+        Listgral.Clear();
+        ListgralBuscar.Clear();
+
+        foreach (var ben in beneficiriosEval.GroupBy(x => x.Beneficiario.Id).Select(g => g.First()))
+        {
+            var beneficiario = await repobenefi.GetByIdlAsync(ben.Beneficiario.Id);
+            if (beneficiario != null)
+            {
+                Listgral.Add(new BeneficiarioPuntaje
+                    {
+                        Id = beneficiario.Id,
+                        FullName = beneficiario.FullName,
+                        FechaNacimiento = beneficiario.FechaNacimiento,
+                        Employee = beneficiario.Employee,
+                        Edad = beneficiario.Edad,
+                        Puntaje = ((beneficiriosEval.Where(x => x.Beneficiario.Id == beneficiario.Id)
+                                                .Sum(x => x.FactorResultado) / LimiteEvaluaciones)*80)/100
+                    });
+            }
+        }
+
+        Listgral = Listgral.OrderByDescending(x => x.Puntaje).ToList();
+        var puntajeCorte = Listgral.ElementAtOrDefault(TotalSeleccionados - 1)?.Puntaje ?? 0;
+        Listgral = Listgral.Where(x => x.Puntaje >= puntajeCorte).ToList();
+
+        ListgralBuscar = Listgral;
+        vistaGeneral = true;
+        await Task.CompletedTask;
+    }
+
+    private async Task FiltrarBusqueda(ChangeEventArgs e)
+    {
+        searchTerm = e.Value?.ToString() ?? "";
+        if (string.IsNullOrEmpty(searchTerm))
+        {
+            await LoadBenefiDataAsync(); // Recargar datos completos si el término de búsqueda está vacío
+        }
+        else
+        {
+            var lowerSearchTerm = searchTerm.ToLower();
+            Listgral = ListgralBuscar.Where(b => b.FullName.ToLower().Contains(lowerSearchTerm)).ToList();
+        }
+        StateHasChanged();
+    }
+
+    private void VerDetalle(BeneficiarioPuntaje ben)
+    {
+        NavManager.NavigateTo($"/editar2/{ben.Id}");
+    }
+
+    private void Regresar()
+    {
+        NavManager.NavigateTo($"/");
+    }
+
+    private async Task VerEvaluaciones(BeneficiarioPuntaje benefi)
+    {
+        var userid = await SessionStorage.GetAsync<string>("UserId");
+        if (!string.IsNullOrEmpty(userid.Value))
+        {
+            var userrol = await SessionStorage.GetAsync<string>("UserRol");
+            if (!string.IsNullOrEmpty(userrol.Value))
+            {
+                if (userrol.Value == "1")
+                {
+                    NavManager.NavigateTo($"/verevaluaciones/{benefi.Id}");
+                }
+            }
+        }
+    }
+
+    private async Task DescargarDatos()
+    {
+        try
+        {
+            if (mostrarFormulario == false)
+            {
+                entidadActual = new DatosCSV();
+                entidadActual.TipoSeparador = -1;
+                mostrarFormulario = true;
+            }
+            else
+            {
+                string separador = string.Empty;
+
+                switch (entidadActual.TipoSeparador)
+                {
+                    case 1:
+                        separador = ",";
+                        break;
+                    case 2:
+                        separador = ";";
+                        break;
+                    case 3:
+                        separador = @"\t";
+                        break;
+                }
+
+                await ExportarCsv(separador, 1);
+                mostrarFormulario = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+    }
+
+    private void Cancelar()
+    {
+        mostrarFormulario = false;
+    }
+
+    private async Task ExportarCsv(string separador, int opcion)
+    {
+        try
+        {
+            var csvString = GenerarCsv(separador, opcion); // Implementa esta función para formatear los datos
+            await jsRuntime.InvokeVoidAsync("downloadFileFromStream", ((opcion == 1) ? $"ListaClasificados.csv" : $"ListaClasificados.csv"), csvString);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+    }
+
+    private string GenerarCsv(string separador, int opcion)
+    {
+        try
+        {
+            // Lógica para construir la cadena CSV
+            var sb = new StringBuilder();
+
+            int i = 0;
+            string encabezado = string.Empty;
+            encabezado += $"No. Pers{separador}Nombre del Beneficiario{separador}Fecha Nacimiento{separador}Edad{separador}Puntaje";
+
+            sb.AppendLine(encabezado); // Encabezados
+
+            string linea = string.Empty;
+
+            if (opcion == 1)
+            {
+                foreach (var p in Listgral)
+                {
+                    linea = $"{p.Employee.EmployeeNumber}{separador}{CultureInfo.CurrentCulture.TextInfo.ToTitleCase(p.FullName.ToLower())}{separador}{p.FechaNacimiento.ToShortDateString()}{separador}{p.Edad.ToString()}{separador}{p.Puntaje:0.00}";
+                    sb.AppendLine(linea); //Lineas
+                }
+            }
+            return sb.ToString();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+        return null;
+    }
+}
+
+<style>
+    /* Personalización para que las pestañas se vean más modernas */
+    .nav-pills .nav-link {
+        color: #6c757d;
+        transition: all 0.3s ease;
+    }
+
+        .nav-pills .nav-link.active {
+            background-color: #0d6efd !important;
+            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.25);
+        }
+
+    .table-responsive {
+        min-height: 400px;
+    }
+
+    .btn-outline-warning:hover {
+        color: #000; /* Mejor contraste */
+    }
+</style>

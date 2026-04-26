@@ -4,8 +4,8 @@
 
 <PageTitle>Home</PageTitle>
 
-<AuthorizeView>
-    <Authorized>
+@* <AuthorizeView>
+    <Authorized> *@
         <h6>Bienvenido</h6>
         @if (existe)
         {
@@ -112,7 +112,18 @@
         @if (existeAdminUser || existeUser)
         {
             <strong><label class="form-label">@userName</label></strong>
-            <ListarGruposParticipantes />
+            //Segunda Fase
+            @* <ListarGruposParticipantes /> *@
+
+            //Tercera Fase
+            @if (existeAdminUser)
+            {
+                <ListarBeneficiariosPresentacion />
+            }
+            else if (existeUser)
+            {
+                <ListarBeneficiariosPresentacionUser />
+            }
             <br />
             <hr />
         }
@@ -127,7 +138,7 @@
                 </MudStack>
             </MudContainer>
         }
-    </Authorized>
+    @* </Authorized>
     <NotAuthorized>
         <div class="row">
             <div class="col-11">
@@ -153,7 +164,7 @@
             </div>
         </div>
     </NotAuthorized>
- </AuthorizeView>
+ </AuthorizeView> *@
 
 @if (cargando)
 {
@@ -240,19 +251,23 @@
                     {
                         if (usuario != null)
                         {
-                            if (usuario.IdRol == 5)
-                                NavManager.NavigateTo($"validaruser");
-                            else
-                            {
+                            //Tercera Fase no enviar a doble logeo
+                            // if (usuario.IdRol == 5)
+                            //     NavManager.NavigateTo($"validaruser");
+                            // else
+                            // {
                                 userrol = usuario.IdRol;
-                                existeAdminUser = true;
+                                if(userrol == 1)
+                                    existeAdminUser = true;
+                                else
+                                    existeUser = true;
 
                                 await SessionStorage.SetAsync("UserId", usuario.Id.ToString());
                                 await SessionStorage.SetAsync("UserRol", userrol.ToString());
                                 await SessionStorage.SetAsync("UserCedula", usuario.Cedula);
                                 await SessionStorage.SetAsync("UserNombreCorto", usuario.NombreCorto);
                                 StateHasChanged();
-                            }
+                            // }
                         }
                     }
                 }
@@ -278,7 +293,10 @@
 
             userName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase($"{nombre}, {apellido}".ToLower());
 
+            //Primera Fase
             //await LoadUserDataAsync();
+
+            //Segunda Fase
             await LoadAdminDataAsync();
         }
         catch (Exception ex)

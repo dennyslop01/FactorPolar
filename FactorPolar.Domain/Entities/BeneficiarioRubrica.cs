@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace FactorPolar.Domain.Entities
+﻿namespace FactorPolar.Domain.Entities
 {
     public class BeneficiarioRubrica
     {
@@ -19,6 +13,19 @@ namespace FactorPolar.Domain.Entities
         public DateTime? CloseDate { get; set; }
         public DateTime? DismissDate { get; set; }
         public int? UsuarioDismissId { get; set; }
+
+    }
+
+    public class BeneficiarioRubricaEnVivo
+    {
+        public int Id { get; set; }
+        public Usuario Usuario { get; set; }
+        public RubricaEvaluacion RubricaEvaluacion { get; set; }
+        public Beneficiario Beneficiario { get; set; }
+        public int Puntuacion { get; set; }
+        public decimal FactorResultado { get; set; }
+        public DateTime CreateDate { get; set; }
+        public DateTime UpdateDate { get; set; }
 
     }
 }
