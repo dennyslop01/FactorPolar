@@ -33,26 +33,7 @@ namespace FactorPolar.Infrastructure.Repositories
                 throw new Exception("Beneficiario no existe");
             }
 
-            decimal factor = 0;
-            if (rubrica.GrupoEvaluacion.Id == 1 || rubrica.GrupoEvaluacion.Id == 5)
-            {
-                if (puntuacion < 1 || puntuacion > 2)
-                {
-                    throw new Exception("Puntaje no admitido");
-                }
-                else
-                {
-                    if (puntuacion == 2)
-                    {
-                        puntuacion = 0;
-                    }
-                    factor = puntuacion;
-                }
-            }
-            else
-            {
-                factor = puntuacion * rubrica.Factor;
-            }
+            decimal factor = puntuacion * rubrica.Factor;
 
             var rubricaExist = await _context.BeneficiariosRubricasEnVivo
                 .Where(x => x.RubricaEvaluacion.Id == idrubrica && x.Beneficiario.Id == idbenefi && x.Usuario.Id == idusuario)

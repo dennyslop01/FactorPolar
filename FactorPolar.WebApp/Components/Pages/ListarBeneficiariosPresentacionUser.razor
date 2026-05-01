@@ -6,7 +6,10 @@
     <div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-white shadow-sm rounded-3">
         <div>
             <h6 class="text-muted mb-0">Evaluación En Vivo Participante</h6>
-            <h6 class="fw-bold text-primary mb-0">@datosbenefi</h6>
+            @if (beneficiario != null)
+            {    
+                <h6 class="fw-bold text-primary mb-0">@datosbenefi</h6>
+            }
         </div>
     </div>
     @if (beneficiario != null)
@@ -89,8 +92,11 @@
                                             <div class="mb-4">
                                                 <label class="text-muted small fw-bold text-uppercase d-block">@item.Descripcion</label>
 
-                                                <MudRating @bind-SelectedValue="@item.Codigo" Color="Color.Warning" FullIcon="@Icons.Material.Filled.Star" EmptyIcon="@Icons.Material.Outlined.StarBorder" />
-
+                                                <MudRating SelectedValue="@item.Codigo"
+                                                           SelectedValueChanged="@((int val) => OnRatingChanged(item, val))"
+                                                           Color="Color.Warning"
+                                                           FullIcon="@Icons.Material.Filled.Star"
+                                                           EmptyIcon="@Icons.Material.Outlined.StarBorder" />
                                                 <ValidationMessage For="@(() => item.Codigo)" />
                                             </div>
                                         }
@@ -98,12 +104,28 @@
                                     }
                                 </div>
                                 <div class="d-flex justify-content-center">
-                                    <button type="submit" class="btn btn-outline-primary btn-sm rounded-pill px-4">
+                                    <button type="button" @onclick="AbrirConfirmacionGuardar" class="btn btn-outline-primary btn-sm rounded-pill px-4">
                                         Guardar
                                     </button>
                                 </div>
                             </EditForm>
-                       </div>                        
+                       </div>
+                        @if (mostrarModalGuardar)
+                        {
+                            <div class="modal-overlay">
+                                <div class="modal-container">
+                                    <div class="modal-body">
+                                        <h2>¿Guardar Evaluación?</h2>
+                                        <p>Se registrarán los puntajes asignados al talento <strong>@datosbenefi</strong>. ¿Deseas continuar?</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button class="btn-cancel" @onclick="() => mostrarModalGuardar = false">Revisar</button>
+                                        <button class="btn-confirm" @onclick="ConfirmarGuardado">Sí, guardar</button>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
                     </div>
                 </div>
             </div>
@@ -154,14 +176,14 @@
 
     private List<RubricaEvaluacion> rubricatodas = new();
     private List<RubricaEvaluacion> rubricainicial = new();
-    private List<BeneficiarioRubrica?> benefirubrica = new();
-    private List<BeneficiarioRubrica?> benefirubricauser = new();
+    private List<BeneficiarioRubricaEnVivo?> benefirubricauser = new();
     private int userRolgral = 0;
 
     [Inject] private IBeneficiario repobenefi { get; set; } = null!;
     [Inject] private IRubricaEvaluacion reporubrica { get; set; } = null!;
-    [Inject] private IBeneficiarioRubrica reporubbenefi { get; set; } = null!;
+    [Inject] private IBeneficiarioRubricaEnVivo reporubbenefi { get; set; } = null!;
     [Inject] private IBeneficiarioClasificado reporubbeneficla { get; set; } = null!;
+    private bool mostrarModalGuardar = false;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -196,13 +218,6 @@
             editContext.OnFieldChanged += (s, e) => mensajeStore.Clear(e.FieldIdentifier);
 
             await LoadBenefiDataAsync();
-            if (beneficiario != null)
-            {
-                datosbenefi = CultureInfo.CurrentCulture.TextInfo.ToTitleCase($"{beneficiario.FullName}".ToLower());
-            }
-            rubricatodas = await reporubrica.GetAllAsync();
-
-            await CompletarRubrica();
         }
         catch (Exception ex)
         {
@@ -217,12 +232,75 @@
         var existeactiva = beneficiriosEval.Where(x => x.Estado == 1).ToList();
         if (existeactiva.Count() > 0)
         {
+
             foreach (var ben in existeactiva)
             {
                 beneficiario = await repobenefi.GetByIdlAsync(ben.Beneficiario.Id);
             }
+
+            if (beneficiario != null)
+            {
+                datosbenefi = CultureInfo.CurrentCulture.TextInfo.ToTitleCase($"{beneficiario.FullName}".ToLower());
+            }
+            rubricatodas = await reporubrica.GetAllAsync();
+
+            await CompletarRubrica();
+
+            if (benefirubricauser.Count() > 0)
+            {
+                beneficiario = null;
+            }
         }
         await Task.CompletedTask;
+    }
+
+    private async Task CompletarRubrica()
+    {
+        entidadActual = new List<RubricaCompuesta>();
+        var userid = await SessionStorage.GetAsync<string>("UserId");
+        if (!string.IsNullOrEmpty(userid.Value))
+        {
+            benefirubricauser = await reporubbenefi.GetByIdUserBenefilAsync(int.Parse(userid.Value), beneficiario.Id);
+        }
+        else
+        {
+            mensajeAlerta = $"Error al cargar la evaluación: Usuario no identificado.";
+            mostrarAlerta = true;
+            return;
+        }
+
+        for (int i = 6; i <= 8; i++)
+        {
+            rubricainicial = rubricatodas.Where(x => x.GrupoEvaluacion.Id == i).ToList();
+
+            foreach (var r in rubricainicial)
+            {
+                var registro = new RubricaCompuesta
+                {
+                    IdRubrica = r.Id,
+                    Descripcion = r.Descripcion,
+                    IdGrupo = r.GrupoEvaluacion.Id,
+                    DescGrupo = r.GrupoEvaluacion.NombreGrupo,
+                    Codigo = 0
+                };
+
+                entidadActual.Add(registro);
+            }
+        }
+    }
+
+    private void OnRatingChanged(RubricaCompuesta item, int newValue)
+    {
+        // 1. Actualizamos el valor manualmente
+        item.Codigo = newValue;
+
+        // 2. Notificamos al EditContext que este campo específico cambió
+        // Esto disparará la validación solo para este item y borrará el error rojo
+        if (editContext != null)
+        {
+            var fieldId = new FieldIdentifier(item, nameof(item.Codigo));
+            editContext.NotifyFieldChanged(fieldId);
+        }
     }
 
     private async Task GuardarIniEvaluacion()
@@ -259,9 +337,6 @@
                     {
                         await reporubbenefi.CreateAsync(int.Parse(userid.Value), item.IdRubrica, beneficiario.Id, item.Codigo);
                     }
-
-                    benefirubricauser = await reporubbenefi.GetByIdUserBenefilAsync(int.Parse(userid.Value), beneficiario.Id);
-                    int existefalse = benefirubricauser.Where(x => x.Puntuacion == 0 && x.RubricaEvaluacion.GrupoEvaluacion.Id == 5).Count();
                     StateHasChanged();
                 }
                 catch (Exception ex)
@@ -270,6 +345,8 @@
                     mostrarAlerta = true;
                 }
             }
+
+            await LoadBenefiDataAsync();
         }
         catch (Exception ex)
         {
@@ -278,38 +355,23 @@
         }
     }
 
-    private async Task CompletarRubrica()
+    private void AbrirConfirmacionGuardar()
     {
-        entidadActual = new List<RubricaCompuesta>();
-        var userid = await SessionStorage.GetAsync<string>("UserId");
-        if (!string.IsNullOrEmpty(userid.Value))
+        // Opcional: Podrías validar el editContext aquí antes de mostrar el modal
+        if (editContext.Validate())
         {
-            benefirubricauser = await reporubbenefi.GetByIdUserBenefilAsync(int.Parse(userid.Value), beneficiario.Id);
+            mostrarModalGuardar = true;
         }
-        else
-        {
-            mensajeAlerta = $"Error al cargar la evaluación: Usuario no identificado.";
-            mostrarAlerta = true;
-            return;
-        }
+    }
 
-        for (int i = 6; i <= 8; i++)
-        {
-            rubricainicial = rubricatodas.Where(x => x.GrupoEvaluacion.Id == i).ToList();
+    private async Task ConfirmarGuardado()
+    {
+        mostrarModalGuardar = false;
+        cargando = true; // Mostramos tu spinner de carga
 
-            foreach (var r in rubricainicial)
-            {
-                var registro = new RubricaCompuesta
-                {
-                    IdRubrica = r.Id,
-                    Descripcion = r.Descripcion,
-                    IdGrupo = r.GrupoEvaluacion.Id,
-                    DescGrupo = r.GrupoEvaluacion.NombreGrupo,
-                    Codigo = 0
-                };
+        // Llamas a tu lógica original de guardado
+        await GuardarIniEvaluacion();
 
-                entidadActual.Add(registro);
-            }
-        }
+        cargando = false;
     }
 }
