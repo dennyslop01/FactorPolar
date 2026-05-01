@@ -71,7 +71,7 @@
                                 @if (p.Estado == 0)
                                 {
                                     <button class="btn btn-outline-warning btn-sm border-2 fw-bold px-3 rounded-pill"
-                                    @onclick="() => ActivarEnVivo(p, 1)">
+                                    @onclick="() => ActivarEnVivo(p)">
                                         @* <i class="bi bi-search me-1"></i> *@ Activar
                                     </button>
                                 }
@@ -82,11 +82,11 @@
                                         @* <i class="bi bi-search me-1"></i> *@ Evaluaciones
                                     </button>
                                     <button class="btn btn-outline-secondary btn-sm border-2 fw-bold px-3 rounded-pill me-2"
-                                            @onclick="() => ActivarEnVivo(p, 2)">
+                                            @onclick="() => VerificarCompletar(p)">
                                         @* <i class="bi bi-search me-1"></i> *@ Completar
                                     </button>
                                     <button class="btn btn-outline-danger btn-sm border-2 fw-bold px-3 rounded-pill me-2"
-                                            @onclick="() => CancelarEnVivo(p)">
+                                            @onclick="() => VerificarCancelar(p)">
                                         @* <i class="bi bi-search me-1"></i> *@ Cancelar
                                     </button>
                                 }
@@ -95,15 +95,57 @@
                     </ChildContentRow>
                 </PaginationComponent>
             </div>
+
+            @if (mostrarCompletar)
+            {
+                <div class="modal-overlay">
+                    <div class="modal-container">
+                        <div class="modal-header">
+                            <div class="icon-circle">
+                                <i class="fas fa-check"></i> <!-- Usando FontAwesome o un SVG -->
+                            </div>
+                        </div>
+                        <div class="modal-body">
+                            <h2>¿Confirmar Presentación?</h2>
+                            <p>Estás a punto de marcar esta presentación como <strong>Completada</strong>. Esta acción no se puede deshacer.</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn-cancel" @onclick="CerarModal">Volver</button>
+                            <button class="btn-confirm" @onclick="() => CerrarEnVivo(beneficiarioEnVivo)">Sí, completar</button>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if(mostrarCancelar)
+            {
+                <div class="modal-overlay">
+                    <!-- Añadimos 'modal-danger' para diferenciarlo del de confirmación -->
+                    <div class="modal-container modal-danger">
+                        <div class="modal-body">
+                            <h2>¿Anular Presentación?</h2>
+                            <p>Estás a punto de <strong>Cancelar</strong> esta participación. Esta acción marcará el registro como activo y perdera las evaluaciones realizadas.</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn-cancel" @onclick="CerarModal">No, volver</button>
+                            <button class="btn-confirm" @onclick="() => CancelarEnVivo(beneficiarioEnVivo)">Sí, cancelar</button>
+                        </div>
+                    </div>
+                </div>
+            }
+
         </div>
     </div>
 </div>
 
 @code {
-    private bool vistaGrupos = false;
     private bool vistaGeneral = false;
+    private bool mostrarCompletar = false;
+    private bool mostrarCancelar = false;
+
     private List<BeneficiarioEnVivo> Listgral = new();
     private List<BeneficiarioEnVivo> ListgralBuscar = new();
+    private BeneficiarioEnVivo beneficiarioEnVivo = new();
 
     private string searchTerm = "";
     [Inject] private IBeneficiario repobenefi { get; set; } = null!;
@@ -193,7 +235,7 @@
         StateHasChanged();
     }
 
-    private async Task ActivarEnVivo(BeneficiarioEnVivo ben, int accion)
+    private async Task ActivarEnVivo(BeneficiarioEnVivo ben)
     {
         var userid = await SessionStorage.GetAsync<string>("UserId");
         if (!string.IsNullOrEmpty(userid.Value))
@@ -203,25 +245,32 @@
             {
                 if (userrol.Value == "1")
                 {
-                    if (accion == 1)
-                    {
-                        await reporubbenefi.ActivarEnVivo(ben.Id);
-                    }
-
-                    if (accion == 2 && ben.Estado == 1)
-                    {
-                        await reporubbenefi.CerrarEnVivo(ben.Id);
-                    }
-
+                    await reporubbenefi.ActivarEnVivo(ben.Id);
                     await LoadBenefiDataAsync();
                 }
             }
         }
     }
 
-    private void Regresar()
+    private async Task CerrarEnVivo(BeneficiarioEnVivo ben)
     {
-        NavManager.NavigateTo($"/");
+        var userid = await SessionStorage.GetAsync<string>("UserId");
+        if (!string.IsNullOrEmpty(userid.Value))
+        {
+            var userrol = await SessionStorage.GetAsync<string>("UserRol");
+            if (!string.IsNullOrEmpty(userrol.Value))
+            {
+                if (userrol.Value == "1")
+                {
+                    if (ben.Estado == 1)
+                    {
+                        await reporubbenefi.CerrarEnVivo(ben.Id);
+                        await LoadBenefiDataAsync();
+                        await CerarModal();
+                    }
+                }
+            }
+        }
     }
 
     private async Task CancelarEnVivo(BeneficiarioEnVivo benefi)
@@ -236,6 +285,7 @@
                 {
                     await reporubbenefi.CancelarEnVivo(benefi.Id);
                     await LoadBenefiDataAsync();
+                    await CerarModal();
                 }
             }
         }
@@ -256,6 +306,52 @@
             }
         }
     }
+
+    private async Task VerificarCompletar(BeneficiarioEnVivo benefi)
+    {
+        var userid = await SessionStorage.GetAsync<string>("UserId");
+        if (!string.IsNullOrEmpty(userid.Value))
+        {
+            var userrol = await SessionStorage.GetAsync<string>("UserRol");
+            if (!string.IsNullOrEmpty(userrol.Value))
+            {
+                if (userrol.Value == "1")
+                {
+                    if (benefi.Estado == 1)
+                    {
+                        beneficiarioEnVivo = benefi;
+                        mostrarCompletar = true;
+                    }
+                }
+            }
+        }
+    }
+
+    private async Task VerificarCancelar(BeneficiarioEnVivo benefi)
+    {
+        var userid = await SessionStorage.GetAsync<string>("UserId");
+        if (!string.IsNullOrEmpty(userid.Value))
+        {
+            var userrol = await SessionStorage.GetAsync<string>("UserRol");
+            if (!string.IsNullOrEmpty(userrol.Value))
+            {
+                if (userrol.Value == "1")
+                {
+                    if (benefi.Estado == 1)
+                    {
+                        beneficiarioEnVivo = benefi; 
+                        mostrarCancelar = true;
+                    }
+                }
+            }
+        }
+    }
+ 
+    private async Task CerarModal()
+    {
+        mostrarCompletar = false;
+        mostrarCancelar = false;
+    }
 }
 
 <style>
@@ -265,10 +361,10 @@
         transition: all 0.3s ease;
     }
 
-        .nav-pills .nav-link.active {
-            background-color: #0d6efd !important;
-            box-shadow: 0 4px 12px rgba(13, 110, 253, 0.25);
-        }
+    .nav-pills .nav-link.active {
+        background-color: #0d6efd !important;
+        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.25);
+    }
 
     .table-responsive {
         min-height: 400px;
@@ -277,4 +373,118 @@
     .btn-outline-warning:hover {
         color: #000; /* Mejor contraste */
     }
+
+    /* Este es el fondo oscuro que bloquea la pantalla */
+    .modal-overlay {
+        position: fixed; /* Clave para que se quede fijo sobre la pantalla */
+        top: 0;
+        left: 0;
+        width: 100vw; /* 100% del ancho de la ventana */
+        height: 100vh; /* 100% del alto de la ventana */
+        background-color: rgba(0, 0, 0, 0.5); /* Fondo semi-transparente oscuro */
+        display: flex;
+        justify-content: center; /* Centra el modal horizontalmente */
+        align-items: center; /* Centra el modal verticalmente */
+        z-index: 9999; /* Un número alto para asegurar que esté sobre la lista y el header */
+        backdrop-filter: blur(2px); /* Opcional: un ligero desenfoque al fondo para más elegancia */
+    }
+    
+    /* El contenedor blanco del modal */
+    .modal-container {
+        background: white;
+        padding: 35px;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 420px;
+        text-align: left; /* Alineación a la izquierda para un look más moderno */
+        box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        /* BORDE VERDE: Puedes elegir uno de los dos estilos abajo */
+        border-top: 6px solid #2e7d32; /* Estilo 1: Franja gruesa arriba */
+        /* border: 1px solid #2e7d32; */ /* Estilo 2: Borde completo delgado */
+    }
+
+    /* Títulos y textos */
+    .modal-body h2 {
+        color: #1b5e20; /* Título en verde oscuro para coherencia */
+        margin-top: 0;
+        font-size: 1.4rem;
+    }
+
+    .modal-body p {
+        color: #555;
+        font-size: 1rem;
+        line-height: 1.6;
+        margin-bottom: 25px;
+    }
+
+    /* BOTONES CON EFECTO DE CLIC */
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end; /* Alineados a la derecha */
+        gap: 12px;
+    }
+
+    .btn-confirm {
+        background-color: #2e7d32;
+        color: white;
+        border: none;
+        padding: 10px 24px;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+        .btn-confirm:hover {
+            background-color: #1b5e20;
+        }
+
+        .btn-confirm:active {
+            transform: scale(0.96); /* Efecto de hundimiento */
+        }
+
+    .btn-cancel {
+        background-color: transparent;
+        color: #666;
+        border: 1px solid #ccc;
+        padding: 10px 24px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-cancel:hover {
+        background-color: #f9f9f9;
+    }
+
+    .btn-cancel:active {
+        transform: scale(0.96);
+    }
+
+    /* --- VARIANTE ROJA (CANCELAR) --- */
+
+    /* Cambiamos el borde superior a rojo */
+    .modal-danger {
+        border-top: 6px solid #d32f2f; /* Rojo institucional */
+    }
+
+        /* Cambiamos el color del título en la variante roja */
+        .modal-danger .modal-body h2 {
+            color: #c62828;
+        }
+
+        /* Cambiamos el color del botón principal a rojo */
+        .modal-danger .btn-confirm {
+            background-color: #d32f2f;
+            box-shadow: 0 4px 6px rgba(211, 47, 47, 0.2);
+        }
+
+            .modal-danger .btn-confirm:hover {
+                background-color: #b71c1c;
+                box-shadow: 0 6px 12px rgba(211, 47, 47, 0.3);
+            }
+
+    /* El efecto de clic (scale) ya lo hereda del código anterior,
+       así que no necesitas volver a escribirlo. */
+
 </style>

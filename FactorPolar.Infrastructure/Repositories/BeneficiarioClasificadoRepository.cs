@@ -20,7 +20,7 @@ namespace FactorPolar.Infrastructure.Repositories
             using var _context = _contextFactory.CreateDbContext();
 
             var benefi = await _context.BeneficiariosClasificados
-                .Where(x => x.Id == id)
+                .Where(x => x.Beneficiario.Id == id)
                 .FirstOrDefaultAsync();
             
             if(benefi == null) return false;
@@ -36,7 +36,7 @@ namespace FactorPolar.Infrastructure.Repositories
             using var _context = _contextFactory.CreateDbContext();
 
             var benefi = await _context.BeneficiariosClasificados
-                .Where(x => x.Id == id)
+                .Where(x => x.Beneficiario.Id == id)
                 .FirstOrDefaultAsync();
 
             if (benefi == null) return false;
@@ -52,7 +52,7 @@ namespace FactorPolar.Infrastructure.Repositories
             using var _context = _contextFactory.CreateDbContext();
 
             var benefi = await _context.BeneficiariosClasificados
-                .Where(x => x.Id == id)
+                .Where(x => x.Beneficiario.Id == id)
                 .FirstOrDefaultAsync();
 
             if (benefi == null) return false;
