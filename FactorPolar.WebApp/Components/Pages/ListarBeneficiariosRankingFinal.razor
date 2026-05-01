@@ -282,7 +282,7 @@
         try
         {
             var csvString = GenerarCsv(separador, opcion); // Implementa esta función para formatear los datos
-            await jsRuntime.InvokeVoidAsync("downloadFileFromStream", ((opcion == 1) ? $"ListaClasificados.csv" : $"ListaClasificados.csv"), csvString);
+            await jsRuntime.InvokeVoidAsync("downloadFileFromStream", ((opcion == 1) ? $"RankingPresentacion.csv" : $"RankingPresentacion.csv"), csvString);
         }
         catch (Exception ex)
         {
@@ -309,7 +309,7 @@
             {
                 foreach (var p in Listgral)
                 {
-                    linea = $"{p.Employee.EmployeeNumber}{separador}{CultureInfo.CurrentCulture.TextInfo.ToTitleCase(p.FullName.ToLower())}{separador}{p.FechaNacimiento.ToShortDateString()}{separador}{p.Edad.ToString()}{separador}{p.Puntaje:0.00}";
+                    linea = $"{p.Employee.EmployeeNumber}{separador}{CultureInfo.CurrentCulture.TextInfo.ToTitleCase(p.FullName.Replace(",", "").ToLower())}{separador}{p.FechaNacimiento.ToShortDateString()}{separador}{p.Edad.ToString()}{separador}{p.Puntaje:0.00}";
                     sb.AppendLine(linea); //Lineas
                 }
             }

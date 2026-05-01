@@ -445,7 +445,7 @@
             {
                 foreach (var p in Listgral)
                 {
-                    linea = $"{p.Employee.EmployeeNumber}{separador}{CultureInfo.CurrentCulture.TextInfo.ToTitleCase(p.FullName.ToLower())}{separador}{p.FechaNacimiento.ToShortDateString()}{separador}{p.Edad.ToString()}{separador}{p.Puntaje:0.00}";
+                    linea = $"{p.Employee.EmployeeNumber}{separador}{CultureInfo.CurrentCulture.TextInfo.ToTitleCase(p.FullName.Replace(",", "").ToLower())}{separador}{p.FechaNacimiento.ToShortDateString()}{separador}{p.Edad.ToString()}{separador}{p.Puntaje:0.00}";
                     sb.AppendLine(linea); //Lineas
                 }
             }

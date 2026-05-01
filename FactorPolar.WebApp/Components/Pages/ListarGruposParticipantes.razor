@@ -629,7 +629,7 @@
             {
                 foreach (var p in Listgral)
                 {
-                    linea = $"{p.Employee.EmployeeNumber}{separador}{CultureInfo.CurrentCulture.TextInfo.ToTitleCase(p.FullName.ToLower())}{separador}{p.FechaNacimiento.ToShortDateString()}{separador}{p.Edad.ToString()}";
+                    linea = $"{p.Employee.EmployeeNumber}{separador}{CultureInfo.CurrentCulture.TextInfo.ToTitleCase(p.FullName.Replace(",", "").ToLower())}{separador}{p.FechaNacimiento.ToShortDateString()}{separador}{p.Edad.ToString()}";
                     sb.AppendLine(linea); //Lineas
                 }
             }
@@ -637,7 +637,7 @@
             {
                 foreach (var p in ListEvalgral)
                 {
-                    linea = $"{p.Employee.EmployeeNumber}{separador}{CultureInfo.CurrentCulture.TextInfo.ToTitleCase(p.FullName.ToLower())}{separador}{p.FechaNacimiento.ToShortDateString()}{separador}{p.Edad.ToString()}";
+                    linea = $"{p.Employee.EmployeeNumber}{separador}{CultureInfo.CurrentCulture.TextInfo.ToTitleCase(p.FullName.Replace(",", "").ToLower())}{separador}{p.FechaNacimiento.ToShortDateString()}{separador}{p.Edad.ToString()}";
                     sb.AppendLine(linea); //Lineas
                 }
 
