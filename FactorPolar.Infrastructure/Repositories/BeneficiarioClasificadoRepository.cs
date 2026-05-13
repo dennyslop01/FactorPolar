@@ -44,6 +44,9 @@ namespace FactorPolar.Infrastructure.Repositories
             benefi.Estado = 0;
 
             await _context.SaveChangesAsync();
+
+            IBeneficiarioRubricaEnVivo rubricaEnVivo = new BeneficiarioRubricaEnVivoRepository(_contextFactory);
+            await rubricaEnVivo.DeleteAsync(id);
             return true;
         }
 

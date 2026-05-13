@@ -108,6 +108,7 @@
                         <div class="modal-body">
                             <h2>¿Confirmar Presentación?</h2>
                             <p>Estás a punto de marcar esta presentación como <strong>Completada</strong>. Esta acción no se puede deshacer.</p>
+                            <p>Evaluaciones Registradas: @nrovotantes</p>
                         </div>
                         <div class="modal-footer">
                             <button class="btn-cancel" @onclick="CerarModal">Volver</button>
@@ -142,6 +143,7 @@
     private bool vistaGeneral = false;
     private bool mostrarCompletar = false;
     private bool mostrarCancelar = false;
+    private int nrovotantes = 0;
 
     private List<BeneficiarioEnVivo> Listgral = new();
     private List<BeneficiarioEnVivo> ListgralBuscar = new();
@@ -150,6 +152,7 @@
     private string searchTerm = "";
     [Inject] private IBeneficiario repobenefi { get; set; } = null!;
     [Inject] private IBeneficiarioClasificado reporubbenefi { get; set; } = null!;
+    [Inject] private IBeneficiarioRubricaEnVivo reporubbenefivivo { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
     {
@@ -319,6 +322,9 @@
                 {
                     if (benefi.Estado == 1)
                     {
+                        var datosvotos = await reporubbenefivivo.GetByIdBenefiAsync(benefi.Id);
+                        nrovotantes = datosvotos.GroupBy(x => x.Usuario.Id).Count();
+
                         beneficiarioEnVivo = benefi;
                         mostrarCompletar = true;
                     }

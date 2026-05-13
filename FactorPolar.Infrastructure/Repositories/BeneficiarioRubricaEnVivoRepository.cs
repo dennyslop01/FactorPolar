@@ -66,6 +66,18 @@ namespace FactorPolar.Infrastructure.Repositories
             return true;
         }
 
+        public async Task<bool> DeleteAsync(int idbenefi)
+        {
+            using var _context = _contextFactory.CreateDbContext();
+
+            int filasBorradas = await _context.BeneficiariosRubricasEnVivo
+                .Where(x => x.Beneficiario.Id == idbenefi)
+                .ExecuteDeleteAsync();
+
+            if(filasBorradas > 0) return true;
+            return false;
+        }
+
         public async Task<List<BeneficiarioRubricaEnVivo?>> GetAlllAsync()
         {
             using var _context = _contextFactory.CreateDbContext();

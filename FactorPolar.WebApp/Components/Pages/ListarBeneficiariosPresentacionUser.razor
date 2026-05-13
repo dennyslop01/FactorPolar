@@ -14,75 +14,32 @@
     </div>
     @if (beneficiario != null)
     {
-        <div class="row g-4">
-            <!-- COLUMNA IZQUIERDA: DATOS ACADÉMICOS -->
-            <div class="col-lg-4">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-header bg-primary text-white py-3">
-                        <h6 class="mb-0"><i class="bi bi-mortarboard-fill me-2"></i>Información Académica</h6>
-                    </div>
-                    <div class="card-body p-4">
-                        <div class="mb-4">
-                            <label class="text-muted small fw-bold text-uppercase d-block">Tipo de Institución</label>
-                            <span>@(beneficiario.TipoInstitucionAux ?? beneficiario.TipoInstitucion)</span>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="text-muted small fw-bold text-uppercase d-block">Institución Educativa</label>
-                            <span>@(beneficiario.NombreInstitucionAux ?? beneficiario.NombreInstitucion)</span>
-                        </div>
-
-                        <div class="row mb-4">
-                            <div class="col-6">
-                                <label class="text-muted small fw-bold text-uppercase d-block">RIF</label>
-                                <span>@(beneficiario.RifInstitucionAux ?? beneficiario.RifInstitucion)</span>
-                            </div>
-                            <div class="col-6">
-                                <label class="text-muted small fw-bold text-uppercase d-block">Promedio</label>
-                                <span class="badge bg-success fs-6 rounded-pill px-3">
-                                    @if (beneficiario?.NivelEducativo == "PRIMARIA")
-                                    {
-                                        if (beneficiario.Promedio != null)
-                                        {
-                                            @notaprimaria
-                                        }
-                                    }
-                                    else
-                                    {
-                                        @beneficiario?.Promedio
-                                    }
-                                </span>
-                            </div>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="text-muted small fw-bold text-uppercase d-block">Nivel Educativo</label>
-                            <span>@(beneficiario.NivelEducativoAux ?? beneficiario.NivelEducativo)</span>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="text-muted small fw-bold text-uppercase d-block">Nivel Académico</label>
-                            <span>@(beneficiario.GradoEducativoAux ?? beneficiario.GradoEducativo)</span>
-                        </div>
-                        <div class="mb-4">
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- COLUMNA DERECHA: DOCUMENTOS Y MULTIMEDIA -->
-            <div class="col-lg-8">
+        <div class="row">
+             <!-- COLUMNA DERECHA: DOCUMENTOS Y MULTIMEDIA -->
+            <div class="col-lg-12">
                 <!-- Tarjeta PDF -->
-                <div class="card border-0 shadow-sm mb-4">
+                <div class="card border-0 shadow-sm">
                     <div class="card-header bg-primary text-white py-3">
                         <h6 class="mb-0"><i class="bi bi-mortarboard-fill me-2"></i>Rubrica a Evaluar</h6>
                     </div>
-                    <div class="card-body p-4">
-                        <div class="mb-4">
-                            <EditForm EditContext="editContext" OnValidSubmit="GuardarIniEvaluacion">
-                                <div class="mb-3">
-                                    @foreach (var grupo in entidadActual.GroupBy(x => x.IdGrupo).Select(g => g.First()))
-                                    {
-                                        <strong><h6>@grupo.DescGrupo</h6></strong>
+                    <br />
+
+                    <div class="text-end me-4">
+                        <!-- Badge más grande con fuente prominente -->
+                        <span class="badge bg-secondary rounded-pill px-4 py-2 shadow-sm"
+                              style="font-size: 1rem; font-weight: 600; min-width: 70px;">
+                            @puntuacionGral
+                        </span>
+                    </div>
+
+                    <div class="card-body">
+                        <EditForm EditContext="editContext" OnValidSubmit="GuardarIniEvaluacion">
+                            <div class="row">
+                                @foreach (var grupo in entidadActual.GroupBy(x => x.IdGrupo).Select(g => g.First()))
+                                {
+                                    <div class="col-md-4 mb-4" style="border-right: 1px solid #eee;">
+                                        <strong><h6 class="mb-3">@grupo.DescGrupo</h6></strong>
+
                                         @foreach (var item in entidadActual.Where(x => x.IdGrupo == grupo.IdGrupo))
                                         {
                                             // Creamos el identificador para este item específico
@@ -95,21 +52,31 @@
                                                 <MudRating SelectedValue="@item.Codigo"
                                                            SelectedValueChanged="@((int val) => OnRatingChanged(item, val))"
                                                            Color="Color.Warning"
+                                                           Size="Size.Medium"
                                                            FullIcon="@Icons.Material.Filled.Star"
                                                            EmptyIcon="@Icons.Material.Outlined.StarBorder" />
                                                 <ValidationMessage For="@(() => item.Codigo)" />
                                             </div>
                                         }
-                                        <hr />
-                                    }
-                                </div>
-                                <div class="d-flex justify-content-center">
-                                    <button type="button" @onclick="AbrirConfirmacionGuardar" class="btn btn-outline-primary btn-sm rounded-pill px-4">
-                                        Guardar
+                                    </div>
+                                }
+                            </div>
+                            <div class="d-flex justify-content-center gap-2">
+                                <button type="button" @onclick="AbrirConfirmacionGuardar" class="btn btn-outline-primary btn-sm rounded-pill px-4">
+                                    Guardar
+                                </button>
+
+                                @if (editarEntidad && Listgral.Count()>0)
+                                {
+                                    <button type="button" @onclick="CancelarGuardar" class="btn btn-outline-danger btn-sm rounded-pill px-4">
+                                        Cancelar
                                     </button>
-                                </div>
-                            </EditForm>
-                       </div>
+                                }
+                            </div>
+
+                        </EditForm>
+                        <hr />
+
                         @if (mostrarModalGuardar)
                         {
                             <div class="modal-overlay">
@@ -125,7 +92,7 @@
                                 </div>
                             </div>
                         }
-
+ 
                     </div>
                 </div>
             </div>
@@ -133,6 +100,74 @@
     }
 
 </div>
+
+@if(!editarEntidad)
+{
+    <div class="card shadow-sm border-0 h-auto">
+        <div class="card-header bg-white py-3">
+            <div class="d-flex align-items-center">
+                <div class="bg-primary p-2 rounded-3 me-3">
+                    <i class="bi bi-people-fill text-white fs-4"></i>
+                </div>
+                <h6 class="mb-0 fw-bold text-secondary">Talentos Clasificados - Presentación en Vivo</h6>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <div class="row">
+                <div class="col-4">
+                    <div>
+                        <strong>Nro. de Registros:</strong> @Listgral.Count()
+                    </div>
+                </div>
+            </div>
+            <hr />
+            <div class="table-responsive">
+                <PaginationComponent TItem="BeneficiarioEnVivo" Items="Listgral" DefaultPageSize="10">
+                    <ChildContentHeader>
+                        <tr class="table-light">
+                            @* <th class="border-0 text-uppercase small fw-bold">#</th> *@
+                            <th class="border-0 text-uppercase small fw-bold">No. Pers</th>
+                            <th class="border-0 text-uppercase small fw-bold">Nombre del Empleado</th>
+                            <th class="border-0 text-uppercase small fw-bold">Nombre del Beneficiario</th>
+                            <th class="border-0 text-uppercase small fw-bold">Fecha Nacimiento</th>
+                            <th class="border-0 text-uppercase small fw-bold text-center">Edad</th>
+                            <th class="border-0 text-uppercase small fw-bold text-center">Puntaje</th>
+                            <th class="border-0 text-uppercase small fw-bold text-center">Categoría</th>
+                            <th class="border-0 text-end">Acciones</th>
+                        </tr>
+                    </ChildContentHeader>
+                    <ChildContentRow Context="p">
+                        <tr class="align-middle">
+                            @* <td><span class="text-muted">@p.Id</span></td> *@
+                            <td class="fw-bold text-primary">@p.Employee.EmployeeNumber</td>
+                            <td>@CultureInfo.CurrentCulture.TextInfo.ToTitleCase(p.Employee.FullName.ToLower())</td>
+                            <td>@CultureInfo.CurrentCulture.TextInfo.ToTitleCase(p.FullName.ToLower())</td>
+                            <td>@p.FechaNacimiento.ToShortDateString()</td>
+                            <td class="text-center">
+                                <span class="badge bg-info-subtle text-info border border-info-subtle px-4 py-2 rounded-pill">
+                                    @p.Edad años
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-info-subtle text-info border border-info-subtle px-4 py-2 rounded-pill fs-6 fw-bold">
+                                    @($"{p.Puntaje:0.00}")
+                                </span>
+                            </td>
+                            <td>@p.Categoria</td>
+                            <td class="text-end">
+                                <button class="btn btn-outline-warning btn-sm border-2 fw-bold px-3 rounded-pill"
+                                        @onclick="() => ActivarEnVivo(p)">
+                                    @* <i class="bi bi-search me-1"></i> *@ Editar
+                                </button>
+                            </td>
+                        </tr>
+                    </ChildContentRow>
+                </PaginationComponent>
+            </div>
+        </div>
+    </div>
+}
 <br />
 
 @if (mostrarAlerta)
@@ -142,6 +177,7 @@
         <button type="button" class="btn-close" @onclick="() => mostrarAlerta = false"></button>
     </div>
 }
+
 
 @if (cargando)
 {
@@ -160,6 +196,7 @@
     </div>
 }
 
+
 @code {
     string datosbenefi = string.Empty;
     private Beneficiario? beneficiario = new();
@@ -177,12 +214,17 @@
     private List<RubricaEvaluacion> rubricatodas = new();
     private List<RubricaEvaluacion> rubricainicial = new();
     private List<BeneficiarioRubricaEnVivo?> benefirubricauser = new();
+    private List<BeneficiarioEnVivo> Listgral = new();
+
     private int userRolgral = 0;
+    private decimal puntuacionGral = 0;
+    private bool editarEntidad = false;
 
     [Inject] private IBeneficiario repobenefi { get; set; } = null!;
     [Inject] private IRubricaEvaluacion reporubrica { get; set; } = null!;
     [Inject] private IBeneficiarioRubricaEnVivo reporubbenefi { get; set; } = null!;
     [Inject] private IBeneficiarioClasificado reporubbeneficla { get; set; } = null!;
+
     private bool mostrarModalGuardar = false;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -240,34 +282,88 @@
 
             if (beneficiario != null)
             {
-                datosbenefi = CultureInfo.CurrentCulture.TextInfo.ToTitleCase($"{beneficiario.FullName}".ToLower());
+                datosbenefi = $"{CultureInfo.CurrentCulture.TextInfo.ToTitleCase($"{beneficiario.FullName}".ToLower())}, Edad: {beneficiario.Edad}";
             }
             rubricatodas = await reporubrica.GetAllAsync();
 
-            await CompletarRubrica();
+            await CompletarRubrica(beneficiario.Id);
 
+            editarEntidad = true;
             if (benefirubricauser.Count() > 0)
             {
                 beneficiario = null;
+                editarEntidad = false;
             }
+        }
+
+        if (beneficiario == null)
+            await LoadBenefiDataListaAsync();
+
+        await Task.CompletedTask;
+    }
+
+    private async Task LoadBenefiDataListaAsync()
+    {
+        var beneficiriosEval = await reporubbenefi.GetAlllAsync();
+
+        Listgral.Clear();
+
+        var userid = await SessionStorage.GetAsync<string>("UserId");
+        if (!string.IsNullOrEmpty(userid.Value))
+        {
+            // Obtenemos la fecha de hoy (solo fecha, sin hora para comparar correctamente)
+            DateTime hoy = DateTime.Today;
+
+            var existeactiva = beneficiriosEval
+                .Where(x => x.Usuario.Id == int.Parse(userid.Value) &&
+                            x.CreateDate.Date == hoy) // Filtramos por la fecha de hoy
+                .ToList();
+
+            if (existeactiva.Any())
+            {
+                var agrupados = existeactiva
+                    .GroupBy(b => b.Beneficiario.Id)
+                    .Select(g => new
+                    {
+                        Id = g.Key,
+                        PuntajeTotal = g.Sum(x => x.FactorResultado)
+                    });
+
+                foreach (var grupo in agrupados)
+                {
+                    var beneficiario = await repobenefi.GetByIdlAsync(grupo.Id);
+
+                    if (beneficiario != null)
+                    {
+                        Listgral.Add(new BeneficiarioEnVivo
+                        {
+                            Id = beneficiario.Id,
+                            FullName = beneficiario.FullName,
+                            FechaNacimiento = beneficiario.FechaNacimiento,
+                            Employee = beneficiario.Employee,
+                            Edad = beneficiario.Edad,
+                            Puntaje = grupo.PuntajeTotal
+                        });
+                    }
+                }
+            }
+
         }
         await Task.CompletedTask;
     }
 
-    private async Task CompletarRubrica()
+    private async Task CompletarRubrica(int Id)
     {
         entidadActual = new List<RubricaCompuesta>();
         var userid = await SessionStorage.GetAsync<string>("UserId");
-        if (!string.IsNullOrEmpty(userid.Value))
-        {
-            benefirubricauser = await reporubbenefi.GetByIdUserBenefilAsync(int.Parse(userid.Value), beneficiario.Id);
-        }
-        else
+        if (string.IsNullOrEmpty(userid.Value))
         {
             mensajeAlerta = $"Error al cargar la evaluación: Usuario no identificado.";
             mostrarAlerta = true;
             return;
         }
+        else
+            benefirubricauser = await reporubbenefi.GetByIdUserBenefilAsync(int.Parse(userid.Value), Id);
 
         for (int i = 6; i <= 8; i++)
         {
@@ -281,12 +377,23 @@
                     Descripcion = r.Descripcion,
                     IdGrupo = r.GrupoEvaluacion.Id,
                     DescGrupo = r.GrupoEvaluacion.NombreGrupo,
-                    Codigo = 0
+                    Codigo = (benefirubricauser.Count() > 0 ? benefirubricauser.Where(x => x.RubricaEvaluacion.Id == r.Id).Select(y => y.Puntuacion).First(): 0)
                 };
 
                 entidadActual.Add(registro);
             }
         }
+
+        if(benefirubricauser.Count()>0)
+        {
+            puntuacionGral = 0;
+            foreach (RubricaCompuesta rubrica in entidadActual)
+            {
+                decimal factor = rubricatodas.Where(x => x.Id == rubrica.IdRubrica).Select(y => y.Factor).First();
+                puntuacionGral += rubrica.Codigo * factor;
+            }
+        }
+
     }
 
     private void OnRatingChanged(RubricaCompuesta item, int newValue)
@@ -300,6 +407,13 @@
         {
             var fieldId = new FieldIdentifier(item, nameof(item.Codigo));
             editContext.NotifyFieldChanged(fieldId);
+        }
+
+        puntuacionGral = 0;
+        foreach(RubricaCompuesta rubrica in entidadActual)
+        {
+            decimal factor = rubricatodas.Where(x => x.Id == rubrica.IdRubrica).Select(y => y.Factor).First();
+            puntuacionGral += rubrica.Codigo * factor;
         }
     }
 
@@ -346,6 +460,7 @@
                 }
             }
 
+            editarEntidad = false;
             await LoadBenefiDataAsync();
         }
         catch (Exception ex)
@@ -373,5 +488,23 @@
         await GuardarIniEvaluacion();
 
         cargando = false;
+    }
+
+    private async Task ActivarEnVivo(BeneficiarioEnVivo ben)
+    {
+        var userid = await SessionStorage.GetAsync<string>("UserId");
+        if (!string.IsNullOrEmpty(userid.Value))
+        {
+            benefirubricauser = await reporubbenefi.GetByIdUserBenefilAsync(int.Parse(userid.Value), ben.Id);
+            beneficiario = await repobenefi.GetByIdlAsync(ben.Id);
+            await CompletarRubrica(ben.Id);
+            editarEntidad = true;
+        }
+    }
+
+    private async Task CancelarGuardar()
+    {
+        editarEntidad = false;
+        await LoadBenefiDataAsync();
     }
 }
