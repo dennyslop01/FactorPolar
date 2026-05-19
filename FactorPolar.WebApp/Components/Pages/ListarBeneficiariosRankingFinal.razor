@@ -185,9 +185,9 @@
             }
         }
 
-        Listgral = Listgral.OrderByDescending(x => x.Puntaje).ToList();
-        var puntajeCorte = Listgral.ElementAtOrDefault(TotalSeleccionados - 1)?.Puntaje ?? 0;
-        Listgral = Listgral.Where(x => x.Puntaje >= puntajeCorte).ToList();
+        // Listgral = Listgral.OrderByDescending(x => x.Puntaje).ToList();
+        // var puntajeCorte = Listgral.ElementAtOrDefault(TotalSeleccionados - 1)?.Puntaje ?? 0;
+        // Listgral = Listgral.Where(x => x.Puntaje >= puntajeCorte).ToList();
 
         ListgralBuscar = Listgral;
         vistaGeneral = true;

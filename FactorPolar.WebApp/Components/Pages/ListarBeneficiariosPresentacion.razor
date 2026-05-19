@@ -34,66 +34,80 @@
                 </div>
             </div>
             <hr />
-            <div class="table-responsive">
-                <PaginationComponent TItem="BeneficiarioEnVivo" Items="Listgral" DefaultPageSize="10">
-                    <ChildContentHeader>
-                        <tr class="table-light">
-                            @* <th class="border-0 text-uppercase small fw-bold">#</th> *@
-                            <th class="border-0 text-uppercase small fw-bold">No. Pers</th>
-                            <th class="border-0 text-uppercase small fw-bold">Nombre del Empleado</th>
-                            <th class="border-0 text-uppercase small fw-bold">Nombre del Beneficiario</th>
-                            <th class="border-0 text-uppercase small fw-bold">Fecha Nacimiento</th>
-                            <th class="border-0 text-uppercase small fw-bold text-center">Edad</th>
-                            <th class="border-0 text-uppercase small fw-bold text-center">Puntaje</th>
-                            <th class="border-0 text-uppercase small fw-bold text-center">Categoría</th>
-                            <th class="border-0 text-end">Acciones</th>
-                        </tr>
-                    </ChildContentHeader>
-                    <ChildContentRow Context="p">
-                        <tr class="align-middle">
-                            @* <td><span class="text-muted">@p.Id</span></td> *@
-                            <td class="fw-bold text-primary">@p.Employee.EmployeeNumber</td>
-                            <td>@CultureInfo.CurrentCulture.TextInfo.ToTitleCase(p.Employee.FullName.ToLower())</td>
-                            <td>@CultureInfo.CurrentCulture.TextInfo.ToTitleCase(p.FullName.ToLower())</td>
-                            <td>@p.FechaNacimiento.ToShortDateString()</td>
-                            <td class="text-center">
-                                <span class="badge bg-info-subtle text-info border border-info-subtle px-4 py-2 rounded-pill">
-                                    @p.Edad años
-                                </span>
-                            </td>
-                            <td class="text-center">
-                                <span class="badge bg-info-subtle text-info border border-info-subtle px-4 py-2 rounded-pill fs-6 fw-bold">
-                                    @($"{p.Puntaje:0.00}")
-                                </span>
-                            </td>
-                            <td>@p.Categoria</td>
-                            <td class="text-end">
-                                @if (p.Estado == 0)
-                                {
-                                    <button class="btn btn-outline-warning btn-sm border-2 fw-bold px-3 rounded-pill"
-                                    @onclick="() => ActivarEnVivo(p)">
-                                        @* <i class="bi bi-search me-1"></i> *@ Activar
-                                    </button>
-                                }
-                                @if (p.Estado == 1)
-                                {
-                                    <button class="btn btn-outline-warning btn-sm border-2 fw-bold px-3 rounded-pill me-2"
-                                            @onclick="() => VerEvaluaciones(p)">
-                                        @* <i class="bi bi-search me-1"></i> *@ Evaluaciones
-                                    </button>
-                                    <button class="btn btn-outline-secondary btn-sm border-2 fw-bold px-3 rounded-pill me-2"
-                                            @onclick="() => VerificarCompletar(p)">
-                                        @* <i class="bi bi-search me-1"></i> *@ Completar
-                                    </button>
-                                    <button class="btn btn-outline-danger btn-sm border-2 fw-bold px-3 rounded-pill me-2"
-                                            @onclick="() => VerificarCancelar(p)">
-                                        @* <i class="bi bi-search me-1"></i> *@ Cancelar
-                                    </button>
-                                }
-                            </td>
-                        </tr>
-                    </ChildContentRow>
-                </PaginationComponent>
+            <!-- Navegación de Pestañas Estilizada -->
+            <ul class="nav nav-pills nav-fill mb-4 bg-light p-2 rounded-pill" id="talentTabs" role="tablist">
+                @foreach (var grupo in GruposConfig)
+                {
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link rounded-pill @(grupo.Id == 1 ? "active" : "")"
+                                id="tab-@grupo.Id" data-bs-toggle="tab" data-bs-target="#panel-@grupo.Id"
+                                type="button" role="tab">
+                            <span class="fw-semibold">@grupo.Nombre</span>
+                            <small class="d-block opacity-75">@grupo.Rango</small>
+                        </button>
+                    </li>
+                }
+            </ul>
+
+            <!-- Contenido de las Pestañas -->
+            <div class="tab-content" id="talentTabsContent">
+                @for (int i = 1; i <= 4; i++)
+                {
+                    var currentList = GetListById(i);
+                    <div class="tab-pane fade @(i == 1 ? "show active" : "")" id="panel-@i" role="tabpanel">
+                        <div class="table-responsive">
+                            <PaginationComponent TItem="BeneficiarioEnVivo" Items="currentList" DefaultPageSize="10">
+                                <ChildContentHeader>
+                                    <tr class="table-light">
+                                        @* <th class="border-0 text-uppercase small fw-bold">#</th> *@
+                                        <th class="border-0 text-uppercase small fw-bold">No. Pers</th>
+                                        <th class="border-0 text-uppercase small fw-bold">Nombre del Beneficiario</th>
+                                        <th class="border-0 text-uppercase small fw-bold">Fecha Nacimiento</th>
+                                        <th class="border-0 text-uppercase small fw-bold text-center">Edad</th>
+                                        <th class="border-0 text-end">Acciones</th>
+                                    </tr>
+                                </ChildContentHeader>
+                                <ChildContentRow Context="p">
+                                    <tr class="align-middle">
+                                        @* <td><span class="text-muted">@p.Id</span></td> *@
+                                        <td class="fw-bold text-primary">@p.Employee.EmployeeNumber</td>
+                                        <td>@CultureInfo.CurrentCulture.TextInfo.ToTitleCase(p.FullName.ToLower())</td>
+                                        <td>@p.FechaNacimiento.ToShortDateString()</td>
+                                        <td class="text-center">
+                                            <span class="badge bg-info-subtle text-info border border-info-subtle px-3 py-2 rounded-pill">
+                                                @p.Edad años
+                                            </span>
+                                        </td>
+                                        <td class="text-end">
+                                            @if (p.Estado == 0)
+                                            {
+                                                <button class="btn btn-outline-warning btn-sm border-2 fw-bold px-3 rounded-pill"
+                                                        @onclick="() => ActivarEnVivo(p)">
+                                                    @* <i class="bi bi-search me-1"></i> *@ Activar
+                                                </button>
+                                            }
+                                            @if (p.Estado == 1)
+                                            {
+                                                <button class="btn btn-outline-warning btn-sm border-2 fw-bold px-3 rounded-pill me-2"
+                                                        @onclick="() => VerEvaluaciones(p)">
+                                                    @* <i class="bi bi-search me-1"></i> *@ Evaluaciones
+                                                </button>
+                                                <button class="btn btn-outline-secondary btn-sm border-2 fw-bold px-3 rounded-pill me-2"
+                                                        @onclick="() => VerificarCompletar(p)">
+                                                    @* <i class="bi bi-search me-1"></i> *@ Completar
+                                                </button>
+                                                <button class="btn btn-outline-danger btn-sm border-2 fw-bold px-3 rounded-pill me-2"
+                                                        @onclick="() => VerificarCancelar(p)">
+                                                    @* <i class="bi bi-search me-1"></i> *@ Cancelar
+                                                </button>
+                                            }
+                                        </td>
+                                    </tr>
+                                </ChildContentRow>
+                            </PaginationComponent>
+                        </div>
+                    </div>
+                }
             </div>
 
             @if (mostrarCompletar)
@@ -154,6 +168,30 @@
     [Inject] private IBeneficiarioClasificado reporubbenefi { get; set; } = null!;
     [Inject] private IBeneficiarioRubricaEnVivo reporubbenefivivo { get; set; } = null!;
 
+    private List<BeneficiarioEnVivo> List1 = new();
+    private List<BeneficiarioEnVivo> List2 = new();
+    private List<BeneficiarioEnVivo> List3 = new();
+    private List<BeneficiarioEnVivo> List4 = new();
+
+    private List<GrupoInfo> GruposConfig = new()
+    {
+    new GrupoInfo { Id = 1, Nombre = "Grupo 1", Rango = "6 a 8 años" },
+    new GrupoInfo { Id = 2, Nombre = "Grupo 2", Rango = "9 a 11 años" },
+    new GrupoInfo { Id = 3, Nombre = "Grupo 3", Rango = "12 a 14 años" },
+    new GrupoInfo { Id = 4, Nombre = "Grupo 4", Rango = "15 a 17 años" }
+    };
+
+    private List<BeneficiarioEnVivo> GetListById(int id) => id switch
+    {
+        1 => List1,
+        2 => List2,
+        3 => List3,
+        4 => List4,
+        _ => new List<BeneficiarioEnVivo>()
+    };
+
+    public class GrupoInfo { public int Id { get; set; } public string Nombre { get; set; } public string Rango { get; set; } }
+
     protected override async Task OnInitializedAsync()
     {
         try
@@ -195,6 +233,11 @@
                         });
                 }
             }
+
+            List1 = Listgral.Where(b => b.Edad >= 6 && b.Edad <= 8).ToList();
+            List2 = Listgral.Where(b => b.Edad >= 9 && b.Edad <= 11).ToList();
+            List3 = Listgral.Where(b => b.Edad >= 12 && b.Edad <= 14).ToList();
+            List4 = Listgral.Where(b => b.Edad >= 15 && b.Edad <= 17).ToList();
         }
         else
         {
@@ -216,6 +259,11 @@
                         });
                 }
             }
+
+            List1 = Listgral.Where(b => b.Edad >= 6 && b.Edad <= 8).ToList();
+            List2 = Listgral.Where(b => b.Edad >= 9 && b.Edad <= 11).ToList();
+            List3 = Listgral.Where(b => b.Edad >= 12 && b.Edad <= 14).ToList();
+            List4 = Listgral.Where(b => b.Edad >= 15 && b.Edad <= 17).ToList();
         }
         ListgralBuscar = Listgral;
         vistaGeneral = true;

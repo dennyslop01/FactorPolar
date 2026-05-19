@@ -127,12 +127,12 @@
                     <ChildContentHeader>
                         <tr class="table-light">
                             @* <th class="border-0 text-uppercase small fw-bold">#</th> *@
-                            <th class="border-0 text-uppercase small fw-bold">No. Pers</th>
-                            <th class="border-0 text-uppercase small fw-bold">Nombre del Empleado</th>
+                           @*  <th class="border-0 text-uppercase small fw-bold">No. Pers</th>
+                            <th class="border-0 text-uppercase small fw-bold">Nombre del Empleado</th> *@
                             <th class="border-0 text-uppercase small fw-bold">Nombre del Beneficiario</th>
                             <th class="border-0 text-uppercase small fw-bold">Fecha Nacimiento</th>
                             <th class="border-0 text-uppercase small fw-bold text-center">Edad</th>
-                            <th class="border-0 text-uppercase small fw-bold text-center">Puntaje</th>
+                            @* <th class="border-0 text-uppercase small fw-bold text-center">Puntaje</th> *@
                             <th class="border-0 text-uppercase small fw-bold text-center">Categoría</th>
                             <th class="border-0 text-end">Acciones</th>
                         </tr>
@@ -140,8 +140,8 @@
                     <ChildContentRow Context="p">
                         <tr class="align-middle">
                             @* <td><span class="text-muted">@p.Id</span></td> *@
-                            <td class="fw-bold text-primary">@p.Employee.EmployeeNumber</td>
-                            <td>@CultureInfo.CurrentCulture.TextInfo.ToTitleCase(p.Employee.FullName.ToLower())</td>
+                            @* <td class="fw-bold text-primary">@p.Employee.EmployeeNumber</td>
+                            <td>@CultureInfo.CurrentCulture.TextInfo.ToTitleCase(p.Employee.FullName.ToLower())</td> *@
                             <td>@CultureInfo.CurrentCulture.TextInfo.ToTitleCase(p.FullName.ToLower())</td>
                             <td>@p.FechaNacimiento.ToShortDateString()</td>
                             <td class="text-center">
@@ -149,11 +149,11 @@
                                     @p.Edad años
                                 </span>
                             </td>
-                            <td class="text-center">
+                            @* <td class="text-center">
                                 <span class="badge bg-info-subtle text-info border border-info-subtle px-4 py-2 rounded-pill fs-6 fw-bold">
                                     @($"{p.Puntaje:0.00}")
                                 </span>
-                            </td>
+                            </td> *@
                             <td>@p.Categoria</td>
                             <td class="text-end">
                                 <button class="btn btn-outline-warning btn-sm border-2 fw-bold px-3 rounded-pill"
