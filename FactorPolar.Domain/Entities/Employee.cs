@@ -17,6 +17,7 @@ namespace FactorPolar.Domain.Entities
         public int? IngresoMovil { get; set; }
         public int? IngresoCompu { get; set; }
         public DateTime? FechaAceptarTC { get; set; }
+        public DateTime? FechaAceptarTC2 { get; set; }
 
     }
 
@@ -34,11 +35,11 @@ namespace FactorPolar.Domain.Entities
         public string? RifInstitucion { get; set; } //AF
         public string? NivelEducativo { get; set; } //AG
         public string? GradoEducativo { get; set; } //AH
-        public string? Documento1 { get; set; } //AH
-        public string? Documento2 { get; set; } //AH
-        public string? Documento3 { get; set; } //AH
-        public string? RutaNotas { get; set; } //AH
-        public string? RutaVideo { get; set; } //AH
+        public string? Documento1 { get; set; }
+        public string? Documento2 { get; set; } 
+        public string? Documento3 { get; set; }
+        public string? RutaNotas { get; set; } 
+        public string? RutaVideo { get; set; }
         public DateTime CreateDate { get; set; }
         public DateTime UpdateDate { get; set; }
         public Employee Employee { get; set; }
@@ -51,6 +52,10 @@ namespace FactorPolar.Domain.Entities
         public string? NombreNotas { get; set; }
         public string? NombreVideo { get; set; }
         public int? EstadoPostulacion { get; set; }
+
+        public int? Promedio2 { get; set; }
+        public string? RutaNotas2 { get; set; }
+        public string? NombreNotas2 { get; set; }
     }
 
     public class BeneficiarioPuntaje
@@ -63,6 +68,7 @@ namespace FactorPolar.Domain.Entities
         public DateTime FechaNacimiento { get; set; }
         public int Edad { get; set; }
         public decimal? Puntaje { get; set; }
+        public double? Puntaje2 { get; set; }
         public Employee Employee { get; set; }
     }
 

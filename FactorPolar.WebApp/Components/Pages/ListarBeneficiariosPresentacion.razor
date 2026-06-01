@@ -85,6 +85,10 @@
                                                         @onclick="() => ActivarEnVivo(p)">
                                                     @* <i class="bi bi-search me-1"></i> *@ Activar
                                                 </button>
+                                                <button class="btn btn-outline-warning btn-sm border-2 fw-bold px-3 rounded-pill me-2"
+                                                        @onclick="() => VerDetalle(p)">
+                                                    <i class="bi bi-search me-1"></i> Detalle
+                                                </button>
                                             }
                                             @if (p.Estado == 1)
                                             {
@@ -405,6 +409,22 @@
     {
         mostrarCompletar = false;
         mostrarCancelar = false;
+    }
+
+    private async Task VerDetalle(BeneficiarioEnVivo ben)
+    {
+        var userid = await SessionStorage.GetAsync<string>("UserId");
+        if (!string.IsNullOrEmpty(userid.Value))
+        {
+            var userrol = await SessionStorage.GetAsync<string>("UserRol");
+            if (!string.IsNullOrEmpty(userrol.Value))
+            {
+                if (userrol.Value == "1")
+                {
+                    NavManager.NavigateTo($"/detalle/{ben.Id}");
+                }
+            }
+        }
     }
 }
 

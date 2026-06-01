@@ -28,4 +28,10 @@
         public DateTime UpdateDate { get; set; }
 
     }
+
+    public class BeneficiarioClasificadoVotoWeb
+    {
+        public int Id { get; set; }
+        public Beneficiario Beneficiario { get; set; }
+    }
 }

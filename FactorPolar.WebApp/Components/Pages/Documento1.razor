@@ -1,9 +1,10 @@
-﻿@page "/documento1"
+﻿@page "/documento1/{Id}"
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @rendermode InteractiveServer
 
-<h6>Términos y Condiciones</h6>
+<h5>Términos y Condiciones</h5>
 
-<br />
+<p>Por favor lee detenidamente el documento hasta el final para aceptar los términos y condiciones</p>
 
 @if (!string.IsNullOrEmpty(pdfBase64String))
 {
@@ -13,23 +14,64 @@ else
 {
     <p>Cargando PDF o error al encontrar el archivo...</p>
 }
-
 <br />
 <br />
 
-<div class="d-flex justify-content-center">
-    <button type="button" class="btn boton-postular btn-secondary me-2" @onclick="Regresar">
-        Regresar
-    </button>
-</div>
+@if (!existeError)
+{
+    <div class="d-flex justify-content-center">
+        @if (cargacompleta)
+        {
+            <button type="button" class="boton-postular" style="background-color:#33ccff" @onclick="Aceptar">
+                Aceptar
+            </button>
+        }
+        &nbsp; &nbsp; &nbsp; &nbsp;
+        <button type="button" class="btn boton-postular btn-secondary me-2" @onclick="Rechazar">
+            Rechazar
+        </button>
+    </div>
+}
+@if (mostrarAlerta)
+{
+    <div id="divAlerta" class="alert alert-success alert-dismissible fade show toast-container" role="alert">
+        @mensajeAlerta
+        <button type="button" class="btn-close" @onclick="() => mostrarAlerta = false"></button>
+    </div>
+}
+@if (cargando)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5); align-content:center">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="modal-cargando text-lg-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
 <br />
 <br />
 
 @code {
+    [Parameter]
+    public string Id { get; set; }
+    private bool existeError = false;
+    private bool cargando = false;
+    private bool cargacompleta = false;
+    private bool mostrarAlerta = false;
+    private string mensajeAlerta = string.Empty;
+    private Employee beneficiario = new();
     private string pdfBase64String;
     private string GetAssetPathWithHash() => "Documentos\\TyC Factor Polar.wdhxwnve93.pdf";
+    private string? userEmail = "nadia.brito@empresaspolar.com";
 
-    [Inject] private IBeneficiario repobenefi { get; set; } = null!;
+    [Inject] private IEmployee repository { get; set; } = null!;
 
     private async Task LoadAndConvertPdfToBase64Async()
     {
@@ -68,26 +110,87 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        cargando = true;
         try
         {
-            await LoadAndConvertPdfToBase64Async();
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            if (authState.User.Identity.IsAuthenticated)
+            {
+                var user = authState.User;
+                userEmail = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+            }
         }
         catch (Exception ex)
         {
+            // Manejo de errores (opcional)
+            Console.WriteLine($"Error al cargar datos del usuario: {ex.Message}");
         }
+
+        try
+        {
+            beneficiario = await repository.GetByIdAsync(int.Parse(Id));
+            if (beneficiario != null)
+            {
+                await LoadAndConvertPdfToBase64Async();
+            }
+            else
+            {
+                mensajeAlerta = "Beneficiario no encontrado.";
+                mostrarAlerta = true;
+                existeError = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            mensajeAlerta = $"Error al cargar datos del beneficiario: {ex.Message}";
+            existeError = true;
+        }
+        cargando = false;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender && !string.IsNullOrEmpty(pdfBase64String))
         {
-            await jsRuntime.InvokeVoidAsync("loadPdfFromBase64", pdfBase64String);
+            if (beneficiario != null)
+            {
+                if (beneficiario.Email.ToLower() != userEmail.ToLower())
+                {
+                    mensajeAlerta = $"Datos invalidos {beneficiario.Email} -- {userEmail}";
+                    mostrarAlerta = true;
+                }
+                else
+                {
+                    cargacompleta = true;
+                }
+            }
+            else
+            {
+                NavManager.NavigateTo($"/");
+            }
+            await jsRuntime.InvokeVoidAsync("loadPdfFromBase64", pdfBase64String, "pdfFrame");
+            StateHasChanged();
         }
     }
 
-    private void Regresar()
+    private async Task Aceptar()
     {
-        NavManager.NavigateTo($"/");
+        try
+        {
+            await repository.UpdateAceptarTCAsync(int.Parse(Id), 1);
+            NavManager.NavigateTo($"/");
+        }
+        catch (Exception ex)
+        {
+            mensajeAlerta = $"Error al guardar los datos: {ex.Message}";
+            mostrarAlerta = true;
+        }
+    }
+
+    private Task Rechazar()
+    {
+        NavManager.NavigateTo($"/Saml2/Logout");
+        return Task.CompletedTask;
     }
 }
 

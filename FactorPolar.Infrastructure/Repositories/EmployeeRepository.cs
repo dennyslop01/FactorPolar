@@ -83,7 +83,7 @@ namespace FactorPolar.Infrastructure.Repositories
             return employee;
         }
 
-        public async Task<bool> UpdateAceptarTCAsync(int id)
+        public async Task<bool> UpdateAceptarTCAsync(int id, int momento)
         {
             using var _context = _contextFactory.CreateDbContext();
 
@@ -91,7 +91,10 @@ namespace FactorPolar.Infrastructure.Repositories
                 .FirstOrDefault(x => x.Id == id);
             if (employee != null)
             {
-                employee.FechaAceptarTC = DateTime.Now;
+                if (momento == 1)
+                    employee.FechaAceptarTC = DateTime.Now;
+                else
+                    employee.FechaAceptarTC2 = DateTime.Now;
 
                 //_context.Employees.Update(employee);
                 await _context.SaveChangesAsync();

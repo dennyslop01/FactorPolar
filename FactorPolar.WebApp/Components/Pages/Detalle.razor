@@ -54,6 +54,30 @@
                             </div>
                         </div>
 
+                        @if(beneficiario?.Promedio2 != null)
+                        {
+                            <div class="row mb-4">
+                                <div class="col-6">
+                                </div>
+                                <div class="col-6">
+                                    <label class="text-muted small fw-bold text-uppercase d-block">Promedio 2do Momento</label>
+                                    <span class="badge bg-success fs-6 rounded-pill px-3">
+                                        @if (beneficiario?.NivelEducativo == "PRIMARIA")
+                                        {
+                                            if (beneficiario.Promedio2 != null)
+                                            {
+                                                @notaprimaria
+                                            }
+                                        }
+                                        else
+                                        {
+                                            @beneficiario?.Promedio2
+                                        }
+                                    </span>
+                                </div>
+                            </div>
+                        }
+
                         <div class="mb-4">
                             <label class="text-muted small fw-bold text-uppercase d-block">Nivel Educativo</label>
                             <span>@(beneficiario.NivelEducativoAux ?? beneficiario.NivelEducativo)</span>
@@ -155,6 +179,19 @@
                         }
                     </div>
                 </div>
+
+                <!-- Tarjeta PDF -->
+                @if (beneficiario.RutaNotas2 != null)
+                {
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+                            <h6 class="mb-0 fw-bold text-secondary"><i class="bi bi-file-earmark-pdf-fill me-2 text-danger"></i>Constancia de Notas (2do Momento)</h6>
+                        </div>
+                        <div class="card-body p-0 bg-light">
+                            <iframe id="pdfFrame2" style="width:100%; height:450px; border:none;" frameborder="0"></iframe>
+                        </div>
+                    </div>
+                }
             </div>
         </div>
     }
@@ -383,6 +420,7 @@
     private string urlSeleccionada = "";
 
     private string base64 = string.Empty;
+    private string base642 = string.Empty;
     private string base64Video = string.Empty;
 
     private bool inieval = false;
@@ -425,14 +463,14 @@
                 string fileId = beneficiario.RutaNotas.Split('/').Last();
 
                 base64 = await DriveService.GetFileAsync(fileId);
-                await jsRuntime.InvokeVoidAsync("loadPdfFromBase64", base64);
+                await jsRuntime.InvokeVoidAsync("loadPdfFromBase64", base64, "pdfFrame");
 
-                //fileId = string.Empty;
-                //fileId = beneficiario.RutaVideo.Split('/').Last();
-
-                //fileIdVideo = fileId;
-                //base64Video = await DriveService.GetFileAsync(fileId);
-                //videoSrc = $"data:video/mp4;base64,{base64Video}";
+                if (beneficiario.RutaNotas2 != null)
+                {
+                    string fileId2 = beneficiario.RutaNotas2.Split('/').Last();
+                    base642 = await DriveService.GetFileAsync(fileId2);
+                    await jsRuntime.InvokeVoidAsync("loadPdfFromBase64", base642, "pdfFrame2");
+                }
 
                 var userrol = await SessionStorage.GetAsync<string>("UserRol");
                 if (!string.IsNullOrEmpty(userrol.Value))

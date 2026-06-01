@@ -1,4 +1,4 @@
-﻿function loadPdfFromBase64(base64Data) {
+﻿function loadPdfFromBase64(base64Data, frame) {
     // Función para convertir base64 a Blob
     const base64ToBlob = (base64, type = "application/pdf") => {
         const binStr = atob(base64);
@@ -17,7 +17,7 @@
     const url = URL.createObjectURL(blob);
 
     // Asignar la URL al src del iframe
-    const iframe = document.getElementById('pdfFrame');
+    const iframe = document.getElementById(frame);
     if (iframe) {
         iframe.src = url + '#toolbar=0';
     }

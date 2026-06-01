@@ -73,9 +73,18 @@
                                             }
                                             else
                                             {
-                                                <button class="boton-postular" style="background-color:#ffa100" @onclick="() => EditarEntidad(p)" title="Editar">
-                                                    @* <i class="bi bi-pencil"></i>&nbsp; *@Postulado
-                                                </button>
+                                                if (DateTime.Now.Month > 10 && DateTime.Now.Month <= 12)
+                                                {
+                                                   <button class="boton-postular" style="background-color:#ffa100" @onclick="() => EditarEntidad(p)" title="Editar">
+                                                        @* <i class="bi bi-pencil"></i>&nbsp; *@Postulado
+                                                   </button>
+                                                }
+                                                else if (DateTime.Now.Month > 3 && DateTime.Now.Month < 8)
+                                                {
+                                                    <button class="boton-postular" style="background-color:#33ccff" @onclick="() => EditarEntidad(p)" title="Editar">
+                                                        @* <i class="bi bi-pencil"></i>&nbsp; *@Editar
+                                                    </button>
+                                                }
                                             }
                                         }
                                     }
@@ -112,17 +121,22 @@
         @if (existeAdminUser || existeUser)
         {
             <strong><label class="form-label">@userName</label></strong>
-            //Segunda Fase
-            @* <ListarGruposParticipantes /> *@
-
-            //Tercera Fase
-            @if (existeAdminUser)
+            if (DateTime.Now.Month > 10 && DateTime.Now.Month <= 12)
             {
-                <ListarBeneficiariosPresentacion />
+                //Primera Fase
+                <ListarGruposParticipantes />
             }
-            else if (existeUser)
+            else if (DateTime.Now.Month > 3 && DateTime.Now.Month < 8)
             {
-                <ListarBeneficiariosPresentacionUser />
+                //Segunda Fase
+                @if (existeAdminUser)
+                {
+                    <ListarBeneficiariosPresentacion />
+                }
+                else if (existeUser)
+                {
+                    <ListarBeneficiariosPresentacionUser />
+                }
             }
             <br />
             <hr />
@@ -221,8 +235,14 @@
                 if (employee.FechaAceptarTC == null)
                 {
                     if (employee.Id != 0)
+                        NavManager.NavigateTo($"/documento1/{employee.Id}");
+                }
+
+                if (employee.FechaAceptarTC2 == null)
+                {
+                    if (employee.Id != 0)
                         NavManager.NavigateTo($"/documento2/{employee.Id}");
-                }                
+                }
             }
 
             try
@@ -251,13 +271,15 @@
                     {
                         if (usuario != null)
                         {
-                            //Tercera Fase no enviar a doble logeo
-                            // if (usuario.IdRol == 5)
-                            //     NavManager.NavigateTo($"validaruser");
-                            // else
-                            // {
+                            if (usuario.IdRol != null)
+                            {
+                                //Tercera Fase no enviar a doble logeo
+                                // if (usuario.IdRol == 5)
+                                //     NavManager.NavigateTo($"validaruser");
+                                // else
+                                // {
                                 userrol = usuario.IdRol;
-                                if(userrol == 1)
+                                if (userrol == 1)
                                     existeAdminUser = true;
                                 else
                                     existeUser = true;
@@ -267,7 +289,8 @@
                                 await SessionStorage.SetAsync("UserCedula", usuario.Cedula);
                                 await SessionStorage.SetAsync("UserNombreCorto", usuario.NombreCorto);
                                 StateHasChanged();
-                            // }
+                                // }
+                            }
                         }
                     }
                 }
@@ -291,13 +314,20 @@
             string nombre = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value;
             string apellido = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Surname)?.Value;
 
-            userName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase($"{nombre}, {apellido}".ToLower());
+            userName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase($"{nombre}, {apellido}".ToLower());            
+            if (DateTime.Now.Month > 10 && DateTime.Now.Month <= 12)
+            {
+                //Primera Fase
+                await LoadUserDataAsync();
+            }
+            else if (DateTime.Now.Month > 3 && DateTime.Now.Month < 8)
+            {
+                //Segunda Fase
+                await LoadUserDataClasificadoAsync();
 
-            //Primera Fase
-            //await LoadUserDataAsync();
-
-            //Segunda Fase
-            await LoadAdminDataAsync();
+                //Segunda Fase
+                await LoadAdminDataAsync();
+            }
         }
         catch (Exception ex)
         {
@@ -332,6 +362,32 @@
         await Task.CompletedTask;
     }
 
+    private async Task LoadUserDataClasificadoAsync()
+    {
+        if (!string.IsNullOrEmpty(userEmail))
+        {
+            employee = await repoemployee.GetByEmailAsync(userEmail);
+            if (employee != null)
+            {
+                if (employee.FechaAceptarTC != null)
+                {
+                    employeeName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(employee.FullName.ToLower());
+
+                    string[] cadena = employeeName.Split(',');
+                    if (cadena.Length > 1)
+                        employeeName = $"{cadena[1]}, {cadena[0]}";
+
+                    employeeNumber = employee.EmployeeNumber.ToString();
+
+                    beneficiario = await repobenefi.GetByEmployeeClasificadoEmailAsync(employee.Email);
+                    if(beneficiario.Count()>0)
+                        existe = true;
+                }
+            }
+        }
+        await Task.CompletedTask;
+    }
+
     private async Task LoadAdminDataAsync()
     {
         if (!string.IsNullOrEmpty(userEmail))
@@ -353,11 +409,16 @@
         //     NavManager.NavigateTo($"/documento2/{ben.Id}");
         // else if (ben.Documento3 == null)
         //     NavManager.NavigateTo($"/documento3/{ben.Id}");
-        // else
-        if(ben.EstadoPostulacion is not null)
-            return;
-        
-        NavManager.NavigateTo($"/editar/{ben.Id}");
+        // else        
+        if (DateTime.Now.Month > 10 && DateTime.Now.Month <= 12)
+        {
+            if (ben.EstadoPostulacion is not null)
+                return;
+
+            NavManager.NavigateTo($"/editar/{ben.Id}");
+        }
+        else if (DateTime.Now.Month > 3 && DateTime.Now.Month < 8)
+            NavManager.NavigateTo($"/editar3/{ben.Id}");
     }
 
     private void Salir()

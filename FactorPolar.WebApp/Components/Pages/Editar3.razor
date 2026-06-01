@@ -1,4 +1,4 @@
-﻿@page "/editar/{Id}"
+﻿@page "/editar3/{Id}"
 @using System.Globalization
 @rendermode InteractiveServer
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -15,15 +15,15 @@
             <hr>
             <div class="row">
                 <div class="col-3">
-                    <strong><label class="form-label">Tipo de Institución:(*)</label></strong>
+                    <strong><label class="form-label">Tipo de Institución:</label></strong>
                 </div>
                 <div class="col-8">
-                    <label class="form-label">@((beneficiario.TipoInstitucionAux != null)? beneficiario.TipoInstitucionAux : beneficiario?.TipoInstitucion)</label>
+                    <label class="form-label">@((beneficiario.TipoInstitucionAux != null) ? beneficiario.TipoInstitucionAux : beneficiario?.TipoInstitucion)</label>
                 </div>
             </div>
             <div class="row">
                 <div class="col-3">
-                    <strong><label class="form-label">Institución Educativa:(*)</label></strong>
+                    <strong><label class="form-label">Institución Educativa:</label></strong>
                 </div>
                 <div class="col-8">
                     <label class="form-label">@((beneficiario.NombreInstitucionAux != null) ? beneficiario.NombreInstitucionAux : beneficiario?.NombreInstitucion)</label>
@@ -31,7 +31,7 @@
             </div>
             <div class="row">
                 <div class="col-3">
-                    <strong><label class="form-label">RIF:(*)</label></strong>
+                    <strong><label class="form-label">RIF:</label></strong>
                 </div>
                 <div class="col-8">
                     <label class="form-label">@((beneficiario.RifInstitucionAux != null) ? beneficiario.RifInstitucionAux : beneficiario?.RifInstitucion)</label>
@@ -39,7 +39,7 @@
             </div>
             <div class="row">
                 <div class="col-3">
-                    <strong><label class="form-label">Nivel Educativo:(*)</label></strong>
+                    <strong><label class="form-label">Nivel Educativo:</label></strong>
                 </div>
                 <div class="col-8">
                     <label class="form-label">@((beneficiario.NivelEducativoAux != null) ? beneficiario.NivelEducativoAux : beneficiario?.NivelEducativo)</label>
@@ -47,7 +47,7 @@
             </div>
             <div class="row">
                 <div class="col-3">
-                    <strong><label class="form-label">Nivel Académico:(*)</label></strong>
+                    <strong><label class="form-label">Nivel Académico:</label></strong>
                 </div>
                 <div class="col-8">
                     <label class="form-label">@((beneficiario.GradoEducativoAux != null) ? beneficiario.GradoEducativoAux : beneficiario?.GradoEducativo)</label>
@@ -55,7 +55,7 @@
             </div>
             <div class="row">
                 <div class="col-3">
-                    <strong><label class="form-label">Promedio de Notas:(*)</label></strong>
+                    <strong><label class="form-label">Promedio de Notas:</label></strong>
                 </div>
                 <div class="col-8">
                     <label class="form-label">
@@ -73,6 +73,26 @@
                     </label>
                 </div>
             </div>
+            <div class="row">
+                <div class="col-3">
+                    <strong><label class="form-label">Promedio de Notas (2do Momento):(*)</label></strong>
+                </div>
+                <div class="col-8">
+                    <label class="form-label">
+                        @if (beneficiario.Promedio2 != null)
+                        {
+                            if (beneficiario?.NivelEducativo == "PRIMARIA")
+                            {
+                                @notaprimaria
+                            }
+                            else
+                            {
+                                @beneficiario?.Promedio2
+                            }
+                        }
+                    </label>
+                </div>
+            </div>
             <div class="d-flex justify-content-start">
                 <button class="boton-postular me-1" style="background-color:#33ccff" title="Editar" @onclick="EditarEntidad">
                     @* <i class="bi bi-pencil"></i>&nbsp; *@Editar
@@ -81,31 +101,18 @@
                 <button class="boton-postular me-1" style="background-color:#dfdf00" title="Regresar" @onclick="Regresar">
                     @* <i class="bi bi-chevron-double-left"></i>&nbsp; *@Regresar
                 </button>
-
-                <button class="boton-postularConf btn-secondary me-1" title="Salir" @onclick="Salir">
-                    @* <i class="bi bi-arrow-right-square"></i>&nbsp; *@Confirmar Postulación
-                </button>
             </div>
             <br />
             <br />
             <div class="row">
                 <div class="col-10">
-                <strong><label class="form-label">Constancia de notas:</label></strong>
+                    <strong><label class="form-label">Constancia de notas:</label></strong>
                 </div>
                 <div class="col-10">
-                    <SubirImagenes folderName="@folderName" beneficiarioId="@beneficiario.Id" rutaNota="@beneficiario.RutaNotas" nombreNota="@beneficiario.NombreNotas" />
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-10">
-                    <strong><label class="form-label">Video del Talento:</label></strong>
-                </div>
-                <div class="col-10">
-                    <SubirVideos folderName="@folderName" beneficiarioId="@beneficiario.Id" rutaVideo="@beneficiario.RutaVideo" nombreVideo="@beneficiario.NombreVideo" />
+                    <SubirImagenes2Momento folderName="@folderName" beneficiarioId="@beneficiario.Id" rutaNota="@beneficiario.RutaNotas2" nombreNota="@beneficiario.NombreNotas2" />
                 </div>
             </div>
         }
-
 
         @if (mostrarAlerta)
         {
@@ -118,7 +125,6 @@
             <div id="divAlerta" class="alert alert-success alert-dismissible fade show toast-container" role="alert" style="display:none;">
             </div>
         }
-
         <br />
 
         @if (mostrarFormulario)
@@ -134,7 +140,7 @@
                             <button type="button" class="btn-close" @onclick="Cancelar"></button>
                         </div>
                         <div class="modal-body">
-                            <EditForm Model="@entidadActual" OnValidSubmit="GuardarEntidad">
+                            <EditForm EditContext="editContext" OnSubmit="GuardarEntidad">
                                 <DataAnnotationsValidator />
 
                                 <div class="mb-3">
@@ -142,92 +148,39 @@
                                     <label class="form-label">@datosbenefi</label>
                                 </div>
                                 <div class="mb-3">
-                            <strong><label class="form-label">Tipo de Institución:(*)</label></strong>
-                                    <InputSelect class="form-select small" @bind-Value="entidadActual.TipoInstitucion">
-                                        <option value="">-- Seleccione uno --</option>
-                                        <option value="PÚBLICA">Pública</option>
-                                        <option value="PRIVADA">Privada</option>
-                                    </InputSelect>
-                                    <ValidationMessage For="@(() => entidadActual.TipoInstitucion)" />
+                                    <strong><label class="form-label">Tipo de Institución:</label></strong>
+                                    <label class="form-label">@entidadActual.TipoInstitucion</label>
                                 </div>
                                 <div class="mb-3">
-                            <strong><label class="form-label">Nombre de la Institución:(*)</label></strong>
-                                    <InputText class="form-control"
-                                                Value="@entidadActual.NombreInstitucion"
-                                                ValueChanged="@((string value) => OnNombreChanged(value))"
-                                                ValueExpression="@(() => entidadActual.NombreInstitucion)"
-                                                maxlength="200"
-                                                list="institucionesList"
-                                                placeholder="Escriba para buscar..." />
-
-                                    <datalist id="institucionesList">
-                                        @if (instituciones != null)
-                                        {
-                                            @foreach (var item in instituciones)
-                                            {
-                                                @* value es lo que se escribirá en el input; 
-                                                    el texto interno (label) ayuda al usuario a identificarlo *@
-                                                <option value="@item.Nombre">RIF: @item.Rif</option>
-                                            }
-                                        }
-                                    </datalist>
-                                    <ValidationMessage For="@(() => entidadActual.NombreInstitucion)" />
+                                    <strong><label class="form-label">Nombre de la Institución:</label></strong>
+                                    <label class="form-label">@entidadActual.NombreInstitucion</label>
                                 </div>
                                 <div class="mb-3">
-                            <strong><label class="form-label">RIF:(*)</label></strong>
-                                    @* <InputText class="form-control" @bind-Value="entidadActual.RifInstitucion" maxlength="15" /> *@
-                                    <InputText class="form-control"
-                                                Value="@entidadActual.RifInstitucion"
-                                                ValueChanged="@((string value) => OnNombreChangedRif(value))"
-                                                ValueExpression="@(() => entidadActual.RifInstitucion)"
-                                                maxlength="200"
-                                                list="institucionesList2"
-                                                placeholder="Escriba para buscar..." />
-
-                                    <datalist id="institucionesList2">
-                                        @if (instituciones != null)
-                                        {
-                                            @foreach (var item in instituciones)
-                                            {
-                                                @* value es lo que se escribirá en el input; 
-                                                            el texto interno (label) ayuda al usuario a identificarlo *@
-                                                <option value="@item.Rif">Institución: @item.Nombre</option>
-                                            }
-                                        }
-                                    </datalist>
-                                    <ValidationMessage For="@(() => entidadActual.RifInstitucion)" />
+                                    <strong><label class="form-label">RIF:</label></strong>
+                                    <label class="form-label">@entidadActual.RifInstitucion</label>
                                 </div>
                                 <div class="mb-3">
-                            <strong><label class="form-label">Nivel Educativo:(*)</label></strong>
-                                    @* <InputSelect class="form-select" @bind-Value="entidadActual.NivelEducativo"> *@
-                                    <InputSelect class="form-select" ValueExpression="@(() => entidadActual.NivelEducativo)" ValueChanged="@((string value) => CargarGrado(value))" Value="entidadActual.NivelEducativo">
-                                        <option value="">-- Seleccione uno --</option>
-                                        <option value="PRIMARIA">Primaria</option>
-                                        <option value="MEDIA">Media</option>
-                                    </InputSelect>
-                                    <ValidationMessage For="@(() => entidadActual.NivelEducativo)" />
+                                    <strong><label class="form-label">Nivel Educativo:</label></strong>
+                                    <label class="form-label">@entidadActual.NivelEducativo</label>
                                 </div>
                                 <div class="mb-3">
-                            <strong><label class="form-label">Grado Educativo:(*)</label></strong>
-                                    <InputSelect class="form-select" @bind-Value="entidadActual.GradoEducativo">
-                                        <option value=" ">-- Seleccione uno --</option>
-                                        @foreach(var grado in grados)
-                                        {
-                                            <option value="@grado.Grados">@grado.DesGrados</option>
-                                        }
-                                    </InputSelect>
-                                    <ValidationMessage For="@(() => entidadActual.GradoEducativo)" />
+                                    <strong><label class="form-label">Grado Educativo:</label></strong>
+                                    <label class="form-label">@entidadActual.GradoEducativo</label>
                                 </div>
                                 <div class="mb-3">
-                                <strong><label class="form-label">Promedio de Notas:(*)</label></strong>
-                                    <InputSelect class="form-select" @bind-Value="entidadActual.Promedio">
+                                    <strong><label class="form-label">Promedio de Notas:</label></strong>
+                                    <label class="form-label">@entidadActual.Promedio</label>
+                                </div>
+                                <div class="mb-3">
+                                    <strong><label class="form-label">Promedio de Notas (2do momento):(*)</label></strong>
+                                    <InputSelect class="form-select" @bind-Value="entidadActual.Promedio2">
                                         <option value="-1">-- Seleccione uno --</option>
                                         @foreach (var nota in optionnotas)
                                         {
                                             <option value="@nota.idnotas">@nota.desnotas</option>
                                         }
                                     </InputSelect>
-                                    <ValidationMessage For="@(() => entidadActual.Promedio)" />
+                                    <ValidationMessage For="@(() => entidadActual.Promedio2)" />
                                 </div>
                                 <div class="d-flex justify-content-end">
                                     <button type="submit" class="me-2 boton-postular" style="background-color:#b6bf00">
@@ -296,13 +249,9 @@
                                 {
                                     <li>Promedio de Notas</li>
                                 }
-                                @if (string.IsNullOrEmpty(beneficiario.RutaNotas))
+                                @if (string.IsNullOrEmpty(beneficiario.RutaNotas2))
                                 {
                                     <li>Constancia de Notas</li>
-                                }
-                                @if (string.IsNullOrEmpty(beneficiario.RutaVideo))
-                                {
-                                    <li>Video del Talento</li>
                                 }
                             </ul>
                         </div>
@@ -334,7 +283,7 @@
     {
         public int idnotas { get; set; }
         public string desnotas { get; set; }
-    }    
+    }
     private List<Notasoopt?> optionnotas = new();
     private const string notaprimaria = "A";
     public class Institucion
@@ -348,7 +297,10 @@
 
     private string? mensajeAlerta;
     private bool mostrarAlerta = false;
-    private BenefiModel entidadActual = new();
+    private Benefi2MomentoModel entidadActual = new();
+    private EditContext? editContext;
+    private ValidationMessageStore? mensajeStore;
+
     private bool mostrarFormulario = false;
     private bool mostrarFormulario2 = false;
     private bool cargando = false;
@@ -362,6 +314,9 @@
     {
         try
         {
+            editContext = new EditContext(entidadActual);
+            mensajeStore = new ValidationMessageStore(editContext);
+
             var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
             if (!authState.User.Identity.IsAuthenticated)
                 NavManager.NavigateTo($"/");
@@ -409,38 +364,13 @@
 
     private void EditarEntidad()
     {
-        entidadActual = new BenefiModel();
-        if(beneficiario.TipoInstitucionAux != null)
-            entidadActual.TipoInstitucion = beneficiario.TipoInstitucionAux;
-        else
-            entidadActual.TipoInstitucion = beneficiario?.TipoInstitucion ?? string.Empty;
+        entidadActual = new Benefi2MomentoModel();
+        CargarGrado(beneficiario.NivelEducativo);
 
+        if (beneficiario?.Promedio2 != null)
+            entidadActual.Promedio2 = beneficiario.Promedio2;
 
-        if (beneficiario.NombreInstitucionAux != null)
-            entidadActual.NombreInstitucion = beneficiario.NombreInstitucionAux;
-        else
-            entidadActual.NombreInstitucion = beneficiario?.NombreInstitucion ?? string.Empty;
-
-        if (beneficiario.RifInstitucionAux != null)
-            entidadActual.RifInstitucion = beneficiario.RifInstitucionAux;
-        else
-            entidadActual.RifInstitucion = beneficiario?.RifInstitucion ?? string.Empty;
-
-        if (beneficiario.NivelEducativoAux != null)
-            entidadActual.NivelEducativo = beneficiario.NivelEducativoAux;
-        else
-            entidadActual.NivelEducativo = beneficiario?.NivelEducativo ?? string.Empty;
-
-        CargarGrado(entidadActual.NivelEducativo);
-
-        if (beneficiario.GradoEducativoAux != null)
-            entidadActual.GradoEducativo = beneficiario.GradoEducativoAux;
-        else
-            entidadActual.GradoEducativo = beneficiario?.GradoEducativo ?? string.Empty;
-
-        if (beneficiario?.Promedio != null)
-            entidadActual.Promedio = beneficiario.Promedio;
-
+        editContext = new EditContext(entidadActual);
         mostrarFormulario = true;
     }
 
@@ -454,7 +384,16 @@
     {
         try
         {
-            beneficiario = await repobenefi.UpdateAcademicDataAsync(int.Parse(Id), entidadActual);
+            bool formularioValido = editContext.Validate();
+
+            if (!formularioValido)
+            {
+                StateHasChanged();
+                cargando = false;
+                return;
+            }
+
+            beneficiario = await repobenefi.UpdateAcademic2MomentoDataAsync(int.Parse(Id), entidadActual);
             mostrarFormulario = false;
             mensajeAlerta = "Datos guardados exitosamente.";
             mostrarAlerta = true;
@@ -530,41 +469,6 @@
     private void Regresar()
     {
         NavManager.NavigateTo($"/");
-    }
-
-    private async Task Salir()
-    {
-        try
-        {
-            beneficiario = await repobenefi.GetByIdlAsync(int.Parse(Id));
-            if (beneficiario != null)
-            {
-                if (string.IsNullOrEmpty(beneficiario?.Promedio.ToString()) ||
-                    string.IsNullOrEmpty(beneficiario.RutaNotas) ||
-                    string.IsNullOrEmpty(beneficiario.RutaVideo))
-                {
-                    mostrarFormulario2 = true;
-                    StateHasChanged();
-                }
-                else
-                {
-                    await repobenefi.UpdateEstadoPostulacionAsync(beneficiario.Id);
-                    NavManager.NavigateTo($"/");
-                }
-            }
-            else
-                NavManager.NavigateTo($"/");
-        }
-        catch (Exception ex)
-        {
-            mensajeAlerta = ex.Message;
-            mostrarAlerta = true;
-            // 3. Forzamos el renderizado y esperamos un "ciclo" para que el DOM se actualice
-            StateHasChanged();
-            await Task.Delay(1); // Pequeña espera para asegurar que el DOM esté listo
-
-            await jsRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlerta", 8000);
-        }
     }
 
     private void OnNombreChanged(string nuevoNombre)

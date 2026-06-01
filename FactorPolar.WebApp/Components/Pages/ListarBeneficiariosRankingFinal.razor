@@ -55,6 +55,7 @@
                                 <th class="border-0 text-uppercase small fw-bold">Fecha Nacimiento</th>
                                 <th class="border-0 text-uppercase small fw-bold text-center">Edad</th>
                                 <th class="border-0 text-uppercase small fw-bold text-center">Puntaje</th>
+                                <th class="border-0 text-uppercase small fw-bold text-center">Voto Web</th>
                                 <th class="border-0 text-end">Acciones</th>
                             </tr>
                         </ChildContentHeader>
@@ -73,6 +74,11 @@
                                 <td class="text-center">
                                     <span class="badge bg-info-subtle text-info border border-info-subtle px-4 py-2 rounded-pill fs-6 fw-bold">
                                         @($"{p.Puntaje:0.00}")
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-info-subtle text-info border border-info-subtle px-4 py-2 rounded-pill fs-6 fw-bold">
+                                        @($"{p.Puntaje2:0.00}")
                                     </span>
                                 </td>
                                 <td class="text-end">
@@ -159,35 +165,50 @@
 
     private async Task LoadBenefiDataAsync()
     {
-        var TotalSeleccionados = 20;
-        var beneficiriosEval = await reporubbenefi.GetAlllAsync();
-
-        int LimiteEvaluaciones = beneficiriosEval.GroupBy(x => x.Usuario.Id).Count();
-
         Listgral.Clear();
         ListgralBuscar.Clear();
+
+        var beneficiriosEval = await reporubbenefi.GetAlllAsync();
+        var beneficiriosVotoWeb = await reporubbenefi.GetAllVotoWebAsync();
+        int LimiteEvaluaciones = beneficiriosEval.GroupBy(x => x.Usuario.Id).Count();
+
+        // 1. Agrupar y ordenar los votos web de mayor a menor beneficio
+        var votosOrdenados = beneficiriosVotoWeb
+            .GroupBy(v => v.Beneficiario.Id) // Cambiar por el nombre real de tu propiedad de ID
+            .Select(g => new { BeneficiarioId = g.Key, TotalVotos = g.Count() })
+            .OrderByDescending(x => x.TotalVotos)
+            .ToList();
 
         foreach (var ben in beneficiriosEval.GroupBy(x => x.Beneficiario.Id).Select(g => g.First()))
         {
             var beneficiario = await repobenefi.GetByIdlAsync(ben.Beneficiario.Id);
             if (beneficiario != null)
             {
+                // 2. Buscar qué posición ocupa este beneficiario en el ranking de votos
+                int posicion = votosOrdenados.FindIndex(x => x.BeneficiarioId == beneficiario.Id);
+
+                // 3. Calcular Puntaje2 basado en la posición (0 es el primero, obtiene 20)
+                double puntaje2 = 0;
+                if (posicion != -1)
+                {
+                    puntaje2 = 20.0 - (posicion * 0.5);
+                    if (puntaje2 < 0) puntaje2 = 0; // Si baja de cero, se queda en cero
+                }
+
                 Listgral.Add(new BeneficiarioPuntaje
-                    {
-                        Id = beneficiario.Id,
-                        FullName = beneficiario.FullName,
-                        FechaNacimiento = beneficiario.FechaNacimiento,
-                        Employee = beneficiario.Employee,
-                        Edad = beneficiario.Edad,
-                        Puntaje = ((beneficiriosEval.Where(x => x.Beneficiario.Id == beneficiario.Id)
-                                                .Sum(x => x.FactorResultado) / LimiteEvaluaciones)*80)/100
-                    });
+                {
+                    Id = beneficiario.Id,
+                    FullName = beneficiario.FullName,
+                    FechaNacimiento = beneficiario.FechaNacimiento,
+                    Employee = beneficiario.Employee,
+                    Edad = beneficiario.Edad,
+                    Puntaje = ((beneficiriosEval.Where(x => x.Beneficiario.Id == beneficiario.Id)
+                                                .Sum(x => x.FactorResultado) / LimiteEvaluaciones) * 80) / 100,
+                    Puntaje2 = puntaje2 // Asignación del nuevo puntaje
+                });
             }
         }
 
-        // Listgral = Listgral.OrderByDescending(x => x.Puntaje).ToList();
-        // var puntajeCorte = Listgral.ElementAtOrDefault(TotalSeleccionados - 1)?.Puntaje ?? 0;
-        // Listgral = Listgral.Where(x => x.Puntaje >= puntajeCorte).ToList();
 
         ListgralBuscar = Listgral;
         vistaGeneral = true;

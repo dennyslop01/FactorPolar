@@ -74,7 +74,7 @@ namespace FactorPolar.Infrastructure.Repositories
                 .Where(x => x.Beneficiario.Id == idbenefi)
                 .ExecuteDeleteAsync();
 
-            if(filasBorradas > 0) return true;
+            if (filasBorradas > 0) return true;
             return false;
         }
 
@@ -150,6 +150,16 @@ namespace FactorPolar.Infrastructure.Repositories
                 .ToListAsync();
 
             return benefirub;
+        }
+
+        public async Task<List<BeneficiarioClasificadoVotoWeb?>> GetAllVotoWebAsync()
+        {
+            using var _context = _contextFactory.CreateDbContext();
+            var benefivoto = await _context.BeneficiariosClasificadosVotoWeb
+                .Include(b => b.Beneficiario)
+                .ToListAsync();
+
+            return benefivoto;
         }
     }
 }

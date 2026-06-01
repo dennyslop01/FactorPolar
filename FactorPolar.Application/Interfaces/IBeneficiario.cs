@@ -7,12 +7,14 @@ namespace FactorPolar.Application.Interfaces
         Beneficiario? GetByEmployeeEmail(string email);
         Beneficiario? Create(Beneficiario beneficiario, string email);
         Task<List<Beneficiario?>> GetByEmployeeEmailAsync(string email);
+        Task<List<Beneficiario?>> GetByEmployeeClasificadoEmailAsync(string email);
         Task<List<Beneficiario?>> GetAllAsync();
         Task<List<Beneficiario?>> GetByParticipantesAsync();
         Task<Beneficiario?> GetByIdlAsync(int id);
         Task<Beneficiario?> UpdateAsync(int id, int opcion);
         Task<Beneficiario?> UpdateAcademicDataAsync(int id, BenefiModel benefi);
-        Task<bool> UpdateRutaNotaAsync(int id, string rutaNota, string nombre);
+        Task<Beneficiario?> UpdateAcademic2MomentoDataAsync(int id, Benefi2MomentoModel benefi);
+        Task<bool> UpdateRutaNotaAsync(int id, string rutaNota, string nombre, int momento);
         Task<bool> UpdateRutaVideoAsync(int id, string rutaVideo, string mombre);
         Task<bool> UpdateEstadoPostulacionAsync(int id);
     }

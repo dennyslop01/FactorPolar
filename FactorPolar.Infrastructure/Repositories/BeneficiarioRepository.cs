@@ -164,7 +164,7 @@ namespace FactorPolar.Infrastructure.Repositories
             return benefi;
         }
 
-        public async Task<bool> UpdateRutaNotaAsync(int id, string rutaNota, string nombre)
+        public async Task<bool> UpdateRutaNotaAsync(int id, string rutaNota, string nombre, int momento)
         {
             using var _context = _contextFactory.CreateDbContext();
             
@@ -177,15 +177,18 @@ namespace FactorPolar.Infrastructure.Repositories
                 return false;
             }
 
-            beneficiario.RutaNotas = rutaNota;
-            beneficiario.NombreNotas = nombre;
-
-            //_context.Beneficiarios.Update(beneficiario);
-            //_context.Entry(beneficiario.Employee).State = EntityState.Unchanged;
+            if(momento == 2)
+            {
+                beneficiario.RutaNotas2 = rutaNota;
+                beneficiario.NombreNotas2 = nombre;
+            }
+            else
+            {
+                beneficiario.RutaNotas = rutaNota;
+                beneficiario.NombreNotas = nombre;
+            }
 
             await _context.SaveChangesAsync();
-            //_context.Entry(beneficiario).State = EntityState.Detached;
-            //_context.Entry(beneficiario.Employee).State = EntityState.Detached;
             return true;
         }
 
@@ -247,6 +250,46 @@ namespace FactorPolar.Infrastructure.Repositories
                 .Include(b => b.Employee)
                 .ToListAsync();
             return benefi;
+        }
+
+        public async Task<List<Beneficiario?>> GetByEmployeeClasificadoEmailAsync(string email)
+        {
+            using var _context = _contextFactory.CreateDbContext();
+
+            var benefi = await _context.BeneficiariosClasificados
+                .Include(b => b.Beneficiario)
+                .Include(b => b.Beneficiario.Employee)
+                .Where(x => x.Beneficiario.Employee.Email == email)
+                .ToListAsync();
+
+            if(benefi == null || benefi.Count == 0)
+            {
+                return new List<Beneficiario>();
+            }
+
+            List<Beneficiario>? aux = benefi.Select(x => x.Beneficiario).ToList();
+
+            return aux;
+        }
+
+        public async Task<Beneficiario?> UpdateAcademic2MomentoDataAsync(int id, Benefi2MomentoModel benefi)
+        {
+            using var _context = _contextFactory.CreateDbContext();
+
+            var beneficiario = await _context.Beneficiarios
+                .Include(b => b.Employee)
+                .Where(x => x.Id == id)
+                .FirstOrDefaultAsync();
+            
+            if (beneficiario == null)
+            {
+                return null;
+            }
+
+            beneficiario.Promedio2 = benefi.Promedio2;
+
+            await _context.SaveChangesAsync();
+            return beneficiario;
         }
     }
 }

@@ -129,11 +129,7 @@ else
         try
         {
             beneficiario = await repository.GetByIdAsync(int.Parse(Id));
-            if (beneficiario != null)
-            {
-                await LoadAndConvertPdfToBase64Async();
-            }
-            else
+            if (beneficiario == null)
             {
                 mensajeAlerta = "Beneficiario no encontrado.";
                 mostrarAlerta = true;
@@ -150,6 +146,14 @@ else
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (beneficiario != null)
+        {
+            if (string.IsNullOrEmpty(pdfBase64String)) 
+            {
+                await LoadAndConvertPdfToBase64Async();
+            }
+        }
+
         if (firstRender && !string.IsNullOrEmpty(pdfBase64String))
         {
             if (beneficiario != null)
@@ -168,7 +172,7 @@ else
             {
                 NavManager.NavigateTo($"/");
             }
-            await jsRuntime.InvokeVoidAsync("loadPdfFromBase64", pdfBase64String);
+            await jsRuntime.InvokeVoidAsync("loadPdfFromBase64", pdfBase64String, "pdfFrame");
             StateHasChanged();
         }
     }
@@ -177,7 +181,7 @@ else
     {
         try
         {
-            await repository.UpdateAceptarTCAsync(int.Parse(Id));
+            await repository.UpdateAceptarTCAsync(int.Parse(Id), 2);
             NavManager.NavigateTo($"/");
         }
         catch (Exception ex)
