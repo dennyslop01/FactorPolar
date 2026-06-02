@@ -207,6 +207,7 @@
             // Manejo de errores (opcional)
             Console.WriteLine($"Error al cargar datos del los beneficiarios: {ex.Message}");
         }
+        await Task.CompletedTask;
     }
 
     private async Task LoadBenefiDataAsync()
@@ -277,6 +278,7 @@
 
     private async Task FiltrarBusqueda(ChangeEventArgs e)
     {
+        StateHasChanged();
         searchTerm = e.Value?.ToString() ?? "";
         if (string.IsNullOrEmpty(searchTerm))
         {
@@ -286,8 +288,14 @@
         {
             var lowerSearchTerm = searchTerm.ToLower();
             Listgral = ListgralBuscar.Where(b => b.FullName.ToLower().Contains(lowerSearchTerm)).ToList();
+
+            List1 = Listgral.Where(b => b.Edad >= 6 && b.Edad <= 8).ToList();
+            List2 = Listgral.Where(b => b.Edad >= 9 && b.Edad <= 11).ToList();
+            List3 = Listgral.Where(b => b.Edad >= 12 && b.Edad <= 14).ToList();
+            List4 = Listgral.Where(b => b.Edad >= 15 && b.Edad <= 17).ToList();
         }
         StateHasChanged();
+        await Task.CompletedTask;
     }
 
     private async Task ActivarEnVivo(BeneficiarioEnVivo ben)
@@ -305,6 +313,7 @@
                 }
             }
         }
+        await Task.CompletedTask;
     }
 
     private async Task CerrarEnVivo(BeneficiarioEnVivo ben)
@@ -326,6 +335,7 @@
                 }
             }
         }
+        await Task.CompletedTask;
     }
 
     private async Task CancelarEnVivo(BeneficiarioEnVivo benefi)
@@ -344,6 +354,7 @@
                 }
             }
         }
+        await Task.CompletedTask;
     }
 
     private async Task VerEvaluaciones(BeneficiarioEnVivo benefi)
@@ -360,6 +371,7 @@
                 }
             }
         }
+        await Task.CompletedTask;
     }
 
     private async Task VerificarCompletar(BeneficiarioEnVivo benefi)
@@ -383,6 +395,7 @@
                 }
             }
         }
+        await Task.CompletedTask;
     }
 
     private async Task VerificarCancelar(BeneficiarioEnVivo benefi)
@@ -403,12 +416,14 @@
                 }
             }
         }
+        await Task.CompletedTask;
     }
  
     private async Task CerarModal()
     {
         mostrarCompletar = false;
         mostrarCancelar = false;
+        await Task.CompletedTask;
     }
 
     private async Task VerDetalle(BeneficiarioEnVivo ben)
@@ -425,6 +440,7 @@
                 }
             }
         }
+        await Task.CompletedTask;
     }
 }
 

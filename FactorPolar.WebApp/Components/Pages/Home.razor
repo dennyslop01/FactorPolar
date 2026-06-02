@@ -4,8 +4,8 @@
 
 <PageTitle>Home</PageTitle>
 
-@* <AuthorizeView>
-    <Authorized> *@
+<AuthorizeView>
+    <Authorized>
         <h6>Bienvenido</h6>
         @if (existe)
         {
@@ -152,7 +152,7 @@
                 </MudStack>
             </MudContainer>
         }
-    @* </Authorized>
+    </Authorized>
     <NotAuthorized>
         <div class="row">
             <div class="col-11">
@@ -178,7 +178,7 @@
             </div>
         </div>
     </NotAuthorized>
- </AuthorizeView> *@
+ </AuthorizeView>
 
 @if (cargando)
 {
