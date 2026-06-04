@@ -68,7 +68,7 @@ else
     private string mensajeAlerta = string.Empty;
     private Employee beneficiario = new();
     private string pdfBase64String;
-    private string GetAssetPathWithHash() => "Documentos\\TyC Factor Polar.wdhxwnve93.pdf";
+    private string GetAssetPathWithHash() => "Documentos\\TyC Factor Polar2.wdhxwnve93.pdf";
     private string? userEmail = "nadia.brito@empresaspolar.com";
 
     [Inject] private IEmployee repository { get; set; } = null!;
@@ -135,6 +135,10 @@ else
                 mostrarAlerta = true;
                 existeError = true;
             }
+            else
+            {
+                await LoadAndConvertPdfToBase64Async();
+            }
         }
         catch (Exception ex)
         {
@@ -146,14 +150,6 @@ else
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (beneficiario != null)
-        {
-            if (string.IsNullOrEmpty(pdfBase64String)) 
-            {
-                await LoadAndConvertPdfToBase64Async();
-            }
-        }
-
         if (firstRender && !string.IsNullOrEmpty(pdfBase64String))
         {
             if (beneficiario != null)

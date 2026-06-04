@@ -232,16 +232,19 @@
 
             if(employee != null)
             {
-                if (employee.FechaAceptarTC == null)
+                if (existe == true)
                 {
-                    if (employee.Id != 0)
-                        NavManager.NavigateTo($"/documento1/{employee.Id}");
-                }
+                    if (employee.FechaAceptarTC == null)
+                    {
+                        if (employee.Id != 0)
+                            NavManager.NavigateTo($"/documento1/{employee.Id}");
+                    }
 
-                if (employee.FechaAceptarTC2 == null)
-                {
-                    if (employee.Id != 0)
-                        NavManager.NavigateTo($"/documento2/{employee.Id}");
+                    if (employee.FechaAceptarTC2 == null)
+                    {
+                        if (employee.Id != 0)
+                            NavManager.NavigateTo($"/documento2/{employee.Id}");
+                    }
                 }
             }
 
