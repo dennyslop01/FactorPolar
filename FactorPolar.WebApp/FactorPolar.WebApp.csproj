@@ -17,7 +17,6 @@
     <Content Remove="Components\Pages\Authorize.razor" />
     <Content Remove="Components\Pages\Connect.razor" />
     <Content Remove="Components\Pages\Counter.razor" />
-    <Content Remove="Components\Pages\Documento3.razor" />
     <Content Remove="Components\Pages\Login.razor" />
     <Content Remove="Components\Pages\Ver-pdf-seguro.razor" />
     <Content Remove="Components\Pages\Weather.razor" />

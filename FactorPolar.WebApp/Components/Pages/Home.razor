@@ -106,7 +106,7 @@
         @if(beneficiario.Count > 1)
         {
             <div class="d-flex justify-content-start">
-                <a class="nav-link" title="Términos y Condiciones" href="documento1">
+                <a class="nav-link" title="Términos y Condiciones" href="documento3">
                     Términos y Condiciones
                 </a>
             </div>
@@ -237,13 +237,19 @@
                     if (employee.FechaAceptarTC == null)
                     {
                         if (employee.Id != 0)
+                        {
                             NavManager.NavigateTo($"/documento1/{employee.Id}");
+                            return;
+                        }
                     }
 
                     if (employee.FechaAceptarTC2 == null)
                     {
                         if (employee.Id != 0)
+                        {
                             NavManager.NavigateTo($"/documento2/{employee.Id}");
+                            return;
+                        }
                     }
                 }
             }

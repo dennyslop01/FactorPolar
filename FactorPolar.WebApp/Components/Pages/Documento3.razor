@@ -1,67 +1,35 @@
-﻿@page "/documento3/{Id}"
+﻿@page "/documento3"
 @rendermode InteractiveServer
 
-<h5>Documento 3</h5>
+<h6>Términos y Condiciones</h6>
 
-<p>@datosbenefi</p>
-
-<p>Lea detenidamente el documento hata el final y escriba la palabra "Acepto" para acepyar terminos y condiciones</p>
+<br />
 
 @if (!string.IsNullOrEmpty(pdfBase64String))
 {
-    <iframe id="pdfFrame" style="width:100%; height:500px;" frameborder="0"></iframe>
+    <div id="pdfContainer" style="width: 100%; max-height: 80vh; overflow-y: auto; border: 1px solid #ccc; background-color: #eee;">
+        <!-- Las imágenes del PDF se dibujarán aquí automáticamente mediante JavaScript -->
+    </div>
 }
 else
 {
     <p>Cargando PDF o error al encontrar el archivo...</p>
 }
+
 <br />
 <br />
 
-<EditForm Model="@entidadActual" OnValidSubmit="GuardarDatos">
-    <DataAnnotationsValidator />
-
-    <div class="d-flex justify-content-center">
-        <div class="mb-3">
-            <label class="form-label">Escriba la palabra "Acepto"</label>
-            <InputText class="form-control" @bind-Value="entidadActual.Acepto" maxlength="10" style="width: 90%;" />
-            <ValidationMessage For="@(() => entidadActual.Acepto)" />
-        </div>
-    </div>
-    <div class="d-flex justify-content-center">
-        <button type="submit" class="btn btn-success me-2">
-            <i class="bi bi-save"></i> Guardar
-        </button>
-    </div>
-
-</EditForm>
-@if (mostrarAlerta)
-{
-    <div id="divAlerta" class="alert alert-success alert-dismissible fade show toast-container" role="alert">
-        @mensajeAlerta
-        <button type="button" class="btn-close" @onclick="() => mostrarAlerta = false"></button>
-    </div>
-}
+<div class="d-flex justify-content-center">
+    <button type="button" class="btn boton-postular btn-secondary me-2" @onclick="Regresar">
+        Regresar
+    </button>
+</div>
 <br />
 <br />
 
 @code {
-    [Parameter]
-    public string Id { get; set; }
-
-    public class DocumentoModel
-    {
-        [Required(ErrorMessage = "Debe completar el campo.")]
-        public string Acepto { get; set; } = string.Empty;
-    }
-
-    string datosbenefi = string.Empty;
-    private Beneficiario? beneficiario = new();
-    private string? mensajeAlerta;
-    private bool mostrarAlerta = false;
-    private DocumentoModel entidadActual = new();
     private string pdfBase64String;
-    private string GetAssetPathWithHash() => "Documentos\\Documento3.wdhxwnve93.pdf";
+    private string GetAssetPathWithHash() => "Documentos\\TyC Factor Polar2.wdhxwnve93.pdf";
 
     [Inject] private IBeneficiario repobenefi { get; set; } = null!;
 
@@ -104,17 +72,10 @@ else
     {
         try
         {
-            beneficiario = await repobenefi.GetByIdlAsync(int.Parse(Id));
-            if (beneficiario != null)
-            {
-                datosbenefi = $"{beneficiario.CedulaIdentidad} - {beneficiario.FullName} - {beneficiario.Edad} años";
-                await LoadAndConvertPdfToBase64Async();
-            }
-            entidadActual = new DocumentoModel();
+            await LoadAndConvertPdfToBase64Async();
         }
         catch (Exception ex)
         {
-            datosbenefi = $"Error al cargar datos del beneficiario: {ex.Message}";
         }
     }
 
@@ -122,35 +83,13 @@ else
     {
         if (firstRender && !string.IsNullOrEmpty(pdfBase64String))
         {
-            await jsRuntime.InvokeVoidAsync("loadPdfFromBase64", pdfBase64String);
+            await jsRuntime.InvokeVoidAsync("loadPdfFromBase64", pdfBase64String, "pdfContainer");
         }
     }
 
-    private async Task GuardarDatos()
+    private void Regresar()
     {
-        if (string.IsNullOrEmpty(entidadActual.Acepto) || entidadActual.Acepto.ToLower() != "acepto")
-        {
-            mensajeAlerta = "Debe escribir la palabra Acepto";
-            mostrarAlerta = true;
-            //await JSRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlerta", 8000);
-        }
-        else
-        {
-            try
-            {
-                await repobenefi.UpdateAsync(int.Parse(Id), 3);
-                mensajeAlerta = "Datos guardados correctamente.";
-                mostrarAlerta = true;
-                //await JSRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlerta", 8000);
-                NavManager.NavigateTo($"/editar/{Id}");
-            }
-            catch (Exception ex)
-            {
-                mensajeAlerta = $"Error al guardar los datos: {ex.Message}";
-                mostrarAlerta = true;
-                //await JSRuntime.InvokeVoidAsync("TimeoutHelper.showAndHide", "divAlerta", 8000);
-            }
-        }
+        NavManager.NavigateTo($"/");
     }
 }
 

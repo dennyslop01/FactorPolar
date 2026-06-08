@@ -498,13 +498,13 @@
                 string fileId = beneficiario.RutaNotas.Split('/').Last();
 
                 base64 = await DriveService.GetFileAsync(fileId);
-                await jsRuntime.InvokeVoidAsync("loadPdfFromBase64", base64, "pdfFrame");
+                await jsRuntime.InvokeVoidAsync("loadPdfFrameFromBase64", base64, "pdfFrame");
 
                 if (beneficiario.RutaNotas2 != null)
                 {
                     string fileId2 = beneficiario.RutaNotas2.Split('/').Last();
                     base642 = await DriveService.GetFileAsync(fileId2);
-                    await jsRuntime.InvokeVoidAsync("loadPdfFromBase64", base642, "pdfFrame2");
+                    await jsRuntime.InvokeVoidAsync("loadPdfFrameFromBase64", base642, "pdfFrame2");
                 }
 
                 var userrol = await SessionStorage.GetAsync<string>("UserRol");

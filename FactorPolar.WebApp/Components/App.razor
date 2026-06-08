@@ -57,6 +57,11 @@
             }
         });
     </script>
+    <!-- Carga del script principal mapeado por Blazor 9.0 -->
+    <script src="@Assets["js/pdf.min.js"]"></script>
+    <script>
+        // Blazor 9 resolverá dinámicamente el nombre correcto con todo y la huella digital (fingerprint)
+        pdfjsLib.GlobalWorkerOptions.workerSrc = '@Assets["js/pdf.worker.min.js"]';
+    </script>
 </body>
-
 </html>
