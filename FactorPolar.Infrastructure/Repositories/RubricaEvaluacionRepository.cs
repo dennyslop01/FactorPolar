@@ -31,5 +31,38 @@ namespace FactorPolar.Infrastructure.Repositories
 
             return rubricas;
         }
+
+        public async Task<RubricaEvaluacion?> GetByIdAsync(int id)
+        {
+            using var context = await _contextFactory.CreateDbContextAsync();
+            return await context.Set<RubricaEvaluacion>()
+                .Where(x => x.Id == id)
+                .FirstOrDefaultAsync();
+        }
+        public async Task AddAsync(RubricaEvaluacion entity)
+        {
+            using var context = await _contextFactory.CreateDbContextAsync();
+            await context.Set<RubricaEvaluacion>().AddAsync(entity);
+
+            await context.SaveChangesAsync();
+        }
+
+        public void Update(RubricaEvaluacion entity)
+        {
+            using var context = _contextFactory.CreateDbContext();
+            context.Set<RubricaEvaluacion>().Update(entity);
+            context.SaveChanges();
+        }
+
+        public void Delete(int id)
+        {
+            using var context = _contextFactory.CreateDbContext();
+            var entity = context.Set<RubricaEvaluacion>().Find(id);
+            if (entity != null)
+            {
+                context.Set<RubricaEvaluacion>().Remove(entity);
+                context.SaveChanges();
+            }
+        }
     }
 }

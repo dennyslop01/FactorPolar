@@ -18,5 +18,39 @@ namespace FactorPolar.Infrastructure.Repositories
 
             return grupos!;
         }
+
+        public async Task<GrupoEvaluacion?> GetByIdAsync(int id)
+        {
+            using var context = await _contextFactory.CreateDbContextAsync();
+            return await context.Set<GrupoEvaluacion>()
+                .Where(x => x.Id == id)
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task AddAsync(GrupoEvaluacion entity)
+        {
+            using var context = await _contextFactory.CreateDbContextAsync();
+            await context.Set<GrupoEvaluacion>().AddAsync(entity);
+
+            await context.SaveChangesAsync();
+        }
+
+        public void Update(GrupoEvaluacion entity)
+        {
+            using var context = _contextFactory.CreateDbContext();
+            context.Set<GrupoEvaluacion>().Update(entity);
+            context.SaveChanges();
+        }
+
+        public void Delete(int id)
+        {
+            using var context = _contextFactory.CreateDbContext();
+            var entity = context.Set<GrupoEvaluacion>().Find(id);
+            if (entity != null)
+            {
+                context.Set<GrupoEvaluacion>().Remove(entity);
+                context.SaveChanges();
+            }
+        }
     }
 }

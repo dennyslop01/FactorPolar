@@ -333,10 +333,8 @@
             {
                 //Segunda Fase
                 await LoadUserDataClasificadoAsync();
-
-                //Segunda Fase
-                await LoadAdminDataAsync();
             }
+            await LoadAdminDataAsync();
         }
         catch (Exception ex)
         {
@@ -405,6 +403,11 @@
             if (usuario != null)
             {
                 existeAdminUser1 = true;
+                await SessionStorage.SetAsync("UserEmail", usuario!.Email!.ToString());
+                await SessionStorage.SetAsync("UserId", usuario!.Id.ToString());
+                await SessionStorage.SetAsync("UserRol", usuario!.IdRol.ToString());
+                await SessionStorage.SetAsync("UserCedula", usuario!.Cedula!);
+                //await SessionStorage.SetAsync("UserNombreCorto", $"{nombre}, {apellido}".ToLower());
             }
         }
         await Task.CompletedTask;

@@ -16,5 +16,7 @@ namespace FactorPolar.Domain.Entities
         public string? NombreCorto { get; set; }
         public int? IdRol { get; set; }
         public int? Estatus { get; set; }
+        //public int CreateUserId { get; set; }
+        //public int UpdateUserId { get; set; }
     }
 }

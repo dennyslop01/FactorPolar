@@ -15,5 +15,6 @@ namespace FactorPolar.Infrastructure.DataContext
         public DbSet<BeneficiarioClasificado> BeneficiariosClasificados { get; set; }
         public DbSet<BeneficiarioRubricaEnVivo> BeneficiariosRubricasEnVivo { get; set; }
         public DbSet<BeneficiarioClasificadoVotoWeb> BeneficiariosClasificadosVotoWeb { get; set; }
+        public DbSet<Fases> Fases { get; set; }
     }
 }
