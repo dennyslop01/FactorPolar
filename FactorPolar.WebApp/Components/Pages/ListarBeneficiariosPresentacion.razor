@@ -1,4 +1,4 @@
-﻿@using System.Globalization
+@using System.Globalization
 @using System.Text
 @rendermode InteractiveServer
 
@@ -36,14 +36,15 @@
             <hr />
             <!-- Navegación de Pestañas Estilizada -->
             <ul class="nav nav-pills nav-fill mb-4 bg-light p-2 rounded-pill" id="talentTabs" role="tablist">
-                @foreach (var grupo in GruposConfig)
+                @for (int idx = 0; idx < GruposConfig.Count; idx++)
                 {
+                    var grupo = GruposConfig[idx];
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link rounded-pill @(grupo.Id == 1 ? "active" : "")"
+                        <button class="nav-link rounded-pill @(idx == 0 ? "active" : "")"
                                 id="tab-@grupo.Id" data-bs-toggle="tab" data-bs-target="#panel-@grupo.Id"
                                 type="button" role="tab">
                             <span class="fw-semibold">@grupo.Nombre</span>
-                            <small class="d-block opacity-75">@grupo.Rango</small>
+                            <small class="d-block opacity-75">@grupo.EdadMinima a @grupo.EdadMaxima años</small>
                         </button>
                     </li>
                 }
@@ -51,10 +52,11 @@
 
             <!-- Contenido de las Pestañas -->
             <div class="tab-content" id="talentTabsContent">
-                @for (int i = 1; i <= 4; i++)
+                @for (int idx = 0; idx < GruposConfig.Count; idx++)
                 {
-                    var currentList = GetListById(i);
-                    <div class="tab-pane fade @(i == 1 ? "show active" : "")" id="panel-@i" role="tabpanel">
+                    var grupo = GruposConfig[idx];
+                    var currentList = GetListByGrupo(grupo);
+                    <div class="tab-pane fade @(idx == 0 ? "show active" : "")" id="panel-@grupo.Id" role="tabpanel">
                         <div class="table-responsive">
                             <PaginationComponent TItem="BeneficiarioEnVivo" Items="currentList" DefaultPageSize="10">
                                 <ChildContentHeader>
@@ -171,35 +173,18 @@
     [Inject] private IBeneficiario repobenefi { get; set; } = null!;
     [Inject] private IBeneficiarioClasificado reporubbenefi { get; set; } = null!;
     [Inject] private IBeneficiarioRubricaEnVivo reporubbenefivivo { get; set; } = null!;
+    [Inject] private IGrupoEdad repoGrupoEdad { get; set; } = null!;
 
-    private List<BeneficiarioEnVivo> List1 = new();
-    private List<BeneficiarioEnVivo> List2 = new();
-    private List<BeneficiarioEnVivo> List3 = new();
-    private List<BeneficiarioEnVivo> List4 = new();
+    private List<GrupoEdad> GruposConfig = new();
 
-    private List<GrupoInfo> GruposConfig = new()
-    {
-    new GrupoInfo { Id = 1, Nombre = "Grupo 1", Rango = "6 a 8 años" },
-    new GrupoInfo { Id = 2, Nombre = "Grupo 2", Rango = "9 a 11 años" },
-    new GrupoInfo { Id = 3, Nombre = "Grupo 3", Rango = "12 a 14 años" },
-    new GrupoInfo { Id = 4, Nombre = "Grupo 4", Rango = "15 a 17 años" }
-    };
-
-    private List<BeneficiarioEnVivo> GetListById(int id) => id switch
-    {
-        1 => List1,
-        2 => List2,
-        3 => List3,
-        4 => List4,
-        _ => new List<BeneficiarioEnVivo>()
-    };
-
-    public class GrupoInfo { public int Id { get; set; } public string Nombre { get; set; } public string Rango { get; set; } }
+    private List<BeneficiarioEnVivo> GetListByGrupo(GrupoEdad grupo) =>
+        Listgral.Where(b => b.Edad >= grupo.EdadMinima && b.Edad <= grupo.EdadMaxima).ToList();
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
+            GruposConfig = await repoGrupoEdad.GetAllAsync() ?? new();
             await LoadBenefiDataAsync();
         }
         catch (Exception ex)
@@ -238,11 +223,6 @@
                         });
                 }
             }
-
-            List1 = Listgral.Where(b => b.Edad >= 6 && b.Edad <= 8).ToList();
-            List2 = Listgral.Where(b => b.Edad >= 9 && b.Edad <= 11).ToList();
-            List3 = Listgral.Where(b => b.Edad >= 12 && b.Edad <= 14).ToList();
-            List4 = Listgral.Where(b => b.Edad >= 15 && b.Edad <= 17).ToList();
         }
         else
         {
@@ -264,11 +244,6 @@
                         });
                 }
             }
-
-            List1 = Listgral.Where(b => b.Edad >= 6 && b.Edad <= 8).ToList();
-            List2 = Listgral.Where(b => b.Edad >= 9 && b.Edad <= 11).ToList();
-            List3 = Listgral.Where(b => b.Edad >= 12 && b.Edad <= 14).ToList();
-            List4 = Listgral.Where(b => b.Edad >= 15 && b.Edad <= 17).ToList();
         }
         ListgralBuscar = Listgral;
         vistaGeneral = true;
@@ -288,11 +263,6 @@
         {
             var lowerSearchTerm = searchTerm.ToLower();
             Listgral = ListgralBuscar.Where(b => b.FullName.ToLower().Contains(lowerSearchTerm)).ToList();
-
-            List1 = Listgral.Where(b => b.Edad >= 6 && b.Edad <= 8).ToList();
-            List2 = Listgral.Where(b => b.Edad >= 9 && b.Edad <= 11).ToList();
-            List3 = Listgral.Where(b => b.Edad >= 12 && b.Edad <= 14).ToList();
-            List4 = Listgral.Where(b => b.Edad >= 15 && b.Edad <= 17).ToList();
         }
         StateHasChanged();
         await Task.CompletedTask;

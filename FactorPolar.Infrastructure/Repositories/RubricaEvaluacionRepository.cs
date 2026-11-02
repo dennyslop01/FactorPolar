@@ -1,4 +1,4 @@
-﻿using FactorPolar.Application.Interfaces;
+using FactorPolar.Application.Interfaces;
 using FactorPolar.Domain.Entities;
 using FactorPolar.Infrastructure.DataContext;
 using Microsoft.EntityFrameworkCore;
@@ -36,12 +36,17 @@ namespace FactorPolar.Infrastructure.Repositories
         {
             using var context = await _contextFactory.CreateDbContextAsync();
             return await context.Set<RubricaEvaluacion>()
+                .Include(b => b.GrupoEvaluacion)
                 .Where(x => x.Id == id)
                 .FirstOrDefaultAsync();
         }
         public async Task AddAsync(RubricaEvaluacion entity)
         {
             using var context = await _contextFactory.CreateDbContextAsync();
+            if (entity.GrupoEvaluacion != null)
+            {
+                context.Attach(entity.GrupoEvaluacion);
+            }
             await context.Set<RubricaEvaluacion>().AddAsync(entity);
 
             await context.SaveChangesAsync();
@@ -50,6 +55,10 @@ namespace FactorPolar.Infrastructure.Repositories
         public void Update(RubricaEvaluacion entity)
         {
             using var context = _contextFactory.CreateDbContext();
+            if (entity.GrupoEvaluacion != null)
+            {
+                context.Entry(entity.GrupoEvaluacion).State = EntityState.Unchanged;
+            }
             context.Set<RubricaEvaluacion>().Update(entity);
             context.SaveChanges();
         }

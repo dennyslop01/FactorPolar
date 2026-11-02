@@ -1,4 +1,4 @@
-﻿using FactorPolar.Application.Interfaces;
+using FactorPolar.Application.Interfaces;
 using FactorPolar.Domain.Entities;
 using FactorPolar.Infrastructure.DataContext;
 using Microsoft.EntityFrameworkCore;
@@ -50,6 +50,22 @@ namespace FactorPolar.Infrastructure.Repositories
             using var context = _contextFactory.CreateDbContext();
             context.Set<Fases>().Update(entity);
             context.SaveChanges();
+
+            if (entity.Estatus == 1)
+            {
+                var otrasFases = context.Fases
+                    .Where(f => f.Id != entity.Id && f.Estatus != 0)
+                    .ToList();
+                foreach (var fase in otrasFases)
+                {
+                    fase.Estatus = 0; // Inhabilitar la fase
+                    context.Fases.Update(fase);
+                }
+                if (otrasFases.Count > 0)
+                {
+                    context.SaveChanges();
+                }
+            }
         }
 
         public void Delete(int id)

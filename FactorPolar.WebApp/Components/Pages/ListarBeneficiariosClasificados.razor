@@ -1,4 +1,4 @@
-﻿@using System.Globalization
+@using System.Globalization
 @using System.Text
 @rendermode InteractiveServer
 
@@ -95,14 +95,15 @@
             {
                 <!-- Navegación de Pestañas Estilizada -->
                 <ul class="nav nav-pills nav-fill mb-4 bg-light p-2 rounded-pill" id="talentTabs" role="tablist">
-                    @foreach (var grupo in GruposConfig)
+                    @for (int idx = 0; idx < GruposConfig.Count; idx++)
                     {
+                        var grupo = GruposConfig[idx];
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link rounded-pill @(grupo.Id == 1 ? "active" : "")"
+                            <button class="nav-link rounded-pill @(idx == 0 ? "active" : "")"
                                     id="tab-@grupo.Id" data-bs-toggle="tab" data-bs-target="#panel-@grupo.Id"
                                     type="button" role="tab">
                                 <span class="fw-semibold">@grupo.Nombre</span>
-                                <small class="d-block opacity-75">@grupo.Rango</small>
+                                <small class="d-block opacity-75">@grupo.EdadMinima a @grupo.EdadMaxima años</small>
                             </button>
                         </li>
                     }
@@ -110,10 +111,11 @@
 
                 <!-- Contenido de las Pestañas -->
                 <div class="tab-content" id="talentTabsContent">
-                    @for (int i = 1; i <= 4; i++)
+                    @for (int idx = 0; idx < GruposConfig.Count; idx++)
                     {
-                        var currentList = GetListById(i);
-                        <div class="tab-pane fade @(i == 1 ? "show active" : "")" id="panel-@i" role="tabpanel">
+                        var grupo = GruposConfig[idx];
+                        var currentList = GetListByGrupo(grupo);
+                        <div class="tab-pane fade @(idx == 0 ? "show active" : "")" id="panel-@grupo.Id" role="tabpanel">
                             <div class="table-responsive">
                                 <PaginationComponent TItem="BeneficiarioPuntaje" Items="currentList" DefaultPageSize="10">
                                     <ChildContentHeader>
@@ -209,38 +211,22 @@
 
     private List<BeneficiarioPuntaje> Listgral = new();
     private List<BeneficiarioPuntaje> ListgralBuscar = new();
-    private List<BeneficiarioPuntaje> List1 = new();
-    private List<BeneficiarioPuntaje> List2 = new();
-    private List<BeneficiarioPuntaje> List3 = new();
-    private List<BeneficiarioPuntaje> List4 = new();
 
-    private List<GrupoInfo> GruposConfig = new()
-    {
-        new GrupoInfo { Id = 1, Nombre = "Grupo 1", Rango = "6 a 8 años" },
-        new GrupoInfo { Id = 2, Nombre = "Grupo 2", Rango = "9 a 11 años" },
-        new GrupoInfo { Id = 3, Nombre = "Grupo 3", Rango = "12 a 14 años" },
-        new GrupoInfo { Id = 4, Nombre = "Grupo 4", Rango = "15 a 17 años" }
-    };
+    private List<GrupoEdad> GruposConfig = new();
 
     private string searchTerm = "";
     [Inject] private IBeneficiario repobenefi { get; set; } = null!;
     [Inject] private IBeneficiarioRubrica reporubbenefi { get; set; } = null!;
+    [Inject] private IGrupoEdad repoGrupoEdad { get; set; } = null!;
 
-
-    public class GrupoInfo { public int Id { get; set; } public string Nombre { get; set; } public string Rango { get; set; } }
-    private List<BeneficiarioPuntaje> GetListById(int id) => id switch
-    {
-        1 => List1,
-        2 => List2,
-        3 => List3,
-        4 => List4,
-        _ => new List<BeneficiarioPuntaje>()
-    };
+    private List<BeneficiarioPuntaje> GetListByGrupo(GrupoEdad grupo) =>
+        Listgral.Where(b => b.Edad >= grupo.EdadMinima && b.Edad <= grupo.EdadMaxima).ToList();
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
+            GruposConfig = await repoGrupoEdad.GetAllAsync() ?? new();
             await LoadBenefiDataAsync();
         }
         catch (Exception ex)
@@ -285,27 +271,23 @@
 
         if (TotalSelectGrupo1 > 0)
         {
-            List1 = Listgral.Where(b => b.Edad >= 6 && b.Edad <= 8).OrderByDescending(x=> x.Puntaje).ToList();
-            var puntajeCorte = List1.ElementAtOrDefault(TotalSelectGrupo1 - 1)?.Puntaje ?? 0;
-            List1 = List1.Where(x => x.Puntaje >= puntajeCorte).ToList();
+            int[] limitesPorGrupo = new[] { TotalSelectGrupo1, TotalSelectGrupo2, TotalSelectGrupo3, TotalSelectGrupo4 };
+            var seleccionadosPorGrupo = new List<BeneficiarioPuntaje>();
 
-            List2 = Listgral.Where(b => b.Edad >= 9 && b.Edad <= 11).OrderByDescending(x => x.Puntaje).ToList();
-            puntajeCorte = List2.ElementAtOrDefault(TotalSelectGrupo2 - 1)?.Puntaje ?? 0;
-            List2 = List2.Where(x => x.Puntaje >= puntajeCorte).ToList();
-
-            List3 = Listgral.Where(b => b.Edad >= 12 && b.Edad <= 14).OrderByDescending(x => x.Puntaje).ToList();
-            puntajeCorte = List3.ElementAtOrDefault(TotalSelectGrupo3 - 1)?.Puntaje ?? 0;
-            List3 = List3.Where(x => x.Puntaje >= puntajeCorte).ToList();
-
-            List4 = Listgral.Where(b => b.Edad >= 15 && b.Edad <= 17).OrderByDescending(x => x.Puntaje).ToList();
-            puntajeCorte = List4.ElementAtOrDefault(TotalSelectGrupo4 - 1)?.Puntaje ?? 0;
-            List4 = List4.Where(x => x.Puntaje >= puntajeCorte).ToList();
+            for (int idx = 0; idx < GruposConfig.Count; idx++)
+            {
+                var grupo = GruposConfig[idx];
+                int limiteGrupo = idx < limitesPorGrupo.Length ? limitesPorGrupo[idx] : TotalSelectGrupo1;
+                var listaGrupo = Listgral
+                    .Where(b => b.Edad >= grupo.EdadMinima && b.Edad <= grupo.EdadMaxima)
+                    .OrderByDescending(x => x.Puntaje)
+                    .ToList();
+                var puntajeCorte = listaGrupo.ElementAtOrDefault(limiteGrupo - 1)?.Puntaje ?? 0;
+                seleccionadosPorGrupo.AddRange(listaGrupo.Where(x => x.Puntaje >= puntajeCorte));
+            }
 
             Listgral.Clear();
-            Listgral.AddRange(List1);
-            Listgral.AddRange(List2);
-            Listgral.AddRange(List3);
-            Listgral.AddRange(List4);
+            Listgral.AddRange(seleccionadosPorGrupo);
 
             ListgralBuscar = Listgral;
             vistaGrupos = true;
@@ -333,14 +315,6 @@
         {
             var lowerSearchTerm = searchTerm.ToLower();
             Listgral = ListgralBuscar.Where(b => b.FullName.ToLower().Contains(lowerSearchTerm)).ToList();
-
-            if(vistaGrupos)
-            {
-                List1 = Listgral.Where(b => b.Edad >= 6 && b.Edad <= 8).ToList();
-                List2 = Listgral.Where(b => b.Edad >= 9 && b.Edad <= 11).ToList();
-                List3 = Listgral.Where(b => b.Edad >= 12 && b.Edad <= 14).ToList();
-                List4 = Listgral.Where(b => b.Edad >= 15 && b.Edad <= 17).ToList();
-            }
         }
         StateHasChanged();
     }
@@ -433,7 +407,6 @@
             // Lógica para construir la cadena CSV
             var sb = new StringBuilder();
 
-            int i = 0;
             string encabezado = string.Empty;
             encabezado += $"No. Pers{separador}Nombre del Beneficiario{separador}Fecha Nacimiento{separador}Edad{separador}Puntaje";
 

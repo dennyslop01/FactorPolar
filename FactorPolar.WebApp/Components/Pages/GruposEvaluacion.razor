@@ -1,0 +1,481 @@
+@page "/grupos"
+@rendermode InteractiveServer
+
+<div class="container-fluid mt-4">
+    <!-- Cabecera Principal con Botón Agregar -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white py-3">
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                    <div class="bg-primary p-2 rounded-3 me-3 shadow-sm" style="background-color: #00338D !important;">
+                        <i class="bi bi-collection-fill text-white fs-5"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0 fw-bold text-dark">
+                            Gestión de Grupos de Evaluación
+                        </h5>
+                        <small class="text-muted">Administración de grupos por etapa de evaluación</small>
+                    </div>
+                </div>
+
+                @if (idRol == 1 || idRol == 2)
+                {
+                    <button class="btn btn-primary btn-sm px-3 shadow-sm d-flex align-items-center"
+                            @onclick="AbrirModalNuevo"
+                            style="height: 36px; font-weight: 500; border-radius: 8px; background-color: #00338D !important;">
+                        <i class="bi bi-plus-lg me-2"></i> Agregar Grupo
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista 1: Evaluación Inicial -->
+    <div class="card shadow-sm border-0 h-auto mb-4">
+        <div class="card-header bg-white py-3 border-bottom">
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle p-2 rounded-3 me-2">
+                        <i class="bi bi-clipboard-check fs-6"></i>
+                    </span>
+                    <h6 class="mb-0 fw-bold text-dark">Grupos de Evaluación Inicial</h6>
+                </div>
+                <span class="badge bg-light text-secondary border">@ListInicial.Count registros</span>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <div class="table-responsive">
+                <PaginationComponent TItem="GrupoEvaluacion" Items="ListInicial" DefaultPageSize="10">
+                    <ChildContentHeader>
+                        <tr class="table-light border-bottom">
+                            <th class="py-3 ps-3 text-secondary fw-bold" style="width: 8%; font-size: 0.85rem;">#</th>
+                            <th class="py-3 text-secondary fw-bold" style="width: 37%; font-size: 0.85rem;">Nombre del Grupo</th>
+                            <th class="py-3 text-secondary fw-bold text-center" style="width: 15%; font-size: 0.85rem;">Etapa</th>
+                            <th class="py-3 text-secondary fw-bold text-center" style="width: 15%; font-size: 0.85rem;">Fecha Creación</th>
+                            <th class="py-3 text-secondary fw-bold text-center" style="width: 15%; font-size: 0.85rem;">Última Modificación</th>
+                            <th class="py-3 pe-3 text-secondary fw-bold text-end" style="width: 10%; font-size: 0.85rem;">Acciones</th>
+                        </tr>
+                    </ChildContentHeader>
+                    <ChildContentRow Context="p">
+                        <tr class="align-middle border-bottom">
+                            <td class="ps-3" style="width: 8%;"><span class="text-muted small">@p.Id</span></td>
+                            <td class="text-start fw-medium text-dark" style="width: 37%;">@p.NombreGrupo</td>
+                            <td class="text-center" style="width: 15%;">
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">
+                                    Evaluación Inicial
+                                </span>
+                            </td>
+                            <td class="text-center text-secondary small" style="width: 15%;">@p.CreateDate.ToShortDateString()</td>
+                            <td class="text-center text-secondary small" style="width: 15%;">@p.UpdateDate.ToShortDateString()</td>
+                            <td class="text-end pe-3" style="width: 10%;">
+                                @if (idRol == 1 || idRol == 2)
+                                {
+                                    <button class="btn btn-link btn-sm text-primary p-0 me-2" @onclick="() => Editar(p)" title="Editar Grupo">
+                                        <i class="bi bi-pencil-square fs-6"></i>
+                                    </button>
+                                    <button class="btn btn-link btn-sm text-danger p-0"
+                                            @onclick="() => VerificarEliminar(p)" title="Eliminar Grupo">
+                                        <i class="bi bi-trash3 fs-6"></i>
+                                    </button>
+                                }
+                            </td>
+                        </tr>
+                    </ChildContentRow>
+                </PaginationComponent>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista 2: Presentación en Vivo (Final) -->
+    <div class="card shadow-sm border-0 h-auto mb-4">
+        <div class="card-header bg-white py-3 border-bottom">
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                    <span class="badge bg-info-subtle text-info border border-info-subtle p-2 rounded-3 me-2">
+                        <i class="bi bi-broadcast fs-6"></i>
+                    </span>
+                    <h6 class="mb-0 fw-bold text-dark">Grupos de Presentación en Vivo (Final)</h6>
+                </div>
+                <span class="badge bg-light text-secondary border">@ListEnVivo.Count registros</span>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <div class="table-responsive">
+                <PaginationComponent TItem="GrupoEvaluacion" Items="ListEnVivo" DefaultPageSize="10">
+                    <ChildContentHeader>
+                        <tr class="table-light border-bottom">
+                            <th class="py-3 ps-3 text-secondary fw-bold" style="width: 8%; font-size: 0.85rem;">#</th>
+                            <th class="py-3 text-secondary fw-bold" style="width: 37%; font-size: 0.85rem;">Nombre del Grupo</th>
+                            <th class="py-3 text-secondary fw-bold text-center" style="width: 15%; font-size: 0.85rem;">Etapa</th>
+                            <th class="py-3 text-secondary fw-bold text-center" style="width: 15%; font-size: 0.85rem;">Fecha Creación</th>
+                            <th class="py-3 text-secondary fw-bold text-center" style="width: 15%; font-size: 0.85rem;">Última Modificación</th>
+                            <th class="py-3 pe-3 text-secondary fw-bold text-end" style="width: 10%; font-size: 0.85rem;">Acciones</th>
+                        </tr>
+                    </ChildContentHeader>
+                    <ChildContentRow Context="p">
+                        <tr class="align-middle border-bottom">
+                            <td class="ps-3" style="width: 8%;"><span class="text-muted small">@p.Id</span></td>
+                            <td class="text-start fw-medium text-dark" style="width: 37%;">@p.NombreGrupo</td>
+                            <td class="text-center" style="width: 15%;">
+                                <span class="badge bg-info-subtle text-info border border-info-subtle px-2 py-1">
+                                    Presentación en Vivo
+                                </span>
+                            </td>
+                            <td class="text-center text-secondary small" style="width: 15%;">@p.CreateDate.ToShortDateString()</td>
+                            <td class="text-center text-secondary small" style="width: 15%;">@p.UpdateDate.ToShortDateString()</td>
+                            <td class="text-end pe-3" style="width: 10%;">
+                                @if (idRol == 1 || idRol == 2)
+                                {
+                                    <button class="btn btn-link btn-sm text-primary p-0 me-2" @onclick="() => Editar(p)" title="Editar Grupo">
+                                        <i class="bi bi-pencil-square fs-6"></i>
+                                    </button>
+                                    <button class="btn btn-link btn-sm text-danger p-0"
+                                            @onclick="() => VerificarEliminar(p)" title="Eliminar Grupo">
+                                        <i class="bi bi-trash3 fs-6"></i>
+                                    </button>
+                                }
+                            </td>
+                        </tr>
+                    </ChildContentRow>
+                </PaginationComponent>
+            </div>
+        </div>
+    </div>
+
+    @if (mostrarAlerta)
+    {
+        <div class="alerta-top shadow-sm animate__animated animate__fadeInDown">
+            <div class="alert @claseAlerta d-flex align-items-center mb-0 px-4 py-2 border-0 shadow-lg" role="alert">
+                <i class="bi @iconoAlerta me-2 fs-5"></i>
+                <div class="fw-bold">
+                    @mensajeAlerta
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@if (cargando || guardando)
+{
+    <ModalCargando />
+}
+
+@if (mostrarModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; overflow: hidden;">
+                <div class="modal-header text-white" style="background-color: #00338D;">
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi @(entidadEditando.Id == 0 ? "bi-plus-circle" : "bi-pencil-square") me-2"></i>
+                        @(entidadEditando.Id == 0 ? "Agregar Grupo de Evaluación" : "Modificar Grupo de Evaluación")
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" @onclick="CerrarModal" disabled="@guardando"></button>
+                </div>
+                <div class="modal-body py-4 px-4">
+                    <!-- Campo Nombre del Grupo -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-secondary small text-uppercase">Nombre del Grupo</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-collection"></i></span>
+                            <input type="text" class="form-control" @bind="entidadEditando.NombreGrupo"
+                                   placeholder="Ingrese el nombre del grupo..." disabled="@guardando" />
+                        </div>
+                    </div>
+
+                    <!-- Campo Tipo de Evaluación (Lista desplegable) -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-secondary small text-uppercase">Pertenece a</label>
+                        <select class="form-select" @bind="entidadEditando.TipoEvaluacion" disabled="@guardando">
+                            <option value="" disabled selected>Seleccione una etapa...</option>
+                            @if (ListaTiposEvaluacion != null)
+                            {
+                                @foreach (var tipo in ListaTiposEvaluacion)
+                                {
+                                    <option value="@tipo.Id">@tipo.Nombre</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-top">
+                    <button type="button" class="btn btn-outline-secondary btn-sm px-4" @onclick="CerrarModal" disabled="@guardando">Cancelar</button>
+                    <button type="button" class="btn btn-primary btn-sm px-4 shadow-sm" @onclick="GuardarCambios" disabled="@guardando" style="background-color: #00338D !important;">
+                        @if (guardando)
+                        {
+                            <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                            <span>Guardando...</span>
+                        }
+                        else
+                        {
+                            <i class="bi bi-save me-1"></i>
+                            <span>Guardar</span>
+                        }
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (mostrarModalEliminar)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; overflow: hidden;">
+                <div class="modal-body text-center py-4 px-4">
+                    <div class="rounded-circle bg-danger-subtle text-danger d-inline-flex p-3 mb-3">
+                        <i class="bi bi-exclamation-octagon fs-2"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark">¿Estás seguro?</h5>
+                    <p class="text-secondary small mb-0">
+                        Vas a eliminar el grupo <strong>@entidadParaEliminar?.NombreGrupo</strong>. Esta acción no se puede deshacer.
+                    </p>
+                </div>
+                <div class="modal-footer bg-light border-0 d-flex justify-content-center pb-4 gap-2">
+                    <button class="btn btn-outline-secondary btn-sm px-4" @onclick="CerrarModalEliminar" disabled="@guardando">Cancelar</button>
+                    <button class="btn btn-danger btn-sm px-4 shadow-sm" @onclick="ConfirmarEliminar" disabled="@guardando">
+                        @if (guardando)
+                        {
+                            <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                            <span>Eliminando...</span>
+                        }
+                        else
+                        {
+                            <span>Eliminar</span>
+                        }
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<GrupoEvaluacion> Listgral = new();
+    private List<GrupoEvaluacion> ListInicial = new();
+    private List<GrupoEvaluacion> ListEnVivo = new();
+    private bool cargando = false;
+    private bool guardando = false;
+    private bool mostrarModal = false;
+    private string mensajeAlerta = "";
+    private bool mostrarAlerta = false;
+    private string claseAlerta = "alert-success"; // Por defecto verde
+    private string iconoAlerta = "bi-check-circle-fill";
+    private bool mostrarModalEliminar = false;
+    private GrupoEvaluacion entidadEditando = default!;
+    private GrupoEvaluacion? entidadParaEliminar;
+    private int idRol = 0;
+
+    private List<ElementoLista> ListaTiposEvaluacion { get; set; } = new();
+
+    public class ElementoLista
+    {
+        public int Id { get; set; }
+        public string Nombre { get; set; } = string.Empty;
+    }
+
+    [Inject] private IGrupoEvaluacion repository { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var userrolaux = await SessionStorage.GetAsync<string>("UserRol");
+            if (userrolaux.Success && !string.IsNullOrEmpty(userrolaux.Value))
+            {
+                if (int.TryParse(userrolaux.Value, out var rolVal))
+                {
+                    idRol = rolVal;
+                }
+            }
+        }
+        catch
+        {
+            // Silencioso en prerenderizado SSR: JSInterop (SessionStorage) requiere circuito interactivo
+        }
+        CargarListasLocales();
+        await LoadGenericDataAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                var userrolaux = await SessionStorage.GetAsync<string>("UserRol");
+                if (userrolaux.Success && !string.IsNullOrEmpty(userrolaux.Value))
+                {
+                    if (int.TryParse(userrolaux.Value, out var rolVal) && idRol != rolVal)
+                    {
+                        idRol = rolVal;
+                        StateHasChanged();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error hidratando rol en AfterRender: {ex.Message}");
+            }
+        }
+    }
+
+    private void CargarListasLocales()
+    {
+        ListaTiposEvaluacion = new List<ElementoLista>
+        {
+            new ElementoLista { Id = 1, Nombre = "Evaluación Inicial" },
+            new ElementoLista { Id = 2, Nombre = "Presentación en Vivo (Final)" }
+        };
+    }
+
+    private async Task LoadGenericDataAsync()
+    {
+        cargando = true;
+        try
+        {
+            Listgral = await repository.GetAllAsync() ?? new();
+            ListInicial = Listgral.Where(x => x.TipoEvaluacion == 1).ToList();
+            ListEnVivo = Listgral.Where(x => x.TipoEvaluacion == 2).ToList();
+        }
+        catch (Exception ex)
+        {
+            cargando = false;
+            StateHasChanged();
+            await MostrarNotificacion("No se pudieron cargar los datos " + ex.Message.ToString(), true);
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private void AbrirModalNuevo()
+    {
+        entidadEditando = new();
+        entidadEditando.CreateDate = DateTime.Now;
+        entidadEditando.UpdateDate = DateTime.Now;
+
+        mostrarModal = true;
+    }
+
+    private void Editar(GrupoEvaluacion item)
+    {
+        entidadEditando = item;
+        mostrarModal = true;
+    }
+
+    private void CerrarModal() => mostrarModal = false;
+
+    private async Task GuardarCambios()
+    {
+        if (guardando) return;
+        guardando = true;
+        StateHasChanged();
+
+        try
+        {
+            // 1. Validación de Nombre del Grupo
+            if (string.IsNullOrWhiteSpace(entidadEditando.NombreGrupo))
+            {
+                await MostrarNotificacion("El nombre del grupo es obligatorio.", true);
+                return;
+            }
+
+            // 2. Validación de Tipo de Evaluación
+            if (string.IsNullOrWhiteSpace(entidadEditando.TipoEvaluacion.ToString()))
+            {
+                await MostrarNotificacion("Debe seleccionar a qué etapa pertenece el grupo.", true);
+                return;
+            }
+
+            var useridaux = await SessionStorage.GetAsync<string>("UserId");
+            if (!string.IsNullOrEmpty(useridaux.Value))
+            {
+                int userid = int.Parse(useridaux.Value);
+
+                entidadEditando.UpdateDate = DateTime.Now;
+
+                if (entidadEditando.Id == 0)
+                {
+                    entidadEditando.CreateDate = DateTime.Now;
+
+                    await repository.AddAsync(entidadEditando);
+
+                    mostrarModal = false;
+                    await LoadGenericDataAsync();
+                    await MostrarNotificacion($"Grupo de evaluación guardado correctamente");
+                }
+                else
+                {
+                    repository.Update(entidadEditando);
+
+                    mostrarModal = false;
+                    await LoadGenericDataAsync();
+                    await MostrarNotificacion($"Grupo de evaluación actualizado correctamente");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+            await MostrarNotificacion("Error al procesar la solicitud: " + ex.Message, true);
+        }
+        finally
+        {
+            guardando = false;
+            StateHasChanged();
+        }
+    }
+
+    private void VerificarEliminar(GrupoEvaluacion item)
+    {
+        entidadParaEliminar = item;
+        mostrarModalEliminar = true;
+    }
+
+    private void CerrarModalEliminar() => mostrarModalEliminar = false;
+
+    private async Task ConfirmarEliminar()
+    {
+        if (entidadParaEliminar == null || guardando) return;
+        guardando = true;
+        StateHasChanged();
+
+        try
+        {
+            repository.Delete(entidadParaEliminar.Id);
+            mostrarModalEliminar = false;
+            await LoadGenericDataAsync();
+            await MostrarNotificacion($"Grupo de evaluación eliminado correctamente");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al eliminar: {ex.Message}");
+            await MostrarNotificacion("No se pudo eliminar el registro", true);
+        }
+        finally
+        {
+            guardando = false;
+            entidadParaEliminar = null;
+            StateHasChanged();
+        }
+    }
+
+    private async Task MostrarNotificacion(string mensaje, bool esError = false)
+    {
+        mensajeAlerta = mensaje;
+        claseAlerta = esError ? "alert-danger" : "alert-success";
+        iconoAlerta = esError ? "bi-exclamation-triangle-fill" : "bi-check-circle-fill";
+
+        mostrarAlerta = true;
+        StateHasChanged();
+
+        await Task.Delay(4000);
+        mostrarAlerta = false;
+        StateHasChanged();
+    }
+}

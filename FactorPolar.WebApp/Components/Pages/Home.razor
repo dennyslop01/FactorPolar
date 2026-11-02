@@ -4,8 +4,8 @@
 
 <PageTitle>Home</PageTitle>
 
-<AuthorizeView>
-    <Authorized>
+@* <AuthorizeView>
+    <Authorized> *@
         <h6>Bienvenido</h6>
         @if (existe)
         {
@@ -121,22 +121,26 @@
         @if (existeAdminUser || existeUser)
         {
             <strong><label class="form-label">@userName</label></strong>
-            if (DateTime.Now.Month > 10 && DateTime.Now.Month <= 12)
+            switch (faseActiva)
             {
-                //Primera Fase
-                <ListarGruposParticipantes />
-            }
-            else if (DateTime.Now.Month > 3 && DateTime.Now.Month < 8)
-            {
-                //Segunda Fase
-                @if (existeAdminUser)
-                {
-                    <ListarBeneficiariosPresentacion />
-                }
-                else if (existeUser)
-                {
-                    <ListarBeneficiariosPresentacionUser />
-                }
+                case 1:
+                    //Primera Fase
+                    <ListarGruposParticipantes />
+                    break;
+                case 2:
+                    //Segunda Fase
+                    @if (existeAdminUser)
+                    {
+                        <ListarBeneficiariosPresentacion />
+                    }
+                    else if (existeUser)
+                    {
+                        <ListarBeneficiariosPresentacionUser />
+                    }
+                    break;
+                default:
+                    //Fase no definida
+                    break;
             }
             <br />
             <hr />
@@ -152,7 +156,7 @@
                 </MudStack>
             </MudContainer>
         }
-    </Authorized>
+    @* </Authorized>
     <NotAuthorized>
         <div class="row">
             <div class="col-11">
@@ -178,7 +182,7 @@
             </div>
         </div>
     </NotAuthorized>
- </AuthorizeView>
+ </AuthorizeView> *@
 
 @if (cargando)
 {
@@ -214,10 +218,12 @@
     private string? employeeName;
     private string? employeeNumber;
     private int? userrol = 0;
+    private int? faseActiva = 0;
 
     [Inject] private IEmployee repoemployee { get; set; } = null!;
     [Inject] private IBeneficiario repobenefi { get; set; } = null!;
     [Inject] private IUsuario repousuario { get; set; } = null!;
+    [Inject] private IFases repository { get; set; } = null!;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -323,16 +329,24 @@
             string nombre = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value;
             string apellido = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Surname)?.Value;
 
-            userName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase($"{nombre}, {apellido}".ToLower());            
-            if (DateTime.Now.Month > 10 && DateTime.Now.Month <= 12)
+            userName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase($"{nombre}, {apellido}".ToLower());
+            
+            var fase = await repository.GetAllAsync();
+            faseActiva = fase.Where(x => x.Estatus == 1).Select(x => x.Id).FirstOrDefault();
+
+            switch (faseActiva)
             {
-                //Primera Fase
-                await LoadUserDataAsync();
-            }
-            else if (DateTime.Now.Month > 3 && DateTime.Now.Month < 8)
-            {
-                //Segunda Fase
-                await LoadUserDataClasificadoAsync();
+                case 1:
+                    //Primera Fase
+                    await LoadUserDataAsync();
+                    break;
+                case 2:
+                    //Segunda Fase
+                    await LoadUserDataClasificadoAsync();
+                    break;
+                default:
+                    //Fase no definida
+                    break;
             }
             await LoadAdminDataAsync();
         }

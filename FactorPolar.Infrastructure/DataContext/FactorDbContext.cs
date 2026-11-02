@@ -1,4 +1,4 @@
-﻿using FactorPolar.Domain.Entities;
+using FactorPolar.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace FactorPolar.Infrastructure.DataContext
@@ -16,5 +16,6 @@ namespace FactorPolar.Infrastructure.DataContext
         public DbSet<BeneficiarioRubricaEnVivo> BeneficiariosRubricasEnVivo { get; set; }
         public DbSet<BeneficiarioClasificadoVotoWeb> BeneficiariosClasificadosVotoWeb { get; set; }
         public DbSet<Fases> Fases { get; set; }
+        public DbSet<GrupoEdad> GruposEdades { get; set; }
     }
 }
